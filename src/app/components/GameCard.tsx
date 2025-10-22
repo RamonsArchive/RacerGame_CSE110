@@ -28,11 +28,11 @@ const GameCard = ({ game }: { game: GameType }) => {
             </h1>
             <div className="flex">
               {type === "main" ? (
-                <div className="flex flex-center bg-gradient-to-r from-primary-100 to-primary-200 text-white rounded-full px-3 py-1 shadow-md">
+                <div className="flex flex-center bg-gradient-to-r from-primary-200 to-primary-300 text-white rounded-full px-3 py-1 shadow-md">
                   <p className="text-sm font-bold">Main Game</p>
                 </div>
               ) : (
-                <div className="flex flex-center bg-gradient-to-r from-secondary-100 to-secondary-200 text-white rounded-full px-3 py-1 shadow-md">
+                <div className="flex flex-center bg-gradient-to-r from-secondary-200 to-secondary-300 text-white rounded-full px-3 py-1 shadow-md">
                   <p className="text-sm font-bold">Mini Game</p>
                 </div>
               )}

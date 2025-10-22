@@ -1,4 +1,5 @@
 import { GameType } from "@/lib/GlobalTypes";
+
 export const GAMES: GameType[] = [
   {
     id: "typeracer",
