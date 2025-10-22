@@ -1,26 +1,137 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #B2EBF2;
+  --foreground: #006064;
 }
+
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --breakpoint-xs: 380px;
+  
+  /* Primary Color - Teal/Cyan (Main background gradient) */
+  --color-primary-50: #E0F7FA;    /* Very light cyan */
+  --color-primary-100: #B2EBF2;   /* Light cyan */
+  --color-primary-200: #80DEEA;   /* Lighter cyan */
+  --color-primary-300: #4DD0E1;   /* Medium-light cyan */
+  --color-primary-400: #26C6DA;   /* Medium cyan */
+  --color-primary-500: #00BCD4;   /* Base cyan/teal */
+  --color-primary-600: #00ACC1;   /* Darker cyan */
+  --color-primary-700: #0097A7;   /* Dark teal (matches your background) */
+  --color-primary-800: #00838F;   /* Darker teal */
+  --color-primary-900: #006064;   /* Darkest teal */
+
+  /* Secondary Color - Purple/Magenta (Accent for titles & badges) */
+  --color-secondary-50: #F3E5F5;   /* Very light purple */
+  --color-secondary-100: #E1BEE7;  /* Light purple */
+  --color-secondary-200: #CE93D8;  /* Lighter purple */
+  --color-secondary-300: #BA68C8;  /* Medium-light purple */
+  --color-secondary-400: #AB47BC;  /* Medium purple */
+  --color-secondary-500: #9C27B0;  /* Base purple */
+  --color-secondary-600: #8E24AA;  /* Darker purple (matches your title) */
+  --color-secondary-700: #7B1FA2;  /* Dark purple */
+  --color-secondary-800: #6A1B9A;  /* Darker purple */
+  --color-secondary-900: #4A148C;  /* Darkest purple */
+
+  /* Tertiary Color - Orange/Amber (Warm accents for badges & icons) */
+  --color-tertiary-50: #FFF3E0;    /* Very light orange */
+  --color-tertiary-100: #FFE0B2;   /* Light orange */
+  --color-tertiary-200: #FFCC80;   /* Lighter orange */
+  --color-tertiary-300: #FFB74D;   /* Medium-light orange */
+  --color-tertiary-400: #FFA726;   /* Medium orange */
+  --color-tertiary-500: #FF9800;   /* Base orange */
+  --color-tertiary-600: #FB8C00;   /* Darker orange (matches treasure chest) */
+  --color-tertiary-700: #F57C00;   /* Dark orange */
+  --color-tertiary-800: #EF6C00;   /* Darker orange */
+  --color-tertiary-900: #E65100;   /* Darkest orange */
+
+  /* Success Color - Green (for correct answers, achievements) */
+  --color-success-50: #E8F5E9;
+  --color-success-100: #C8E6C9;
+  --color-success-500: #4CAF50;
+  --color-success-600: #43A047;
+  --color-success-700: #388E3C;
+
+  /* Error Color - Red/Pink (for incorrect answers) */
+  --color-error-50: #FFEBEE;
+  --color-error-100: #FFCDD2;
+  --color-error-500: #F44336;
+  --color-error-600: #E53935;
+  --color-error-700: #D32F2F;
+
+  /* Warning Color - Yellow (for hints, warnings) */
+  --color-warning-50: #FFFDE7;
+  --color-warning-100: #FFF9C4;
+  --color-warning-500: #FFEB3B;
+  --color-warning-600: #FDD835;
+  --color-warning-700: #FBC02D;
+
+  /* Info Color - Light Blue (for information) */
+  --color-info-50: #E1F5FE;
+  --color-info-100: #B3E5FC;
+  --color-info-500: #03A9F4;
+  --color-info-600: #039BE5;
+  --color-info-700: #0288D1;
+
+  /* Neutral Variations (for borders, backgrounds, text) */
+  --color-neutral-50: #FAFAFA;    /* Almost white */
+  --color-neutral-100: #F5F5F5;   /* Very light gray */
+  --color-neutral-200: #EEEEEE;   /* Light gray */
+  --color-neutral-300: #E0E0E0;   /* Medium-light gray */
+  --color-neutral-400: #BDBDBD;   /* Medium gray */
+  --color-neutral-500: #9E9E9E;   /* Base gray */
+  --color-neutral-600: #757575;   /* Darker gray */
+  --color-neutral-700: #616161;   /* Dark gray */
+  --color-neutral-800: #424242;   /* Darker gray */
+  --color-neutral-900: #212121;   /* Darkest gray */
+
+  /* Text Colors */
+  --color-text-primary: #212121;      /* Dark text for light backgrounds */
+  --color-text-secondary: #616161;    /* Secondary text */
+  --color-text-muted: #9E9E9E;        /* Muted text */
+  --color-text-inverse: #FFFFFF;      /* White text for dark backgrounds */
+  --color-text-accent: #8E24AA;       /* Purple text for highlights */
+
+  /* Background Colors */
+  --color-bg-primary: #F5F5F5;               /* Main page background (light gray) */
+  --color-bg-secondary: #FFFFFF;             /* Container backgrounds (white) */
+  --color-bg-muted: #FAFAFA;                 /* Muted backgrounds */
+  --color-bg-card: rgba(255, 255, 255, 0.95); /* Card background with slight transparency */
+  --color-bg-hero: linear-gradient(135deg, #00ACC1 0%, #0097A7 100%); /* Hero gradient */
+  --color-bg-gradient-start: #00BCD4;        /* Gradient start */
+  --color-bg-gradient-end: #00838F;          /* Gradient end */
+
+  /* Border & Shadow */
+  --color-border-light: #E0E0E0;
+  --color-border-medium: #BDBDBD;
+  --color-border-dark: #616161;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+  /* Badge Colors (matching your design) */
+  --color-badge-featured: #FFEB3B;    /* Yellow for "Featured" */
+  --color-badge-mini: #4CAF50;        /* Green for "Mini" */
+  --color-badge-text: #212121;        /* Dark text on badges */
 }
+
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #B2EBF2;
+    --foreground: #006064;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+}
+
+@utility flex-center {
+  @apply flex items-center justify-center;
 }
