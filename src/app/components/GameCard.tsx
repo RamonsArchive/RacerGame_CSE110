@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { GameType } from "@/lib/GlobalTypes";
 import Image from "next/image";

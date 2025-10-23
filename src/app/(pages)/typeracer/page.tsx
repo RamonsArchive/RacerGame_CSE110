@@ -34,6 +34,13 @@ const TypeRacerPage = () => {
     setValue("");
   };
 
+  const handleClearData = (text: string) => {
+    if (lines.length === 0 || value == "") return;
+    setLines([]);
+    setValue("");
+    console.log("This is a success statement", text);
+  };
+
   return (
     <div
       id="container"
@@ -67,20 +74,30 @@ const TypeRacerPage = () => {
           ))}
         </Layer>
       </Stage>
-      <div className="mt-4 flex gap-2">
-        <input
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-          placeholder="Type and press Enter"
-          className="px-3 py-2 rounded-md bg-[#0f172a] text-white border border-slate-600 w-[600px]"
-        />
-        <button
-          onClick={handleSubmit}
-          className="px-4 py-2 rounded-md bg-slate-800 text-white border border-slate-500"
-        >
-          Submit
-        </button>
+      <div className="flex flex-row gap-2 items-center pt-10">
+        <div className=" flex gap-2">
+          <input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+            placeholder="Type and press Enter"
+            className="px-3 py-2 rounded-md bg-[#0f172a] text-white border border-slate-600 w-[600px]"
+          />
+          <button
+            onClick={handleSubmit}
+            className="px-4 py-2 rounded-md bg-slate-800 text-white border border-slate-500"
+          >
+            Submit
+          </button>
+        </div>
+        <div className="flex h-fit ">
+          <button
+            className="px-4 py-2 rounded-md bg-slate-700 text-white border border-slate-500 hover:scale-105 transition-all duration-300 ease-in-out"
+            onClick={() => handleClearData("Clear Data")}
+          >
+            Clear Data
+          </button>
+        </div>
       </div>
     </div>
   );
