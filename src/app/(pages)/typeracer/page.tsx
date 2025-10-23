@@ -34,6 +34,11 @@ const TypeRacerPage = () => {
     setValue("");
   };
 
+  const handleDelete = () => {
+    setLines([]);
+    setValue("");
+  };
+
   return (
     <div
       id="container"
@@ -80,6 +85,13 @@ const TypeRacerPage = () => {
           className="px-4 py-2 rounded-md bg-slate-800 text-white border border-slate-500"
         >
           Submit
+        </button>
+
+        <button
+          onClick={handleDelete}
+          className="px-4 py-2 rounded-md bg-slate-800 text-white border border-slate-500"
+        >
+          Delete
         </button>
       </div>
     </div>
