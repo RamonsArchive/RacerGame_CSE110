@@ -136,4 +136,86 @@ body {
   @apply flex items-center justify-center;
 }
 
+/* Custom animations for Type Quest title */
+@keyframes bright-gradient {
+  0% {
+    color: #f1f5f9; /* text-slate-100 */
+    text-shadow: 0 0 10px rgba(241, 245, 249, 0.5);
+  }
+  25% {
+    color: #fbbf24; /* text-amber-400 */
+    text-shadow: 0 0 20px rgba(251, 191, 36, 0.8);
+  }
+  50% {
+    color: #f59e0b; /* text-amber-500 */
+    text-shadow: 0 0 25px rgba(245, 158, 11, 0.9);
+  }
+  75% {
+    color: #fbbf24; /* text-amber-400 */
+    text-shadow: 0 0 20px rgba(251, 191, 36, 0.8);
+  }
+  100% {
+    color: #f1f5f9; /* text-slate-100 */
+    text-shadow: 0 0 10px rgba(241, 245, 249, 0.5);
+  }
+}
+
+@keyframes rainbow-gradient {
+  0% {
+    color: #f1f5f9; /* text-slate-100 */
+    text-shadow: 0 0 10px rgba(241, 245, 249, 0.5);
+  }
+  16.66% {
+    color: #fbbf24; /* text-amber-400 */
+    text-shadow: 0 0 20px rgba(251, 191, 36, 0.8);
+  }
+  33.33% {
+    color: #f97316; /* text-orange-500 */
+    text-shadow: 0 0 20px rgba(249, 115, 22, 0.8);
+  }
+  50% {
+    color: #ef4444; /* text-red-500 */
+    text-shadow: 0 0 20px rgba(239, 68, 68, 0.8);
+  }
+  66.66% {
+    color: #a855f7; /* text-purple-500 */
+    text-shadow: 0 0 20px rgba(168, 85, 247, 0.8);
+  }
+  83.33% {
+    color: #3b82f6; /* text-blue-500 */
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+  }
+  100% {
+    color: #f1f5f9; /* text-slate-100 */
+    text-shadow: 0 0 10px rgba(241, 245, 249, 0.5);
+  }
+}
+
+@keyframes shimmer-effect {
+  0% {
+    background: linear-gradient(90deg, #f1f5f9 0%, #f1f5f9 50%, #fbbf24 50%, #fbbf24 100%);
+    background-size: 200% 100%;
+    background-position: 200% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Animation utility classes */
+.animate-bright-gradient {
+  animation: bright-gradient 3s ease-in-out infinite;
+}
+
+.animate-rainbow-gradient {
+  animation: rainbow-gradient 4s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer-effect 2s ease-in-out infinite;
+}
+
 

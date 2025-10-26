@@ -1,4 +1,4 @@
-// constants/index_typeracer.tsx
+// constants/index_typequest.tsx
 
 export type GradeLevel = "K" | "1-2" | "3-4" | "5-6";
 
@@ -57,7 +57,9 @@ export interface PlayerProgress {
   playerId: string;
   playerName: string;
   currentQuestionIndex: number;
+  questionStartTime: number | null;
   questionsAnswered: number;
+  currentQuestionMistakes: number;
   totalPoints: number;
   totalMistakes: number;
   questionResults: QuestionResult[];
@@ -509,7 +511,7 @@ export const GAME_CONFIG = {
     },
   },
 
-  SESSION_STORAGE_KEY: "typeracer_game_state",
-  LEADERBOARD_KEY: "typeracer_leaderboard",
+  SESSION_STORAGE_KEY: "typequest_game_state",
+  LEADERBOARD_KEY: "typequest_leaderboard",
   MAX_LEADERBOARD_ENTRIES: 50,
 } as const;

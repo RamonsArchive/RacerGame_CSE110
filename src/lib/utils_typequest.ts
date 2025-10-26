@@ -1,4 +1,4 @@
-import { QuestionResult, Question, GameMode, GradeLevel, GameState, GameResult, GAME_CONFIG, WORD_BANK} from "@/app/constants/index_typeracer";
+import { QuestionResult, Question, GameMode, GradeLevel, GameState, GameResult, GAME_CONFIG, WORD_BANK} from "@/app/constants/index_typequest";
 
 // Points calculation
 export const calculateQuestionPoints = (
@@ -60,6 +60,8 @@ export const initializeGame = (
         totalMistakes: 0,
         questionResults: [],
         isFinished: false,
+        questionStartTime: null,
+        currentQuestionMistakes: 0,
       },
       opponent: mode === 'solo' ? {
         playerId: 'cpu',
@@ -70,6 +72,8 @@ export const initializeGame = (
         totalMistakes: 0,
         questionResults: [],
         isFinished: false,
+        questionStartTime: null,
+        currentQuestionMistakes: 0,
       } : undefined,
       allowSkip: false,
     };
