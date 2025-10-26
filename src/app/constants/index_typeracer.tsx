@@ -19,6 +19,18 @@ export const GRADE_LEVEL_DESCRIPTIONS: Record<GradeLevel, string> = {
 export type GameMode = "solo" | "multiplayer";
 export type GameStatus = "setup" | "active" | "finished";
 
+export const GAME_CONTROLLER = {
+  startGame: (gameState: GameState) => {
+    gameState.status = "setup";
+  },
+  endGame: (gameState: GameState) => {
+    gameState.status = "finished";
+  },
+  skipQuestion: (gameState: GameState) => {
+    gameState.status = "active";
+  },
+};
+
 export interface Question {
   id: string;
   prompt: string;
