@@ -39,7 +39,7 @@ export const initializeGame = (
     playerName: string,
     questionCount: number = GAME_CONFIG.DEFAULT_QUESTIONS
   ): GameState => {
-    const questions = getRandomQuestions(gradeLevel, questionCount);
+    const questions = getGameQuestions(gradeLevel, questionCount);
     
     return {
       gameId: generateGameId(),
@@ -81,9 +81,10 @@ export const initializeGame = (
 
   export const getRandomQuestions = (
     gradeLevel: GradeLevel,
-    count: number
+    count: number,
+    category?: string
   ): Question[] => {
-    const pool = WORD_BANK[gradeLevel];
+    const pool = WORD_BANK[gradeLevel].filter(q => q.category === category);
     if (pool.length === 0) {
       console.warn(`No questions available for grade ${gradeLevel}`);
       return [];
@@ -92,6 +93,17 @@ export const initializeGame = (
     const shuffled = [...pool].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, Math.min(count, pool.length));
   };
+
+  export const getGameQuestions = (gradeLevel: GradeLevel, questionCount: number = GAME_CONFIG.DEFAULT_QUESTIONS): Question[] => {
+    const pool = WORD_BANK[gradeLevel];
+    if (pool.length === 0) {
+      console.warn(`No questions available for grade ${gradeLevel}`);
+      return [];
+    }
+    
+    const shuffled = [...pool].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, Math.min(questionCount, pool.length));
+  }
   
   // Answer validation
   export const checkAnswer = (
@@ -270,6 +282,39 @@ export const initializeGame = (
     };
   };
 
+export const getProgressPercentage = (current: number, total: number): number => {
+  return Math.round((current / total) * 100);
+}
+
+export const getChoices = (
+  currentQuestion: Question | null,
+  gradeLevel: GradeLevel,
+  questionCount: number = 3
+): string[] => {
+  if (!currentQuestion) return [];
+  const category = currentQuestion.category;
+  const choices = getRandomQuestions(gradeLevel, questionCount, category)
+    .filter(
+      q =>
+        q.correctAnswer !== currentQuestion.correctAnswer &&
+        q.id !== currentQuestion.id
+    );
+
+  // collect all and remove duplicates
+  const allChoices = [
+    ...choices.map(c => c.correctAnswer),
+    currentQuestion.correctAnswer,
+  ];
+
+  // 🔥 remove duplicates safely
+  const uniqueChoices = Array.from(new Set(allChoices));
+  console.log(uniqueChoices);
+  return shuffle(uniqueChoices);
+}
+
+export const shuffle = (array: string[]): string[] => {
+  return array.sort(() => Math.random() - 0.5);
+}
 
 // Helper to get all grade levels for UI
 export const getAllGradeLevels = (): GradeLevel[] => {

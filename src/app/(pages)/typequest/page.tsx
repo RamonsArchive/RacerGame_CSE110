@@ -47,7 +47,7 @@ const TypeQuestPage = () => {
       const newGameState = initializeGame(gameMode, gradeLevel, playerName);
       setGameState(newGameState);
       setGameStatus("active");
-      console.log(newGameState);
+      saveGameState(newGameState);
     },
     []
   );
@@ -195,7 +195,6 @@ const TypeQuestPage = () => {
           gameStatus={gameStatus}
           setGameStatus={setGameStatus}
           gameState={gameState}
-          setGameState={setGameState}
           handleGameStart={handleGameStart}
         />
       )}
@@ -204,7 +203,7 @@ const TypeQuestPage = () => {
           setGameStatus={setGameStatus}
           gameState={gameState}
           onAnswerSubmit={handleAnswerSubmit}
-          onResetGame={handleGameReset}
+          handleGameReset={handleGameReset}
         />
       )}
       {gameStatus === "finished" && <TQ_FinishedScreen />}

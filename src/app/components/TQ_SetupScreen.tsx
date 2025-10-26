@@ -8,19 +8,16 @@ import {
 } from "@/app/constants/index_typequest";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
-import { initializeGame } from "@/lib/utils_typequest";
 
 const TQ_SetupScreen = ({
   gameStatus,
   setGameStatus,
   gameState,
-  setGameState,
   handleGameStart,
 }: {
   gameStatus: GameStatus;
   setGameStatus: Dispatch<SetStateAction<GameStatus>>;
   gameState?: GameState | null;
-  setGameState: Dispatch<SetStateAction<GameState | null>>;
   handleGameStart: (
     gameMode: GameMode,
     gradeLevel: GradeLevel,
