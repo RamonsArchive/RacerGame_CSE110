@@ -1,6 +1,6 @@
 // since I've not done "use client", this page is server side rendered by default (faster) which is good becuase I don't need state manemgment logic or buttons
 import Image from "next/image";
-import { GAMES } from "./constants";
+import { GAMES } from "./constants/index_home";
 import Link from "next/link";
 import GameCard from "./components/GameCard";
 
