@@ -40,13 +40,20 @@ export const initializeGame = (
     questionCount: number = GAME_CONFIG.DEFAULT_QUESTIONS
   ): GameState => {
     const questions = getGameQuestions(gradeLevel, questionCount);
+
+      const questionsWithChoices = questions.map((question) => {
+        return {
+          ...question,
+          choices: getChoices(question, gradeLevel, 4),
+        };
+      });
     
     return {
       gameId: generateGameId(),
       mode,
       gradeLevel,
       status: 'setup',
-      questions,
+      questions: questionsWithChoices,
       totalQuestions: questionCount,
       startTime: null,
       endTime: null,
@@ -289,28 +296,53 @@ export const getProgressPercentage = (current: number, total: number): number =>
 export const getChoices = (
   currentQuestion: Question | null,
   gradeLevel: GradeLevel,
-  questionCount: number = 3
+  choiceCount: number = 4 // Changed from questionCount for clarity
 ): string[] => {
   if (!currentQuestion) return [];
+  
   const category = currentQuestion.category;
-  const choices = getRandomQuestions(gradeLevel, questionCount, category)
-    .filter(
-      q =>
-        q.correctAnswer !== currentQuestion.correctAnswer &&
-        q.id !== currentQuestion.id
+  const pool = WORD_BANK[gradeLevel].filter(q => q.category === category);
+  
+  // Start with the correct answer
+  const uniqueChoices = new Set<string>([currentQuestion.correctAnswer]);
+  
+  // Keep trying until we have enough unique choices
+  const maxAttempts = pool.length * 2; // Prevent infinite loop
+  let attempts = 0;
+  
+  while (uniqueChoices.size < choiceCount && attempts < maxAttempts) {
+    // Get random questions from pool
+    const randomQuestions = getRandomQuestions(
+      gradeLevel, 
+      choiceCount - uniqueChoices.size + 2, // Get extras in case of duplicates
+      category
     );
+    
+    // Add their answers to the set (automatically handles duplicates)
+    randomQuestions.forEach(q => {
+      // Don't add the current question's answer again or same question
+      if (q.id !== currentQuestion.id) {
+        uniqueChoices.add(q.correctAnswer);
+      }
+    });
+    
+    attempts++;
+  }
+  
+  // Convert Set to Array and shuffle
+  const choicesArray = Array.from(uniqueChoices).slice(0, choiceCount);
+  
+  // If we still don't have enough choices, log a warning
+  if (choicesArray.length < choiceCount) {
+    console.warn(
+      `Only ${choicesArray.length} unique choices available for question "${currentQuestion.prompt}"`
+    );
+  }
+  
+  console.log('Final choices:', choicesArray);
+  return shuffle(choicesArray);
+};
 
-  // collect all and remove duplicates
-  const allChoices = [
-    ...choices.map(c => c.correctAnswer),
-    currentQuestion.correctAnswer,
-  ];
-
-  // 🔥 remove duplicates safely
-  const uniqueChoices = Array.from(new Set(allChoices));
-  console.log(uniqueChoices);
-  return shuffle(uniqueChoices);
-}
 
 export const shuffle = (array: string[]): string[] => {
   return array.sort(() => Math.random() - 0.5);

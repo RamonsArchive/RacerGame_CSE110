@@ -39,6 +39,7 @@ export interface Question {
   category?: "spelling" | "vocabulary" | "sentence" | "math-word";
   basePoints?: number;
   difficulty?: "easy" | "medium" | "hard"; // Optional: further subdivision within grade band
+  choices?: string[]; // ✅ Add this - pre-generated choices
 }
 
 export interface QuestionResult {
@@ -113,6 +114,50 @@ export interface GameResult {
   won?: boolean; // for multiplayer
   pointMargin?: number; // how much you won/lost by
 }
+
+// Game configuration - updated for grade bands
+export const GAME_CONFIG = {
+  DEFAULT_QUESTIONS: 10,
+  MIN_QUESTIONS: 5,
+  MAX_QUESTIONS: 20,
+
+  // Points system
+  BASE_POINTS: 100,
+  SPEED_BONUS_MULTIPLIER: 20,
+  MISTAKE_PENALTY: 10,
+  PERFECT_BONUS: 50,
+
+  // Target times by grade band (seconds per question)
+  TARGET_TIMES: {
+    K: 8,
+    "1-2": 6,
+    "3-4": 5,
+    "5-6": 4,
+  } as Record<GradeLevel, number>,
+
+  // CPU difficulty settings
+  CPU_DIFFICULTY: {
+    easy: {
+      mistakeRate: 0.8,
+      speedMultiplier: 0.01,
+      pointsMultiplier: 0.7,
+    },
+    medium: {
+      mistakeRate: 0.5,
+      speedMultiplier: 0.2,
+      pointsMultiplier: 0.9,
+    },
+    hard: {
+      mistakeRate: 0.1,
+      speedMultiplier: 1.3,
+      pointsMultiplier: 1.1,
+    },
+  },
+
+  SESSION_STORAGE_KEY: "typequest_game_state",
+  LEADERBOARD_KEY: "typequest_leaderboard",
+  MAX_LEADERBOARD_ENTRIES: 50,
+} as const;
 
 // Word bank organized by grade bands
 export const WORD_BANK: Record<GradeLevel, Question[]> = {
@@ -471,47 +516,3 @@ export const WORD_BANK: Record<GradeLevel, Question[]> = {
     },
   ],
 };
-
-// Game configuration - updated for grade bands
-export const GAME_CONFIG = {
-  DEFAULT_QUESTIONS: 10,
-  MIN_QUESTIONS: 5,
-  MAX_QUESTIONS: 20,
-
-  // Points system
-  BASE_POINTS: 100,
-  SPEED_BONUS_MULTIPLIER: 20,
-  MISTAKE_PENALTY: 10,
-  PERFECT_BONUS: 50,
-
-  // Target times by grade band (seconds per question)
-  TARGET_TIMES: {
-    K: 8,
-    "1-2": 6,
-    "3-4": 5,
-    "5-6": 4,
-  } as Record<GradeLevel, number>,
-
-  // CPU difficulty settings
-  CPU_DIFFICULTY: {
-    easy: {
-      mistakeRate: 0.3,
-      speedMultiplier: 0.7,
-      pointsMultiplier: 0.7,
-    },
-    medium: {
-      mistakeRate: 0.15,
-      speedMultiplier: 1.0,
-      pointsMultiplier: 0.9,
-    },
-    hard: {
-      mistakeRate: 0.05,
-      speedMultiplier: 1.3,
-      pointsMultiplier: 1.1,
-    },
-  },
-
-  SESSION_STORAGE_KEY: "typequest_game_state",
-  LEADERBOARD_KEY: "typequest_leaderboard",
-  MAX_LEADERBOARD_ENTRIES: 50,
-} as const;
