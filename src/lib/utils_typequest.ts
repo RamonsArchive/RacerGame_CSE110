@@ -153,54 +153,89 @@ export const initializeGame = (
     return Math.round((totalTime / questionCount) * 10) / 10;
   };
   
-  // Game result creation
-  export const createGameResult = (gameState: GameState): GameResult => {
-    const { currentPlayer, opponent, startTime, endTime, gradeLevel, mode, totalQuestions } = gameState;
+ // Game result creation - MUST call saveGameResult!
+export const createGameResult = (gameState: GameState): GameResult => {
+  const { currentPlayer, opponent, startTime, endTime, gradeLevel, mode, totalQuestions } = gameState;
+  
+  const totalTime = endTime && startTime ? (endTime - startTime) / 1000 : 0;
+  const correctAnswers = currentPlayer.questionResults.filter(q => q.correct).length;
+  const totalCharacters = currentPlayer.questionResults.reduce(
+    (sum, q) => sum + q.correctAnswer.length, 0
+  );
+  
+  const hadPerfectGame = currentPlayer.totalMistakes === 0;
+  const finalPoints = calculateGameScore(currentPlayer.questionResults, hadPerfectGame);
+  
+  const result: GameResult = {
+    gameId: gameState.gameId,
+    date: Date.now(),
+    gradeLevel,
+    mode,
+    playerName: currentPlayer.playerName,
+    totalPoints: finalPoints,
+    totalQuestions,
+    correctAnswers,
+    totalMistakes: currentPlayer.totalMistakes,
+    totalTime,
+    accuracy: calculateAccuracy(correctAnswers, correctAnswers + currentPlayer.totalMistakes),
+    averageTimePerQuestion: calculateAverageTime(totalTime, currentPlayer.questionsAnswered),
+    charactersPerSecond: calculateCharactersPerSecond(totalCharacters, totalTime),
+  };
+  
+  // Add opponent data for solo mode
+  if (opponent && mode === 'solo') {
+    const opponentPerfect = opponent.totalMistakes === 0;
+    const opponentPoints = calculateGameScore(opponent.questionResults, opponentPerfect);
     
-    const totalTime = endTime && startTime ? (endTime - startTime) / 1000 : 0;
-    const correctAnswers = currentPlayer.questionResults.filter(q => q.correct).length;
-    const totalCharacters = currentPlayer.questionResults.reduce(
-      (sum, q) => sum + q.correctAnswer.length, 0
-    );
-    
-    const hadPerfectGame = currentPlayer.totalMistakes === 0;
-    const finalPoints = calculateGameScore(currentPlayer.questionResults, hadPerfectGame);
-    
-    const result: GameResult = {
-      gameId: gameState.gameId,
-      date: Date.now(),
-      gradeLevel,
-      mode,
-      playerName: currentPlayer.playerName,
-      totalPoints: finalPoints,
-      totalQuestions,
-      correctAnswers,
-      totalMistakes: currentPlayer.totalMistakes,
-      totalTime,
-      accuracy: calculateAccuracy(correctAnswers, correctAnswers + currentPlayer.totalMistakes),
-      averageTimePerQuestion: calculateAverageTime(totalTime, totalQuestions),
-      charactersPerSecond: calculateCharactersPerSecond(totalCharacters, totalTime),
+    result.opponent = {
+      name: opponent.playerName,
+      points: opponentPoints,
     };
-    
-    // Add opponent data for multiplayer
-    if (opponent && mode === 'solo') {
-      const opponentPerfect = opponent.totalMistakes === 0;
-      const opponentPoints = calculateGameScore(opponent.questionResults, opponentPerfect);
-      
-      result.opponent = {
-        name: opponent.playerName,
-        points: opponentPoints,
-      };
-      result.won = finalPoints > opponentPoints;
-      result.pointMargin = finalPoints - opponentPoints;
+    result.won = finalPoints > opponentPoints;
+    result.pointMargin = finalPoints - opponentPoints;
+  }
+  
+  // ✅ CRITICAL: Save to localStorage here!
+  saveGameResult(result);
+  console.log('Game result saved to leaderboard:', result);
+  
+  return result;
+};
+
+  export const getGameResults = (gameId: string): GameResult | null => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(GAME_CONFIG.LEADERBOARD_KEY);
+      return saved ? JSON.parse(saved) : null;
     }
-    
-    return result;
+    return null;
   };
   
   // Helper functions
-  const generateGameId = () => `game_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  const generatePlayerId = () => `player_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  const generateGameId = (): string => {
+    const timestamp = Date.now();
+    const random1 = Math.random().toString(36).substring(2, 15);
+    const random2 = Math.random().toString(36).substring(2, 15);
+    const random3 = Math.random().toString(36).substring(2, 15);
+    
+    // Use crypto.randomUUID if available (modern browsers)
+    if (typeof window !== 'undefined' && window.crypto?.randomUUID) {
+      return `game_${timestamp}_${window.crypto.randomUUID()}`;
+    }
+    
+    return `game_${timestamp}_${random1}${random2}${random3}`;
+  };
+  
+  const generatePlayerId = (): string => {
+    const timestamp = Date.now();
+    const random1 = Math.random().toString(36).substring(2, 15);
+    const random2 = Math.random().toString(36).substring(2, 15);
+    
+    if (typeof window !== 'undefined' && window.crypto?.randomUUID) {
+      return `player_${timestamp}_${window.crypto.randomUUID()}`;
+    }
+    
+    return `player_${timestamp}_${random1}${random2}`;
+  };
   
   // Session storage helpers
   export const saveGameState = (gameState: GameState): void => {
@@ -246,27 +281,35 @@ export const initializeGame = (
     limit: number = 10
   ): GameResult[] => {
     if (typeof window !== 'undefined') {
-      let results: GameResult[] = JSON.parse(
-        localStorage.getItem(GAME_CONFIG.LEADERBOARD_KEY) || '[]'
-      );
-      
-      // Filter by grade and mode if specified
-      if (gradeLevel) {
-        results = results.filter(r => r.gradeLevel === gradeLevel);
+      try {
+        console.log("Getting leaderboard...");
+        let results: GameResult[] = JSON.parse(
+          localStorage.getItem(GAME_CONFIG.LEADERBOARD_KEY) || '[]'
+        );
+              
+        // Filter by grade and mode if specified
+        if (gradeLevel) {
+          results = results.filter(r => r.gradeLevel === gradeLevel);
+        }
+        if (mode) {
+          results = results.filter(r => r.mode === mode);
+        }
+        
+        // Return top results
+        return results.slice(0, limit);
+      } catch (error) {
+        console.error('Error loading leaderboard:', error);
+        return [];
       }
-      if (mode) {
-        results = results.filter(r => r.mode === mode);
-      }
-      
-      // Return top results
-      return results.slice(0, limit);
     }
     return [];
   };
   
+  
   export const clearLeaderboard = (): void => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(GAME_CONFIG.LEADERBOARD_KEY);
+      console.log('Leaderboard cleared');
     }
   };
   

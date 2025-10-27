@@ -1,49 +1,133 @@
-import React from "react";
+// components/TQ_FinishedScreen.tsx
+"use client";
+import React, { useState } from "react";
 import { GameState } from "../constants/index_typequest";
 import TQ_Summary from "./TQ_Summary";
+import TQ_Leaderboard from "./TQ_Leaderboard";
 
-const TQ_FinishedScreen = ({ gameState }: { gameState: GameState | null }) => {
+interface TQ_FinishedScreenProps {
+  gameState: GameState | null;
+  onPlayAgain: () => void;
+  onBackHome: () => void;
+}
+
+const TQ_FinishedScreen = ({
+  gameState,
+  onPlayAgain,
+  onBackHome,
+}: TQ_FinishedScreenProps) => {
+  const [openLeaderboard, setOpenLeaderboard] = useState(false);
+
   const winner =
     gameState?.currentPlayer?.totalPoints && gameState?.opponent?.totalPoints
-      ? gameState?.currentPlayer?.totalPoints > gameState?.opponent?.totalPoints
-        ? true
-        : false
+      ? gameState.currentPlayer.totalPoints > gameState.opponent.totalPoints
+        ? "win"
+        : gameState.currentPlayer.totalPoints < gameState.opponent.totalPoints
+        ? "loss"
+        : "tie"
       : null;
+
+  const getWinnerMessage = () => {
+    if (!winner) return null;
+
+    switch (winner) {
+      case "win":
+        return (
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-5xl">🎉</p>
+            <p className="text-3xl font-bold text-green-400 animate-bounce">
+              You Won!
+            </p>
+            <p className="text-lg text-slate-300">
+              Beat opponent by{" "}
+              {(gameState?.currentPlayer?.totalPoints || 0) -
+                (gameState?.opponent?.totalPoints || 0)}{" "}
+              points
+            </p>
+          </div>
+        );
+      case "loss":
+        return (
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-5xl">💪</p>
+            <p className="text-3xl font-bold text-red-400">
+              Better Luck Next Time!
+            </p>
+            <p className="text-lg text-slate-300">
+              Lost by{" "}
+              {(gameState?.opponent?.totalPoints || 0) -
+                (gameState?.currentPlayer?.totalPoints || 0)}{" "}
+              points
+            </p>
+          </div>
+        );
+      case "tie":
+        return (
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-5xl">🤝</p>
+            <p className="text-3xl font-bold text-yellow-400">It's a Tie!</p>
+            <p className="text-lg text-slate-300">
+              Both scored {gameState?.currentPlayer?.totalPoints} points
+            </p>
+          </div>
+        );
+    }
+  };
+
   return (
-    <div className="flex-center w-full h-dvh">
-      <div className="flex flex-col w-full max-w-2xl p-10 gap-10 bg-linear-to-b from-pink-700 via-primary-900 to-secondary-800 bg-cover bg-no-repeat rounded-xl shadow-lg">
-        <div className="flex flex-center w-full">
-          <p className="text-5xl font-bold text-slate-100 drop-shadow-2xl animate-bright-gradient">
-            Race Completed!
-          </p>
-        </div>
-        <div className="flex-center w-full">
-          {winner === true && (
-            <p className="text-2xl font-bold text-slate-100">You Won! 🎉</p>
-          )}
-          {winner === false && (
-            <p className="text-2xl font-bold text-slate-100">You Lost! 😭</p>
-          )}
-          {winner === null && (
-            <p className="text-2xl font-bold text-slate-100">It's a Tie! 🤝</p>
-          )}
-        </div>
-        {gameState && <TQ_Summary gameState={gameState} />}
-        <div className="flex flex-col w-full gap-3">
-          <button className="flex-center w-full bg-slate-200 text-slate-900 font-bold text-2xl p-3 rounded-lg hover:cursor-pointer hover:scale-105 transition-all duration-300 ease-in-out">
-            Open Leaderboard
-          </button>
-          <div className="flex flex-row w-full gap-5 items-center">
-            <button className="flex-center w-full bg-green-600 text-slate-100 font-bold text-2xl p-3 rounded-lg hover:cursor-pointer hover:scale-105 transition-all duration-300 ease-in-out">
-              Play Again
+    <>
+      <div className="flex items-center justify-center w-full h-dvh p-4">
+        <div className="flex flex-col w-full max-w-2xl p-10 gap-8 bg-gradient-to-b from-pink-700 via-primary-900 to-secondary-800 rounded-2xl shadow-2xl">
+          {/* Title */}
+          <div className="flex justify-center w-full">
+            <h1 className="text-5xl font-bold text-white drop-shadow-2xl text-center">
+              Race Completed! 🏁
+            </h1>
+          </div>
+
+          {/* Winner Announcement */}
+          <div className="flex justify-center w-full">{getWinnerMessage()}</div>
+
+          {/* Summary */}
+          {gameState && <TQ_Summary gameState={gameState} />}
+
+          {/* Action Buttons */}
+          <div className="flex flex-col w-full gap-3">
+            <button
+              onClick={() => setOpenLeaderboard(true)}
+              className="flex items-center justify-center gap-2 w-full bg-slate-200 hover:bg-slate-100 text-slate-900 font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+            >
+              <span>🏆</span>
+              View Leaderboard
             </button>
-            <button className="flex-center w-full bg-primary-600 text-slate-100 font-bold text-2xl p-3 rounded-lg hover:cursor-pointer hover:scale-105 transition-all duration-300 ease-in-out">
-              Back to Home
-            </button>
+
+            <div className="flex flex-row w-full gap-4">
+              <button
+                onClick={onPlayAgain}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+              >
+                Play Again
+              </button>
+              <button
+                onClick={onBackHome}
+                className="flex-1 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+              >
+                Home
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Leaderboard Modal */}
+      <TQ_Leaderboard
+        isOpen={openLeaderboard}
+        onClose={() => setOpenLeaderboard(false)}
+        gradeLevel={gameState?.gradeLevel}
+        mode={gameState?.mode}
+        currentGameId={gameState?.gameId}
+      />
+    </>
   );
 };
 

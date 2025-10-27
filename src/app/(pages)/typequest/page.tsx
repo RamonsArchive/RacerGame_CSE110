@@ -15,6 +15,7 @@ import {
   calculateQuestionPoints,
   loadGameState,
   saveGameState,
+  getGameResults,
   checkAnswer,
   simulateCPUAnswer,
   clearGameState,
@@ -26,17 +27,22 @@ import {
 import TQ_SetupScreen from "@/app/components/TQ_SetupScreen";
 import TQ_ActiveScreen from "@/app/components/TQ_ActiveScreen";
 import TQ_FinishedScreen from "@/app/components/TQ_FinishedScreen";
+import { useRouter } from "next/navigation";
 
 const TypeQuestPage = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [gameStatus, setGameStatus] = useState<GameStatus>("setup");
+  const [hasBeenSaved, setHasBeenSaved] = useState(false);
   const cpuTimerRef = useRef<NodeJS.Timeout | null>(null);
-
+  const router = useRouter();
   useEffect(() => {
     const savedState = loadGameState();
     if (savedState) {
       setGameState(savedState);
       setGameStatus(savedState.status);
+      if (savedState.status === "finished") {
+        setHasBeenSaved(true);
+      }
     }
   }, []);
 
@@ -194,11 +200,32 @@ const TypeQuestPage = () => {
     };
   }, [gameState?.status, gameState?.mode]); // ✅ REMOVED scheduleCPUAnswer from deps
 
-  useEffect(() => {
-    if (gameState?.status === "finished") {
-      createGameResult(gameState);
+  // finish game by setting opponent to finished and cancel CPU timer
+  const cancelCPUTimerAndEndGame = useCallback(() => {
+    if (cpuTimerRef.current) {
+      clearTimeout(cpuTimerRef.current);
+      cpuTimerRef.current = null;
     }
-  }, [gameState?.status]);
+    if (gameState) {
+      gameState.opponent && (gameState.opponent.isFinished = true);
+    }
+  }, []);
+
+  // save game result for leaderboard
+  useEffect(() => {
+    if (
+      gameState?.status === "finished" &&
+      gameState.endTime &&
+      !hasBeenSaved
+    ) {
+      try {
+        const result = createGameResult(gameState);
+        console.log("Game result created:", result);
+      } catch (error) {
+        console.error("Error creating game result:", error);
+      }
+    }
+  }, [gameState?.status, gameState?.endTime]); // ✅ Only trigger when actually finished
 
   const handleGameStart = useCallback(
     (gameMode: GameMode, gradeLevel: GradeLevel, playerName: string) => {
@@ -215,6 +242,7 @@ const TypeQuestPage = () => {
       setGameState(newGameState);
       setGameStatus("active");
       saveGameState(newGameState);
+      setHasBeenSaved(false);
     },
     []
   );
@@ -228,6 +256,7 @@ const TypeQuestPage = () => {
     clearGameState();
     setGameState(null);
     setGameStatus("setup");
+    setHasBeenSaved(false);
   }, []);
 
   const handleAnswerSubmit = useCallback(
@@ -306,10 +335,7 @@ const TypeQuestPage = () => {
         if (shouldFinishGame) {
           setGameStatus("finished");
           // Clear CPU timer when game ends
-          if (cpuTimerRef.current) {
-            clearTimeout(cpuTimerRef.current);
-            cpuTimerRef.current = null;
-          }
+          cancelCPUTimerAndEndGame();
         }
       } else {
         // Incorrect answer - increment mistakes
@@ -327,6 +353,11 @@ const TypeQuestPage = () => {
     },
     [gameState]
   );
+
+  const handleBackHome = useCallback(() => {
+    handleGameReset();
+    router.push("/");
+  }, [handleGameReset, router]);
 
   return (
     <div className="w-full h-dvh bg-linear-to-br from-primary-800 via-secondary-800 to-tertiary-700">
@@ -346,7 +377,13 @@ const TypeQuestPage = () => {
           handleGameReset={handleGameReset}
         />
       )}
-      {gameStatus === "finished" && <TQ_FinishedScreen gameState={gameState} />}
+      {gameStatus === "finished" && (
+        <TQ_FinishedScreen
+          gameState={gameState}
+          onPlayAgain={handleGameReset}
+          onBackHome={handleBackHome}
+        />
+      )}
     </div>
   );
 };

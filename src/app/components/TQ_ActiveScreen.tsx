@@ -24,7 +24,6 @@ const TQ_ActiveScreen = ({
   const currentQuestion =
     gameState?.questions[currentPlayer?.currentQuestionIndex || 0] || null;
   const choices = currentQuestion?.choices || [];
-  console.log(gameState);
 
   return (
     <div className="flex w-full h-dvh flex-col gap-5 p-10">
