@@ -292,7 +292,7 @@ const TypeQuestPage = () => {
         };
 
         // Check if BOTH players are finished (for solo mode)
-        const shouldFinishGame = isPlayerFinished;
+        const shouldFinishGame = isPlayerFinished; // TODO: Add opponent finished check
 
         const updatedGameState: GameState = {
           ...gameState,
@@ -346,7 +346,7 @@ const TypeQuestPage = () => {
           handleGameReset={handleGameReset}
         />
       )}
-      {gameStatus === "finished" && <TQ_FinishedScreen />}
+      {gameStatus === "finished" && <TQ_FinishedScreen gameState={gameState} />}
     </div>
   );
 };
