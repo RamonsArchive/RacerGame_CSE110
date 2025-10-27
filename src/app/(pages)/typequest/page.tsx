@@ -83,6 +83,8 @@ const TypeQuestPage = () => {
         GAME_CONFIG.TARGET_TIMES[currentGameState.gradeLevel],
         currentQuestion.basePoints || GAME_CONFIG.BASE_POINTS
       );
+      console.log("cpuResult:", cpuResult);
+      console.log("cpuPoints:", cpuPoints);
 
       // simulate answer mistakes
       const answerMistakes: QuestionResult[] = [];
@@ -152,63 +154,66 @@ const TypeQuestPage = () => {
   );
 
   // ✅ FIXED: CPU scheduling logic separated completely
-  const scheduleCPUAnswer = useCallback(() => {
-    // Clear any existing timer
-    if (cpuTimerRef.current) {
-      clearTimeout(cpuTimerRef.current);
-      cpuTimerRef.current = null;
-    }
-
-    // Get latest state to calculate delay
-    setGameState((prevState) => {
-      if (
-        !prevState ||
-        prevState.status !== "active" ||
-        prevState.mode !== "solo"
-      ) {
-        return prevState;
+  const scheduleCPUAnswer = useCallback(
+    (difficulty: "easy" | "medium" | "hard") => {
+      // Clear any existing timer
+      if (cpuTimerRef.current) {
+        clearTimeout(cpuTimerRef.current);
+        cpuTimerRef.current = null;
       }
 
-      if (!prevState.opponent || prevState.opponent.isFinished) {
-        return prevState;
-      }
+      // Get latest state to calculate delay
+      setGameState((prevState) => {
+        if (
+          !prevState ||
+          prevState.status !== "active" ||
+          prevState.mode !== "solo"
+        ) {
+          return prevState;
+        }
 
-      const currentQuestion =
-        prevState.questions[prevState.opponent.currentQuestionIndex];
+        if (!prevState.opponent || prevState.opponent.isFinished) {
+          return prevState;
+        }
 
-      // Calculate delay
-      const baseTimePerChar = 400;
-      const cpuSpeed = currentQuestion.correctAnswer.length * baseTimePerChar;
-      const difficulty = GAME_CONFIG.CPU_DIFFICULTY.medium;
-      const cpuDelay = cpuSpeed / difficulty.speedMultiplier;
-      const randomDelay = cpuDelay * (0.8 + Math.random() * 0.4);
+        const currentQuestion =
+          prevState.questions[prevState.opponent.currentQuestionIndex];
 
-      // ✅ KEY FIX: Schedule timer but DON'T modify state here
-      cpuTimerRef.current = setTimeout(() => {
-        // Update CPU progress
-        setGameState((currentState) => {
-          if (!currentState) return null;
+        // Calculate delay
+        const baseTimePerChar = 300;
+        const cpuSpeed = currentQuestion.correctAnswer.length * baseTimePerChar;
+        const difficultyConfig = GAME_CONFIG.CPU_DIFFICULTY[difficulty];
+        const cpuDelay = cpuSpeed / difficultyConfig.speedMultiplier;
+        const randomDelay = cpuDelay * (0.8 + Math.random() * 0.4);
 
-          const updatedState = updateCPUProgress(currentState);
+        // ✅ KEY FIX: Schedule timer but DON'T modify state here
+        cpuTimerRef.current = setTimeout(() => {
+          // Update CPU progress
+          setGameState((currentState) => {
+            if (!currentState) return null;
 
-          if (updatedState.status === "finished") {
-            setGameStatus("finished");
-          } else if (
-            updatedState.opponent &&
-            !updatedState.opponent.isFinished &&
-            !updatedState.currentPlayer.isFinished
-          ) {
-            // Schedule next CPU answer AFTER state update
-            setTimeout(() => scheduleCPUAnswer(), 0);
-          }
+            const updatedState = updateCPUProgress(currentState);
 
-          return updatedState;
-        });
-      }, randomDelay);
+            if (updatedState.status === "finished") {
+              setGameStatus("finished");
+            } else if (
+              updatedState.opponent &&
+              !updatedState.opponent.isFinished &&
+              !updatedState.currentPlayer.isFinished
+            ) {
+              // Schedule next CPU answer AFTER state update
+              setTimeout(() => scheduleCPUAnswer(difficulty), 0);
+            }
 
-      return prevState; // ✅ Don't modify state
-    });
-  }, [updateCPUProgress]);
+            return updatedState;
+          });
+        }, randomDelay);
+
+        return prevState; // ✅ Don't modify state
+      });
+    },
+    [updateCPUProgress]
+  );
 
   // Start CPU when game becomes active - only trigger once
   useEffect(() => {
@@ -220,7 +225,7 @@ const TypeQuestPage = () => {
     ) {
       // Only schedule if there's no active timer
       if (!cpuTimerRef.current) {
-        scheduleCPUAnswer();
+        scheduleCPUAnswer("medium");
       }
     }
 
