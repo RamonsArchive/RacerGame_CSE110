@@ -1,6 +1,6 @@
 /* TODO git commit -m "finished type quest, will need to fix bug where setup component 
 requires 2 clicks to properly render. Will add multiplayer, will add testing, will add more word questions. Will finish as
-thetics." */
+thetics." also make error rate on cpu leaderobard more realistic */
 
 "use client"; // page renders client side Essential for user interaction
 import React, { useEffect, useCallback, useRef } from "react";
@@ -19,13 +19,9 @@ import {
   calculateQuestionPoints,
   loadGameState,
   saveGameState,
-  getGameResults,
   checkAnswer,
   simulateCPUAnswer,
   clearGameState,
-  getGameQuestions,
-  getChoices,
-  saveGameResult,
   createGameResult,
 } from "@/lib/utils_typequest";
 import TQ_SetupScreen from "@/app/components/TQ_SetupScreen";
@@ -88,6 +84,23 @@ const TypeQuestPage = () => {
         currentQuestion.basePoints || GAME_CONFIG.BASE_POINTS
       );
 
+      // simulate answer mistakes
+      const answerMistakes: QuestionResult[] = [];
+      for (let i = 0; i < cpuResult.mistakes; i++) {
+        const answerMistake: QuestionResult = {
+          questionId: currentQuestion.id,
+          prompt: currentQuestion.prompt,
+          userAnswer: currentQuestion.correctAnswer,
+          correctAnswer: currentQuestion.correctAnswer,
+          correct: false,
+          timeSpent: cpuResult.timeSpent + i * 0.1,
+          mistakes: 1,
+          points: 0,
+          timestamp: Date.now(),
+        };
+        answerMistakes.push(answerMistake);
+      }
+
       const cpuQuestionResult: QuestionResult = {
         questionId: currentQuestion.id,
         prompt: currentQuestion.prompt,
@@ -99,6 +112,12 @@ const TypeQuestPage = () => {
         points: cpuPoints,
         timestamp: Date.now(),
       };
+
+      const allQuestionResults: QuestionResult[] = [
+        ...currentGameState.opponent.questionResults,
+        cpuQuestionResult,
+        ...answerMistakes,
+      ];
 
       const newQuestionIndex =
         currentGameState.opponent.currentQuestionIndex + 1;
@@ -114,10 +133,7 @@ const TypeQuestPage = () => {
         totalPoints: currentGameState.opponent.totalPoints + cpuPoints,
         totalMistakes:
           currentGameState.opponent.totalMistakes + cpuResult.mistakes,
-        questionResults: [
-          ...currentGameState.opponent.questionResults,
-          cpuQuestionResult,
-        ],
+        questionResults: allQuestionResults,
         isFinished: isOpponentFinished,
         questionStartTime: isOpponentFinished ? null : Date.now(),
       };
@@ -369,12 +385,27 @@ const TypeQuestPage = () => {
         }
       } else {
         // Incorrect answer - increment mistakes
+        const questionResult: QuestionResult = {
+          questionId: currentQuestion.id,
+          prompt: currentQuestion.prompt,
+          userAnswer,
+          correctAnswer: currentQuestion.correctAnswer,
+          correct: false,
+          timeSpent,
+          mistakes: gameState.currentPlayer.currentQuestionMistakes || 0,
+          points: 0,
+          timestamp: Date.now(),
+        };
         const updatedGameState: GameState = {
           ...gameState,
           currentPlayer: {
             ...gameState.currentPlayer,
             currentQuestionMistakes:
               (gameState.currentPlayer.currentQuestionMistakes || 0) + 1,
+            questionResults: [
+              ...gameState.currentPlayer.questionResults,
+              questionResult,
+            ],
           },
         };
 

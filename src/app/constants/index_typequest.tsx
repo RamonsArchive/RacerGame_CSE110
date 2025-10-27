@@ -138,12 +138,12 @@ export const GAME_CONFIG = {
   // CPU difficulty settings
   CPU_DIFFICULTY: {
     easy: {
-      mistakeRate: 0.8,
-      speedMultiplier: 0.01,
+      mistakeRate: 0.4,
+      speedMultiplier: 0.5,
       pointsMultiplier: 0.7,
     },
     medium: {
-      mistakeRate: 0.5,
+      mistakeRate: 0.2,
       speedMultiplier: 0.2,
       pointsMultiplier: 0.9,
     },
