@@ -28,12 +28,15 @@ import TQ_SetupScreen from "@/app/components/TQ_SetupScreen";
 import TQ_ActiveScreen from "@/app/components/TQ_ActiveScreen";
 import TQ_FinishedScreen from "@/app/components/TQ_FinishedScreen";
 import { useRouter } from "next/navigation";
+import { flushSync } from "react-dom";
 
 const TypeQuestPage = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [gameStatus, setGameStatus] = useState<GameStatus>("setup");
   const [hasBeenSaved, setHasBeenSaved] = useState(false);
   const cpuTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasResetRef = useRef(false); // Add this
+
   const router = useRouter();
   useEffect(() => {
     const savedState = loadGameState();
@@ -48,10 +51,10 @@ const TypeQuestPage = () => {
 
   // Auto-save whenever game state changes for even driven updates
   useEffect(() => {
-    if (gameState) {
+    if (gameState && gameStatus !== "setup") {
       saveGameState(gameState);
     }
-  }, [gameState]);
+  }, [gameState, gameStatus]);
 
   const updateCPUProgress = useCallback(
     (currentGameState: GameState): GameState => {
@@ -83,8 +86,6 @@ const TypeQuestPage = () => {
         GAME_CONFIG.TARGET_TIMES[currentGameState.gradeLevel],
         currentQuestion.basePoints || GAME_CONFIG.BASE_POINTS
       );
-      console.log("cpuResult:", cpuResult);
-      console.log("cpuPoints:", cpuPoints);
 
       // simulate answer mistakes
       const answerMistakes: QuestionResult[] = [];
@@ -192,6 +193,22 @@ const TypeQuestPage = () => {
           setGameState((currentState) => {
             if (!currentState) return null;
 
+            // ✅ ADD THIS CHECK: Don't update if game was reset
+            if (!currentState || currentState.status !== "active") {
+              console.log(
+                "⏹️ CPU timer fired but game is not active - ignoring"
+              );
+              return currentState;
+            }
+
+            // ✅ Check if we're resetting
+            if (hasResetRef.current) {
+              console.log(
+                "⏹️ CPU timer fired but game is resetting - ignoring"
+              );
+              return null;
+            }
+
             const updatedState = updateCPUProgress(currentState);
 
             if (updatedState.status === "finished") {
@@ -255,17 +272,25 @@ const TypeQuestPage = () => {
   }, [gameState?.status, gameState?.endTime]); // ✅ Only trigger when actually finished
 
   const handleGameReset = useCallback(() => {
+    hasResetRef.current = true; // Prevent load effect from running
+
     // Clear CPU timer on reset
     if (cpuTimerRef.current) {
       clearTimeout(cpuTimerRef.current);
       cpuTimerRef.current = null;
     }
+
+    hasResetRef.current = true;
     clearGameState();
-    setGameStatus("setup");
-    setHasBeenSaved(false);
-    setGameState(null);
-    console.log("Game reset", gameState);
-    console.log("Game status", gameStatus);
+    flushSync(() => {
+      setGameState(null);
+      setHasBeenSaved(false);
+      setGameStatus("setup");
+    });
+
+    setTimeout(() => {
+      hasResetRef.current = false;
+    }, 100);
   }, []);
 
   const handleGameStart = useCallback(
@@ -285,7 +310,7 @@ const TypeQuestPage = () => {
       saveGameState(newGameState);
       setHasBeenSaved(false);
     },
-    [handleGameReset]
+    []
   );
 
   const handleAnswerSubmit = useCallback(
@@ -425,12 +450,15 @@ const TypeQuestPage = () => {
     router.push("/");
   }, [handleGameReset, router]);
 
+  console.log("Rendering - gameStatus:", gameStatus, "gameState:", gameState);
+
   return (
     <div className="w-full h-dvh bg-linear-to-br from-primary-800 via-secondary-800 to-tertiary-700">
       {gameStatus === "setup" && (
         <TQ_SetupScreen
           gameStatus={gameStatus}
           gameState={gameState}
+          key={`setup-${Date.now()}`} // Force new instance every time
           handleGameStart={handleGameStart}
         />
       )}
@@ -449,6 +477,14 @@ const TypeQuestPage = () => {
           onBackHome={handleBackHome}
         />
       )}
+      {!gameStatus ||
+      (gameStatus !== "setup" &&
+        gameStatus !== "active" &&
+        gameStatus !== "finished") ? (
+        <div className="text-white text-center p-10">
+          ERROR: Invalid gameStatus = {gameStatus}
+        </div>
+      ) : null}
     </div>
   );
 };

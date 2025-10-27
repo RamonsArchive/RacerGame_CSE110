@@ -382,7 +382,6 @@ export const getChoices = (
     );
   }
   
-  console.log('Final choices:', choicesArray);
   return shuffle(choicesArray);
 };
 
