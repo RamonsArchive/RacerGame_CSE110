@@ -11,12 +11,10 @@ import Link from "next/link";
 
 const TQ_SetupScreen = ({
   gameStatus,
-  setGameStatus,
   gameState,
   handleGameStart,
 }: {
   gameStatus: GameStatus;
-  setGameStatus: Dispatch<SetStateAction<GameStatus>>;
   gameState?: GameState | null;
   handleGameStart: (
     gameMode: GameMode,
@@ -32,7 +30,7 @@ const TQ_SetupScreen = ({
     gameState?.currentPlayer.playerName || "You"
   );
   return (
-    <div className="flex-center w-full h-dvh">
+    <div key={gameStatus} className="flex-center w-full h-dvh">
       <div className="flex flex-col w-full max-w-2xl p-10 gap-10 bg-linear-to-b from-pink-700 via-primary-900 to-secondary-800 bg-cover bg-no-repeat rounded-xl shadow-lg">
         <Link
           href="/"

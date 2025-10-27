@@ -70,7 +70,7 @@ const TQ_Leaderboard = ({
       onClick={onClose}
     >
       <div
-        className={`flex flex-col w-full max-w-4xl mx-4 p-8 gap-6 bg-gradient-to-b from-purple-900 via-primary-900 to-secondary-900 rounded-2xl shadow-2xl border border-white/20 transition-all duration-500 ${
+        className={`flex flex-col w-full max-w-4xl mx-4 p-8 gap-6 bg-linear-to-br from-purple-900 via-primary-900 to-secondary-900 rounded-2xl shadow-2xl border border-white/20 transition-all duration-500 ${
           shouldAnimate ? "scale-100 translate-y-0" : "scale-95 -translate-y-8"
         }`}
         onClick={(e) => e.stopPropagation()}

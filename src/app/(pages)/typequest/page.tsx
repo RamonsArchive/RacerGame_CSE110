@@ -59,6 +59,18 @@ const TypeQuestPage = () => {
         return currentGameState;
       }
 
+      // ✅ If player finished, snapshot opponent and stop
+      if (currentGameState.currentPlayer.isFinished) {
+        console.log("⏹️ Player finished - snapshotting CPU progress");
+        return {
+          ...currentGameState,
+          opponent: {
+            ...currentGameState.opponent,
+            isFinished: true, // Mark as finished
+          },
+        };
+      }
+
       const currentQuestion =
         currentGameState.questions[
           currentGameState.opponent.currentQuestionIndex
@@ -163,7 +175,8 @@ const TypeQuestPage = () => {
             setGameStatus("finished");
           } else if (
             updatedState.opponent &&
-            !updatedState.opponent.isFinished
+            !updatedState.opponent.isFinished &&
+            !updatedState.currentPlayer.isFinished
           ) {
             // Schedule next CPU answer AFTER state update
             setTimeout(() => scheduleCPUAnswer(), 0);
@@ -200,17 +213,6 @@ const TypeQuestPage = () => {
     };
   }, [gameState?.status, gameState?.mode]); // ✅ REMOVED scheduleCPUAnswer from deps
 
-  // finish game by setting opponent to finished and cancel CPU timer
-  const cancelCPUTimerAndEndGame = useCallback(() => {
-    if (cpuTimerRef.current) {
-      clearTimeout(cpuTimerRef.current);
-      cpuTimerRef.current = null;
-    }
-    if (gameState) {
-      gameState.opponent && (gameState.opponent.isFinished = true);
-    }
-  }, []);
-
   // save game result for leaderboard
   useEffect(() => {
     if (
@@ -226,6 +228,20 @@ const TypeQuestPage = () => {
       }
     }
   }, [gameState?.status, gameState?.endTime]); // ✅ Only trigger when actually finished
+
+  const handleGameReset = useCallback(() => {
+    // Clear CPU timer on reset
+    if (cpuTimerRef.current) {
+      clearTimeout(cpuTimerRef.current);
+      cpuTimerRef.current = null;
+    }
+    clearGameState();
+    setGameStatus("setup");
+    setHasBeenSaved(false);
+    setGameState(null);
+    console.log("Game reset", gameState);
+    console.log("Game status", gameStatus);
+  }, []);
 
   const handleGameStart = useCallback(
     (gameMode: GameMode, gradeLevel: GradeLevel, playerName: string) => {
@@ -244,20 +260,8 @@ const TypeQuestPage = () => {
       saveGameState(newGameState);
       setHasBeenSaved(false);
     },
-    []
+    [handleGameReset]
   );
-
-  const handleGameReset = useCallback(() => {
-    // Clear CPU timer on reset
-    if (cpuTimerRef.current) {
-      clearTimeout(cpuTimerRef.current);
-      cpuTimerRef.current = null;
-    }
-    clearGameState();
-    setGameState(null);
-    setGameStatus("setup");
-    setHasBeenSaved(false);
-  }, []);
 
   const handleAnswerSubmit = useCallback(
     (userAnswer: string) => {
@@ -320,22 +324,44 @@ const TypeQuestPage = () => {
           isFinished: isPlayerFinished,
         };
 
-        // Check if BOTH players are finished (for solo mode)
-        const shouldFinishGame = isPlayerFinished; // TODO: Add opponent finished check
+        let finalOpponent = gameState.opponent;
+        if (
+          isPlayerFinished &&
+          gameState.mode === "solo" &&
+          gameState.opponent
+        ) {
+          console.log("📸 Player finished - snapshotting opponent state");
+
+          // Clear CPU timer immediately
+          if (cpuTimerRef.current) {
+            clearTimeout(cpuTimerRef.current);
+            cpuTimerRef.current = null;
+          }
+
+          // Snapshot opponent as-is
+          finalOpponent = {
+            ...gameState.opponent,
+            isFinished: true, // Mark as finished
+          };
+        }
 
         const updatedGameState: GameState = {
           ...gameState,
           currentPlayer: updatedPlayer,
-          status: shouldFinishGame ? "finished" : "active",
-          endTime: shouldFinishGame ? Date.now() : null,
+          opponent: finalOpponent,
+          status: isPlayerFinished ? "finished" : "active", // ✅ Player finishing = game over
+          endTime: isPlayerFinished ? Date.now() : null,
         };
 
         setGameState(updatedGameState);
 
-        if (shouldFinishGame) {
+        if (isPlayerFinished) {
           setGameStatus("finished");
           // Clear CPU timer when game ends
-          cancelCPUTimerAndEndGame();
+          if (cpuTimerRef.current) {
+            clearTimeout(cpuTimerRef.current);
+            cpuTimerRef.current = null;
+          }
         }
       } else {
         // Incorrect answer - increment mistakes
@@ -364,7 +390,6 @@ const TypeQuestPage = () => {
       {gameStatus === "setup" && (
         <TQ_SetupScreen
           gameStatus={gameStatus}
-          setGameStatus={setGameStatus}
           gameState={gameState}
           handleGameStart={handleGameStart}
         />

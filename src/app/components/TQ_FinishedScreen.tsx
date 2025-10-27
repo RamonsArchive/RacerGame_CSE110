@@ -77,7 +77,7 @@ const TQ_FinishedScreen = ({
   return (
     <>
       <div className="flex items-center justify-center w-full h-dvh p-4">
-        <div className="flex flex-col w-full max-w-2xl p-10 gap-8 bg-gradient-to-b from-pink-700 via-primary-900 to-secondary-800 rounded-2xl shadow-2xl">
+        <div className="flex flex-col w-full max-w-2xl p-10 gap-8 bg-linear-to-b from-pink-700 via-primary-900 to-secondary-800 rounded-2xl shadow-2xl">
           {/* Title */}
           <div className="flex justify-center w-full">
             <h1 className="text-5xl font-bold text-white drop-shadow-2xl text-center">
