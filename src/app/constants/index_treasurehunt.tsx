@@ -1,4 +1,4 @@
-// constants/index_typeracer.tsx
+// constants/index_typequest.tsx
 
 export type GradeLevel = "K" | "1" | "2" | "3" | "4" | "5" | "6";
 export type GameMode = "solo" | "multiplayer";
@@ -107,6 +107,6 @@ export const GAME_CONFIG = {
     medium: { mistakeRate: 0.15, speedMultiplier: 1.0 },
     hard: { mistakeRate: 0.05, speedMultiplier: 1.3 },
   },
-  SESSION_STORAGE_KEY: "typeracer_game_state",
-  LEADERBOARD_KEY: "typeracer_leaderboard",
+  SESSION_STORAGE_KEY: "typequest_game_state",
+  LEADERBOARD_KEY: "typequest_leaderboard",
 } as const;

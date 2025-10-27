@@ -2,12 +2,12 @@ import { GameType } from "@/lib/GlobalTypes";
 
 export const GAMES: GameType[] = [
   {
-    id: "typeracer",
-    title: "Type Racer",
+    id: "typequest",
+    title: "Type Quest",
     description:
       "Race against the clock to type as many gramatically correct words as possible.",
-    image_path: "/Assets/TypeRacer/tr_gamePic.jpg",
-    href: "/typeracer",
+    image_path: "/Assets/TypeQuest/tq_gamePic.jpg",
+    href: "/typequest",
     type: "main",
   },
   {

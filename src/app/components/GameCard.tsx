@@ -6,7 +6,6 @@ import Image from "next/image";
 import Link from "next/link";
 const GameCard = ({ game }: { game: GameType }) => {
   const { id, title, description, image_path, type, href } = game;
-  console.log(game);
   return (
     <Link
       id={id}
