@@ -369,7 +369,6 @@ export const getChoices = (
         uniqueChoices.add(q.correctAnswer);
       }
     });
-    
     attempts++;
   }
   

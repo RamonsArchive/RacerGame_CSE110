@@ -13,6 +13,10 @@ const TQ_Summary = ({ gameState }: { gameState: GameState }) => {
       {/* You */}
       <div className="flex w-[50%] flex-col gap-3">
         <SummaryRow
+          label="Your points"
+          value={`${gameState.currentPlayer.totalPoints}`}
+        />
+        <SummaryRow
           label="Your progress"
           value={`${gameState.currentPlayer.questionsAnswered} / ${gameState.totalQuestions}`}
         />
@@ -51,6 +55,10 @@ const TQ_Summary = ({ gameState }: { gameState: GameState }) => {
 
       {/* Opponent */}
       <div className="flex flex-1 flex-col gap-3">
+        <SummaryRow
+          label="Opponent points"
+          value={`${gameState.opponent?.totalPoints}`}
+        />
         <SummaryRow
           label="Opponent progress"
           value={`${gameState.opponent?.questionsAnswered} / ${gameState.totalQuestions}`}

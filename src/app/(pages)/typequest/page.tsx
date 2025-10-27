@@ -442,7 +442,7 @@ const TypeQuestPage = () => {
           handleGameReset={handleGameReset}
         />
       )}
-      {gameStatus === "finished" && (
+      {gameStatus === "finished" && gameState && (
         <TQ_FinishedScreen
           gameState={gameState}
           onPlayAgain={handleGameReset}
