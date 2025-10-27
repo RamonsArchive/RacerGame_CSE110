@@ -1,3 +1,7 @@
+/* TODO git commit -m "finished type quest, will need to fix bug where setup component 
+requires 2 clicks to properly render. Will add multiplayer, will add testing, will add more word questions. Will finish as
+thetics." */
+
 "use client"; // page renders client side Essential for user interaction
 import React, { useEffect, useCallback, useRef } from "react";
 import { useState } from "react";
