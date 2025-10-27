@@ -319,9 +319,10 @@ export const createGameResult = (gameState: GameState): GameResult => {
     difficulty: 'easy' | 'medium' | 'hard' = 'medium'
   ): { timeSpent: number; mistakes: number; correct: boolean } => {
     const config = GAME_CONFIG.CPU_DIFFICULTY[difficulty];
-    const baseTime = question.correctAnswer.length * 0.3; // ~0.3s per character
+    const baseTime = question.correctAnswer.length * 0.2; // ~0.3s per character
     
-    const timeSpent = baseTime / config.speedMultiplier;
+    const varianceFactor = 0.4 + Math.random() * 0.5; // range [0.5, 1.25]
+    const timeSpent = (baseTime / config.speedMultiplier) * varianceFactor;
     const willMakeMistake = Math.random() < config.mistakeRate;
     const mistakes = willMakeMistake ? Math.floor(Math.random() * 2) + 1 : 0;
     
@@ -368,7 +369,6 @@ export const getChoices = (
         uniqueChoices.add(q.correctAnswer);
       }
     });
-    
     attempts++;
   }
   
@@ -382,7 +382,6 @@ export const getChoices = (
     );
   }
   
-  console.log('Final choices:', choicesArray);
   return shuffle(choicesArray);
 };
 

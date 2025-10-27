@@ -18,6 +18,11 @@ const TQ_FinishedScreen = ({
 }: TQ_FinishedScreenProps) => {
   const [openLeaderboard, setOpenLeaderboard] = useState(false);
 
+  // Add this early return
+  if (!gameState) {
+    return null;
+  }
+
   const winner =
     gameState?.currentPlayer?.totalPoints && gameState?.opponent?.totalPoints
       ? gameState.currentPlayer.totalPoints > gameState.opponent.totalPoints
