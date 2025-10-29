@@ -41,19 +41,20 @@ export const initializeGame = (
   ): GameState => {
     const questions = getGameQuestions(gradeLevel, questionCount);
 
-      const questionsWithChoices = questions.map((question) => {
-        return {
-          ...question,
-          choices: getChoices(question, gradeLevel, 4),
-        };
-      });
+      // const questionsWithChoices = questions.map((question) => {
+      //   return {
+      //     ...question,
+      //     choices: getChoices(question, gradeLevel, 4),
+      //   };
+      // });
+
     
     return {
       gameId: generateGameId(),
       mode,
       gradeLevel,
       status: 'setup',
-      questions: questionsWithChoices,
+      questions: questions,
       totalQuestions: questionCount,
       startTime: null,
       endTime: null,
@@ -321,7 +322,7 @@ export const createGameResult = (gameState: GameState): GameResult => {
     const config = GAME_CONFIG.CPU_DIFFICULTY[difficulty];
     const baseTime = question.correctAnswer.length * 0.2; // ~0.3s per character
     
-    const varianceFactor = 0.4 + Math.random() * 0.5; // range [0.5, 1.25]
+    const varianceFactor = 0.1 + Math.random() * 0.4; // range [0.1, 0.5]
     const timeSpent = (baseTime / config.speedMultiplier) * varianceFactor;
     const willMakeMistake = Math.random() < config.mistakeRate;
     const mistakes = willMakeMistake ? Math.floor(Math.random() * 2) + 1 : 0;
@@ -382,7 +383,7 @@ export const getChoices = (
     );
   }
   
-  return shuffle(choicesArray);
+return shuffle(choicesArray);
 };
 
 

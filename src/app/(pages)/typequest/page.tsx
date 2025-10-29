@@ -182,10 +182,11 @@ const TypeQuestPage = () => {
 
         // Calculate delay
         const baseTimePerChar = 300;
-        const cpuSpeed = currentQuestion.correctAnswer.length * baseTimePerChar;
+        const cpuSpeed =
+          currentQuestion.correctAnswer.length * baseTimePerChar * 15; // larger delay for longer words
         const difficultyConfig = GAME_CONFIG.CPU_DIFFICULTY[difficulty];
         const cpuDelay = cpuSpeed / difficultyConfig.speedMultiplier;
-        const randomDelay = cpuDelay * (0.8 + Math.random() * 0.4);
+        const randomDelay = cpuDelay * (0.9 + Math.random() * 0.5);
 
         // ✅ KEY FIX: Schedule timer but DON'T modify state here
         cpuTimerRef.current = setTimeout(() => {

@@ -1,8 +1,6 @@
 "use client";
 import React, { Dispatch, SetStateAction, useState } from "react";
-import { ChevronLeft } from "lucide-react";
 import { GameState, GameStatus } from "../constants/index_typequest";
-import { clearGameState, getChoices } from "@/lib/utils_typequest";
 import BackTo from "./BackTo";
 import { getProgressPercentage } from "@/lib/utils_typequest";
 
