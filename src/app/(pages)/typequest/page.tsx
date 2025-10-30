@@ -79,7 +79,11 @@ const TypeQuestPage = () => {
           currentGameState.opponent.currentQuestionIndex
         ];
 
-      const cpuResult = simulateCPUAnswer(currentQuestion, "medium");
+      const cpuResult = simulateCPUAnswer(
+        currentQuestion,
+        currentGameState.opponent,
+        "medium"
+      );
       const cpuPoints = calculateQuestionPoints(
         cpuResult.timeSpent,
         cpuResult.mistakes,
@@ -138,7 +142,7 @@ const TypeQuestPage = () => {
           currentGameState.opponent.totalMistakes + cpuResult.mistakes,
         questionResults: allQuestionResults,
         isFinished: isOpponentFinished,
-        questionStartTime: isOpponentFinished ? null : Date.now(),
+        questionStartTime: Date.now(),
       };
 
       const shouldEndGame =
@@ -180,12 +184,29 @@ const TypeQuestPage = () => {
         const currentQuestion =
           prevState.questions[prevState.opponent.currentQuestionIndex];
 
+        // ✅ ADD THINKING TIME: Time to read/understand the question
+        const wordCount = currentQuestion.prompt.split(" ").length;
+        const thinkingTime = {
+          easy: 5500 + wordCount * 150, // ~5500-7000ms base thinking
+          medium: 11000 + wordCount * 100, // ~11000-12500ms base thinking
+          hard: 12000 + wordCount * 100, // ~12000-13500ms base thinking
+        }[difficulty];
+
+        const thinkingVaraince = 0.8 + Math.random() * 0.7;
+        const actualThinkingTime = thinkingTime * thinkingVaraince;
+
         // Calculate delay
         const baseTimePerChar = 300;
-        const cpuSpeed = currentQuestion.correctAnswer.length * baseTimePerChar;
+        const typingTime =
+          currentQuestion.correctAnswer.length * baseTimePerChar; // larger delay for longer words
         const difficultyConfig = GAME_CONFIG.CPU_DIFFICULTY[difficulty];
-        const cpuDelay = cpuSpeed / difficultyConfig.speedMultiplier;
-        const randomDelay = cpuDelay * (0.8 + Math.random() * 0.4);
+        const adjustedTypingTime =
+          typingTime / difficultyConfig.speedMultiplier;
+
+        const typingVariance = 0.9 + Math.random() * 0.5;
+        const actualTypingTime = adjustedTypingTime * typingVariance;
+
+        const totalDelay = actualThinkingTime + actualTypingTime;
 
         // ✅ KEY FIX: Schedule timer but DON'T modify state here
         cpuTimerRef.current = setTimeout(() => {
@@ -224,7 +245,7 @@ const TypeQuestPage = () => {
 
             return updatedState;
           });
-        }, randomDelay);
+        }, totalDelay);
 
         return prevState; // ✅ Don't modify state
       });
