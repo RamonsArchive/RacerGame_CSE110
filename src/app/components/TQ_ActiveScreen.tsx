@@ -3,6 +3,7 @@ import React, { Dispatch, SetStateAction, useState } from "react";
 import { GameState, GameStatus } from "../constants/index_typequest";
 import BackTo from "./BackTo";
 import { getProgressPercentage } from "@/lib/utils_typequest";
+import Image from "next/image";
 
 const TQ_ActiveScreen = ({
   setGameStatus,
@@ -22,6 +23,18 @@ const TQ_ActiveScreen = ({
   const currentQuestion =
     gameState?.questions[currentPlayer?.currentQuestionIndex || 0] || null;
   const choices = currentQuestion?.choices || [];
+
+  const currentPlayerPosition = currentPlayer?.currentQuestionIndex || 0;
+  const opponentPosition = opponent?.currentQuestionIndex || 0;
+  const totalQuestions = gameState?.totalQuestions || 0;
+
+  const currentPlayerPositionPercentage =
+    (currentPlayerPosition / totalQuestions) * 90;
+  const opponentPositionPercentage = (opponentPosition / totalQuestions) * 90;
+
+  console.log("currentQuestionIndex", currentPlayerPosition);
+  console.log("opponentQuestionIndex", opponentPosition);
+  console.log(currentPlayerPositionPercentage, opponentPositionPercentage);
 
   return (
     <div className="flex w-full h-dvh flex-col gap-5 p-10">
@@ -101,7 +114,7 @@ const TQ_ActiveScreen = ({
           {choices.map((choice: string, index: number) => (
             <div
               key={index}
-              className="flex flex-col items-center bg-slate-500 rounded-md px-5 py-4 hover:cursor-pointer hover:bg-slate-600 transition-all duration-300 ease-in-out"
+              className="flex flex-col items-center bg-slate-500 rounded-md px-5 py-4 hover:cursor-pointer hover:bg-slate-600 transition-all duration-300 ease-in-out shadow-md"
             >
               <p className="text-lg text-center font-semibold text-slate-100">
                 {choice}
@@ -123,6 +136,45 @@ const TQ_ActiveScreen = ({
                 }
               }}
               placeholder="Press Enter to submit your answer"
+            />
+          </div>
+        </div>
+      </div>
+      <div id="race_track" className="flex flex-row w-full">
+        <div className="relative w-full h-full">
+          <Image
+            src="/Assets/TypeQuest/startFinish.png"
+            alt="Race Track"
+            width={1000}
+            height={100}
+            className="object-cover w-full h-full"
+          />
+          <div
+            className="absolute top-4 h-20 w-25 left-0 transition-all duration-300 ease-in-out bg-primary-500 rounded-full"
+            style={{
+              left: `${currentPlayerPositionPercentage}%`,
+            }}
+          >
+            <Image
+              src="/Assets/TypeQuest/tq_gamePic.jpg"
+              alt="Start"
+              width={100}
+              height={100}
+              className="object-contain h-full w-full rounded-full"
+            />
+          </div>
+          <div
+            className="absolute bottom-4 h-20 w-25 left-0 transition-all duration-300 ease-in-out bg-tertiary-500 rounded-full"
+            style={{
+              left: `${opponentPositionPercentage}%`,
+            }}
+          >
+            <Image
+              src="/Assets/TypeQuest/car2.jpg"
+              alt="Opponent"
+              width={100}
+              height={100}
+              className="object-contain h-full w-full rounded-full"
             />
           </div>
         </div>
