@@ -1,4 +1,4 @@
-import { QuestionResult, Question, GameMode, GradeLevel, GameState, GameResult, GAME_CONFIG, WORD_BANK} from "@/app/constants/index_typequest";
+import { QuestionResult, Question, GameMode, GradeLevel, GameState, GameResult, GAME_CONFIG, WORD_BANK, PlayerProgress} from "@/app/constants/index_typequest";
 
 // Points calculation
 export const calculateQuestionPoints = (
@@ -317,13 +317,12 @@ export const createGameResult = (gameState: GameState): GameResult => {
   // CPU opponent simulation (for solo mode)
   export const simulateCPUAnswer = (
     question: Question,
+    opponent: PlayerProgress,
     difficulty: 'easy' | 'medium' | 'hard' = 'medium'
   ): { timeSpent: number; mistakes: number; correct: boolean } => {
     const config = GAME_CONFIG.CPU_DIFFICULTY[difficulty];
-    const baseTime = question.correctAnswer.length * 0.2; // ~0.3s per character
-    
-    const varianceFactor = 0.1 + Math.random() * 0.4; // range [0.1, 0.5]
-    const timeSpent = (baseTime / config.speedMultiplier) * varianceFactor;
+    const baseTimePerChar = 0.3;
+    const timeSpent = (Date.now() - opponent.questionStartTime!) / 1000;
     const willMakeMistake = Math.random() < config.mistakeRate;
     const mistakes = willMakeMistake ? Math.floor(Math.random() * 2) + 1 : 0;
     

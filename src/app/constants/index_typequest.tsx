@@ -144,7 +144,7 @@ export const GAME_CONFIG = {
     },
     medium: {
       mistakeRate: 0.2,
-      speedMultiplier: 0.5,
+      speedMultiplier: 1,
       pointsMultiplier: 1.2,
     },
     hard: {
