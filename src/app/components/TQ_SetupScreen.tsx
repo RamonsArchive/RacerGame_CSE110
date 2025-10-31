@@ -11,11 +11,7 @@ import Link from "next/link";
 import { MultiplayerPlayer } from "@/lib/GlobalTypes";
 import MultiplayerSetup from "./MultiplayerSetup";
 
-const TQ_SetupScreen = ({
-  gameStatus,
-  gameState,
-  handleGameStart,
-}: {
+interface Props {
   gameStatus: GameStatus;
   gameState?: GameState | null;
   handleGameStart: (
@@ -23,205 +19,40 @@ const TQ_SetupScreen = ({
     gradeLevel: GradeLevel,
     playerName: string
   ) => void;
-}) => {
+  multiplayerPlayers: MultiplayerPlayer[];
+  multiplayerView: boolean;
+  handleAcceptMatch: () => void;
+  handleRejectMatch: () => void;
+  joinLobby: (playerName: string) => void;
+  leaveLobby: () => void;
+  handleConnect: (playerId: string, playerName: string) => void;
+  incomingRequest: {
+    matchId: string;
+    from: string;
+    gradeLevel: GradeLevel;
+  } | null;
+}
+
+const TQ_SetupScreen = ({
+  gameStatus,
+  gameState,
+  handleGameStart,
+  multiplayerPlayers,
+  multiplayerView,
+  handleAcceptMatch,
+  handleRejectMatch,
+  joinLobby,
+  leaveLobby,
+  handleConnect,
+  incomingRequest,
+}: Props) => {
   const [gradeLevel, setGradeLevel] = useState<GradeLevel>(
     gameState?.gradeLevel || "K"
   );
   const [gameMode, setGameMode] = useState<GameMode>(gameState?.mode || "solo");
-  const [multiplayer, setMultiplayer] = useState<boolean>(
-    gameState?.mode === "multiplayer"
-  );
-  const [multiplayerView, setMultiplayerView] = useState<boolean>(false);
-  const [multiplayerPlayers, setMultiplayerPlayers] = useState<
-    MultiplayerPlayer[]
-  >([]);
   const [playerName, setPlayerName] = useState<string>(
     gameState?.currentPlayer.playerName || "You"
   );
-  const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [incomingRequest, setIncomingRequest] = useState<{
-    matchId: string;
-    from: string;
-    gradeLevel: string;
-  } | null>(null);
-
-  // Join lobby and start polling for players
-  const joinLobby = async () => {
-    try {
-      const res = await fetch("/api/lobby", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: playerName,
-          gradeLevel,
-          gameMode,
-        }),
-      });
-      const data = await res.json();
-      if (data.ok) {
-        setMyPlayerId(data.player.id);
-        setMultiplayerView(true);
-        startPollingPlayers(data.player.id);
-      } else {
-        alert(data.error || "Failed to join lobby");
-      }
-    } catch (err) {
-      alert("Failed to connect to lobby");
-      console.error(err);
-    }
-  };
-
-  // Poll for available players AND incoming match requests
-  const startPollingPlayers = (myId: string) => {
-    const pollPlayers = async () => {
-      try {
-        // Fetch available players
-        const res = await fetch(`/api/lobby?exclude=${myId}`);
-        const data = await res.json();
-        if (data.ok) {
-          setMultiplayerPlayers(data.players);
-        }
-
-        // Check for incoming match requests
-        const lobbyPlayers = data.players || [];
-        for (const player of lobbyPlayers) {
-          const matchId = `${player.id}_${myId}`;
-          const matchRes = await fetch(`/api/match?matchId=${matchId}`);
-          const matchData = await matchRes.json();
-
-          if (matchData.ok && matchData.match?.status === "pending") {
-            setIncomingRequest({
-              matchId,
-              from: player.name,
-              gradeLevel: matchData.match.gradeLevel,
-            });
-            break; // Only show one request at a time
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch players:", err);
-      }
-    };
-
-    // Initial fetch
-    pollPlayers();
-
-    // Poll every 2 seconds
-    pollIntervalRef.current = setInterval(pollPlayers, 2000);
-  };
-
-  // Stop polling and leave lobby
-  const leaveLobby = async () => {
-    if (pollIntervalRef.current) {
-      clearInterval(pollIntervalRef.current);
-      pollIntervalRef.current = null;
-    }
-
-    if (myPlayerId) {
-      try {
-        await fetch("/api/lobby", {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: myPlayerId }),
-        });
-      } catch (err) {
-        console.error("Failed to leave lobby:", err);
-      }
-    }
-
-    setMultiplayerView(false);
-    setMyPlayerId(null);
-    setMultiplayerPlayers([]);
-  };
-
-  // Update handleConnect to create match request
-  const handleConnect = async (opponentId: string) => {
-    const res = await fetch("/api/match", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        requesterId: myPlayerId,
-        targetId: opponentId,
-        gradeLevel,
-      }),
-    });
-
-    const data = await res.json();
-    if (data.ok) {
-      // Poll for acceptance
-      waitForMatchAcceptance(data.matchId);
-    }
-  };
-
-  // Poll to check if opponent accepted
-  const waitForMatchAcceptance = (matchId: string) => {
-    const checkInterval = setInterval(async () => {
-      const res = await fetch(`/api/match?matchId=${matchId}`);
-      const data = await res.json();
-
-      if (data.match?.status === "accepted") {
-        clearInterval(checkInterval);
-        // START GAME!
-        leaveLobby();
-        handleGameStart(gameMode, gradeLevel, playerName);
-      } else if (data.match?.status === "rejected") {
-        clearInterval(checkInterval);
-        alert("Match request declined");
-      }
-    }, 1000);
-  };
-
-  // Accept incoming match request
-  const handleAcceptMatch = async () => {
-    if (!incomingRequest) return;
-
-    try {
-      await fetch("/api/match", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          matchId: incomingRequest.matchId,
-          status: "accepted",
-        }),
-      });
-
-      // Start game!
-      leaveLobby();
-      handleGameStart(gameMode, gradeLevel, playerName);
-    } catch (err) {
-      console.error("Failed to accept match:", err);
-    }
-  };
-
-  // Reject incoming match request
-  const handleRejectMatch = async () => {
-    if (!incomingRequest) return;
-
-    try {
-      await fetch("/api/match", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          matchId: incomingRequest.matchId,
-          status: "rejected",
-        }),
-      });
-
-      setIncomingRequest(null);
-    } catch (err) {
-      console.error("Failed to reject match:", err);
-    }
-  };
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-      }
-    };
-  }, []);
 
   const handleStartGame = (
     gameMode: GameMode,
@@ -235,7 +66,7 @@ const TQ_SetupScreen = ({
       return;
     }
     if (gameMode === "multiplayer") {
-      joinLobby();
+      joinLobby(playerName);
       return;
     }
     handleGameStart(gameMode, gradeLevel, playerName);

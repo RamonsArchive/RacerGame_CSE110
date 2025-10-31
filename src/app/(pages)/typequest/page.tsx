@@ -17,6 +17,7 @@ import {
 import {
   initializeGame,
   calculateQuestionPoints,
+  initializeGameMultiplayer,
   loadGameState,
   saveGameState,
   checkAnswer,
@@ -29,15 +30,35 @@ import TQ_ActiveScreen from "@/app/components/TQ_ActiveScreen";
 import TQ_FinishedScreen from "@/app/components/TQ_FinishedScreen";
 import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
+import { MultiplayerPlayer } from "@/lib/GlobalTypes";
 
 const TypeQuestPage = () => {
+  const router = useRouter();
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [gameStatus, setGameStatus] = useState<GameStatus>("setup");
   const [hasBeenSaved, setHasBeenSaved] = useState(false);
   const cpuTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasResetRef = useRef(false); // Add this
 
-  const router = useRouter();
+  /* ****************************************************** */
+  /* MULTIPLAYER VARIABLES */
+  /* ****************************************************** */
+  const [myPlayerId, setMyPlayerId] = useState<string | null>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [incomingRequest, setIncomingRequest] = useState<{
+    matchId: string;
+    from: string;
+    gradeLevel: GradeLevel;
+  } | null>(null);
+
+  const [multiplayer, setMultiplayer] = useState<boolean>(
+    gameState?.mode === "multiplayer"
+  );
+  const [multiplayerView, setMultiplayerView] = useState<boolean>(false);
+  const [multiplayerPlayers, setMultiplayerPlayers] = useState<
+    MultiplayerPlayer[]
+  >([]);
+
   useEffect(() => {
     const savedState = loadGameState();
     if (savedState) {
@@ -55,6 +76,84 @@ const TypeQuestPage = () => {
       saveGameState(gameState);
     }
   }, [gameState, gameStatus]);
+
+  // 🎮 MULTIPLAYER: Poll opponent's progress
+  useEffect(() => {
+    if (
+      gameState?.mode !== "multiplayer" ||
+      gameStatus !== "active" ||
+      !gameState?.gameId ||
+      !gameState?.currentPlayer.playerId
+    ) {
+      return;
+    }
+
+    const pollOpponentProgress = async () => {
+      try {
+        const res = await fetch(
+          `/api/game/progress?roomId=${gameState.gameId}&playerId=${gameState.currentPlayer.playerId}`
+        );
+        const data = await res.json();
+
+        if (data.ok && data.opponentProgress) {
+          const opponentProgress = data.opponentProgress;
+
+          // Update opponent state with fetched progress
+          setGameState((prevState) => {
+            if (!prevState || prevState.mode !== "multiplayer")
+              return prevState;
+
+            return {
+              ...prevState,
+              opponent: {
+                ...prevState.opponent!,
+                currentQuestionIndex: opponentProgress.currentQuestionIndex,
+                questionsAnswered: opponentProgress.questionsAnswered,
+                totalPoints: opponentProgress.totalPoints,
+                totalMistakes: opponentProgress.totalMistakes,
+                isFinished: opponentProgress.isFinished,
+              },
+              // If opponent finished, check if game should end
+              status:
+                opponentProgress.isFinished &&
+                prevState.currentPlayer.isFinished
+                  ? "finished"
+                  : prevState.status,
+              endTime:
+                opponentProgress.isFinished &&
+                prevState.currentPlayer.isFinished
+                  ? Date.now()
+                  : prevState.endTime,
+            };
+          });
+
+          // If opponent finished, update game status
+          if (
+            opponentProgress.isFinished &&
+            gameState.currentPlayer.isFinished
+          ) {
+            setGameStatus("finished");
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch opponent progress:", err);
+      }
+    };
+
+    // Initial fetch
+    pollOpponentProgress();
+
+    // Poll every 1 second
+    const interval = setInterval(pollOpponentProgress, 1000);
+
+    return () => clearInterval(interval);
+  }, [
+    gameState?.mode,
+    gameStatus,
+    gameState?.gameId,
+    gameState?.currentPlayer.playerId,
+    gameState?.currentPlayer.isFinished,
+  ]);
 
   const updateCPUProgress = useCallback(
     (currentGameState: GameState): GameState => {
@@ -316,6 +415,14 @@ const TypeQuestPage = () => {
 
   const handleGameStart = useCallback(
     (gameMode: GameMode, gradeLevel: GradeLevel, playerName: string) => {
+      console.log(
+        "Starting game with mode:",
+        gameMode,
+        "gradeLevel:",
+        gradeLevel,
+        "playerName:",
+        playerName
+      );
       const newGameState = initializeGame(gameMode, gradeLevel, playerName);
       newGameState.status = "active";
       newGameState.startTime = Date.now();
@@ -426,6 +533,27 @@ const TypeQuestPage = () => {
 
         setGameState(updatedGameState);
 
+        // 🎮 MULTIPLAYER: Push progress update to opponent
+        if (gameState.mode === "multiplayer" && gameState.gameId) {
+          fetch("/api/game/progress", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              roomId: gameState.gameId,
+              playerId: updatedPlayer.playerId,
+              playerName: updatedPlayer.playerName,
+              progress: {
+                currentQuestionIndex: updatedPlayer.currentQuestionIndex,
+                questionsAnswered: updatedPlayer.questionsAnswered,
+                totalPoints: updatedPlayer.totalPoints,
+                totalMistakes: updatedPlayer.totalMistakes,
+                isFinished: updatedPlayer.isFinished,
+                finishTime: isPlayerFinished ? Date.now() : null,
+              },
+            }),
+          }).catch((err) => console.error("Failed to push progress:", err));
+        }
+
         if (isPlayerFinished) {
           setGameStatus("finished");
           // Clear CPU timer when game ends
@@ -473,6 +601,273 @@ const TypeQuestPage = () => {
 
   console.log("Rendering - gameStatus:", gameStatus, "gameState:", gameState);
 
+  /* ****************************************************** */
+  /* MULTIPLAYER */
+  /* ****************************************************** */
+
+  // Join lobby and start polling for players
+  const joinLobby = async (playerName: string) => {
+    try {
+      console.log("Joining lobby");
+      const res = await fetch("/api/lobby", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: playerName,
+          gradeLevel: gameState?.gradeLevel as GradeLevel,
+          gameMode: gameState?.mode as GameMode,
+        }),
+      });
+      console.log("Response:", res);
+      const data = await res.json();
+      console.log("Data:", data);
+      if (data.ok) {
+        setMyPlayerId(data.player.id);
+        setMultiplayerView(true);
+        startPollingPlayers(data.player.id);
+      } else {
+        alert(data.error || "Failed to join lobby");
+      }
+    } catch (err) {
+      alert("Failed to connect to lobby");
+      console.error(err);
+    }
+  };
+
+  // Poll for available players AND incoming match requests
+  const startPollingPlayers = (myId: string) => {
+    const pollPlayers = async () => {
+      try {
+        // Fetch available players
+        console.log("Polling players");
+        const res = await fetch(`/api/lobby?exclude=${myId}`);
+        const data = await res.json();
+        console.log("Data:", data);
+        if (data.ok) {
+          setMultiplayerPlayers(data.players);
+        }
+
+        // Check for incoming match requests
+        const lobbyPlayers = data.players || [];
+        for (const player of lobbyPlayers) {
+          const matchId = `${player.id}_${myId}`;
+          const matchRes = await fetch(`/api/match?matchId=${matchId}`);
+          const matchData = await matchRes.json();
+          console.log("getting match data:", matchData);
+
+          if (matchData.ok && matchData.match?.status === "pending") {
+            console.log("Incoming request:", matchData.match);
+            setIncomingRequest({
+              matchId,
+              from: player.name,
+              gradeLevel: matchData.match.gradeLevel,
+            });
+            break; // Only show one request at a time
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch players:", err);
+      }
+    };
+
+    // Initial fetch
+    pollPlayers();
+
+    // Poll every 2 seconds
+    pollIntervalRef.current = setInterval(pollPlayers, 2000);
+  };
+
+  // Stop polling and leave lobby
+  const leaveLobby = async () => {
+    console.log("Leaving lobby");
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+
+    if (myPlayerId) {
+      try {
+        const res = await fetch("/api/lobby", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: myPlayerId }),
+        });
+        console.log("Leaving body:", res.json());
+      } catch (err) {
+        console.error("Failed to leave lobby:", err);
+      }
+    }
+
+    setMultiplayerView(false);
+    setMyPlayerId(null);
+    setMultiplayerPlayers([]);
+  };
+
+  // Update handleConnect to create match request
+  const handleConnect = async (opponentId: string, opponentName: string) => {
+    const res = await fetch("/api/match", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        requesterId: myPlayerId,
+        targetId: opponentId,
+        gradeLevel: gameState?.gradeLevel || "K",
+      }),
+    });
+
+    const data = await res.json();
+    if (data.ok) {
+      // Poll for acceptance
+      waitForMatchAcceptance(data.matchId, opponentId, opponentName);
+    }
+  };
+
+  // Poll to check if opponent accepted
+  const waitForMatchAcceptance = async (
+    matchId: string,
+    opponentId: string,
+    opponentName: string
+  ) => {
+    console.log("⏳ Waiting for match acceptance:", {
+      matchId,
+      opponentId,
+      opponentName,
+    });
+
+    const checkInterval = setInterval(async () => {
+      const res = await fetch(`/api/match?matchId=${matchId}`);
+      const data = await res.json();
+
+      if (data.ok && data.match) {
+        console.log("📊 Match status:", data.match.status);
+
+        // must be accepted and not rejected
+        if (data.match.status === "accepted") {
+          clearInterval(checkInterval);
+          console.log("✅ Match accepted! Starting game...");
+
+          // START GAME!
+          await leaveLobby();
+
+          // Initialize multiplayer game with shared questions
+          const newGameState = await initializeGameMultiplayer(
+            matchId,
+            myPlayerId!,
+            gameState?.currentPlayer.playerName || "Player",
+            opponentId,
+            opponentName,
+            gameState?.gradeLevel as GradeLevel,
+            GAME_CONFIG.DEFAULT_QUESTIONS
+          );
+
+          if (newGameState) {
+            setGameState(newGameState);
+            setGameStatus("active");
+            console.log("🎮 Multiplayer game started!");
+          } else {
+            console.error("❌ Failed to initialize multiplayer game");
+            alert("Failed to start multiplayer game");
+          }
+        } else if (data.match.status === "rejected") {
+          clearInterval(checkInterval);
+          console.log("❌ Match rejected");
+          alert("Match request declined");
+        }
+      } else {
+        console.log("⏳ Still waiting for match response...");
+      }
+    }, 1000); // check every second
+  };
+
+  // Accept incoming match request
+  const handleAcceptMatch = async () => {
+    if (!incomingRequest) return;
+
+    try {
+      const res = await fetch("/api/match", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          matchId: incomingRequest.matchId,
+          status: "accepted",
+        }),
+      });
+
+      const acceptData = await res.json();
+      console.log("✅ Accepted match request:", acceptData);
+
+      if (!acceptData.ok) {
+        alert("Failed to accept match");
+        return;
+      }
+
+      // Extract opponent ID from matchId (format: "requesterId_targetId")
+      const [opponentId] = incomingRequest.matchId.split("_");
+
+      console.log("🎮 Starting game after acceptance:", {
+        matchId: incomingRequest.matchId,
+        myPlayerId,
+        opponentId,
+        opponentName: incomingRequest.from,
+      });
+
+      // Start game!
+      await leaveLobby();
+
+      // Initialize multiplayer game with shared questions
+      const newGameState = await initializeGameMultiplayer(
+        incomingRequest.matchId,
+        myPlayerId!,
+        gameState?.currentPlayer.playerName || "Player",
+        opponentId,
+        incomingRequest.from,
+        gameState?.gradeLevel as GradeLevel,
+        GAME_CONFIG.DEFAULT_QUESTIONS
+      );
+
+      if (newGameState) {
+        setGameState(newGameState);
+        setGameStatus("active");
+        console.log("🎮 Multiplayer game started!");
+      } else {
+        console.error("❌ Failed to initialize multiplayer game");
+        alert("Failed to start multiplayer game");
+      }
+    } catch (err) {
+      console.error("Failed to accept match:", err);
+    }
+  };
+
+  // Reject incoming match request
+  const handleRejectMatch = async () => {
+    if (!incomingRequest) return;
+
+    try {
+      const res = await fetch("/api/match", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          matchId: incomingRequest.matchId,
+          status: "rejected",
+        }),
+      });
+      console.log("Incoming request set to null");
+      console.log("Response:", res);
+      setIncomingRequest(null);
+    } catch (err) {
+      console.error("Failed to reject match:", err);
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="w-full h-dvh bg-linear-to-br from-primary-800 via-secondary-800 to-tertiary-700">
       {gameStatus === "setup" && (
@@ -481,6 +876,14 @@ const TypeQuestPage = () => {
           gameState={gameState}
           key={`setup-${Date.now()}`} // Force new instance every time
           handleGameStart={handleGameStart}
+          multiplayerPlayers={multiplayerPlayers}
+          multiplayerView={multiplayerView}
+          handleAcceptMatch={handleAcceptMatch}
+          handleRejectMatch={handleRejectMatch}
+          joinLobby={joinLobby}
+          leaveLobby={leaveLobby}
+          handleConnect={handleConnect}
+          incomingRequest={incomingRequest}
         />
       )}
       {gameStatus === "active" && (

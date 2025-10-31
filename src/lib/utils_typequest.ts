@@ -32,6 +32,125 @@ export const calculateQuestionPoints = (
   };
 
 
+/**
+ * Initialize multiplayer game - creates or fetches shared game room
+ * Returns game state with shared questions for both players
+ */
+export const initializeGameMultiplayer = async (
+  matchId: string,
+  myPlayerId: string,
+  myPlayerName: string,
+  opponentPlayerId: string,
+  opponentPlayerName: string,
+  gradeLevel: GradeLevel,
+  questionCount: number = GAME_CONFIG.DEFAULT_QUESTIONS
+): Promise<GameState | null> => {
+  try {
+    console.log("🎮 Initializing multiplayer game:", {
+      matchId,
+      myPlayerId,
+      myPlayerName,
+      opponentPlayerId,
+      opponentPlayerName,
+      gradeLevel,
+    });
+
+    // Try to fetch existing game room first
+    const fetchRes = await fetch(`/api/game?roomId=${matchId}`);
+    const fetchData = await fetchRes.json();
+
+    let questions: Question[];
+    let roomId = matchId;
+
+    if (fetchData.ok && fetchData.gameRoom) {
+      // Game room already exists, use those questions
+      console.log("✅ Fetched existing game room:", matchId);
+      questions = fetchData.gameRoom.questions 
+        ? JSON.parse(fetchData.gameRoom.questions) 
+        : getGameQuestions(gradeLevel, questionCount);
+    } else {
+      // Create new game room with shared questions
+      console.log("🎮 Creating new game room:", matchId);
+      questions = getGameQuestions(gradeLevel, questionCount);
+
+      const createRes = await fetch("/api/game", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roomId: matchId,  // Use matchId as roomId to ensure consistency
+          player1Id: myPlayerId,
+          player1Name: myPlayerName,
+          player2Id: opponentPlayerId,
+          player2Name: opponentPlayerName,
+          gradeLevel,
+          questions: JSON.stringify(questions), // Store as JSON string
+        }),
+      });
+
+      const createData = await createRes.json();
+
+      console.log("✅ Create data:", createData);
+      if (!createData.ok) {
+        console.error("❌ Failed to create game room:", createData.error);
+        return null;
+      }
+      roomId = createData.roomId;
+      
+      // Use the questions from the response if room already existed
+      if (createData.message === "Game room already exists" && createData.questions) {
+        console.log("📝 Using existing room's questions");
+        questions = JSON.parse(createData.questions);
+      }
+    }
+
+    console.log("🎯 Game state built with", questions.length, "questions");
+
+    // Build game state with shared questions
+    return {
+      gameId: roomId,
+      mode: "multiplayer",
+      gradeLevel,
+      status: "active",
+      questions,
+      totalQuestions: questionCount,
+      startTime: Date.now(),
+      endTime: null,
+      targetTimePerQuestion: GAME_CONFIG.TARGET_TIMES[gradeLevel],
+      currentPlayer: {
+        playerId: myPlayerId,
+        playerName: myPlayerName,
+        currentQuestionIndex: 0,
+        questionsAnswered: 0,
+        totalPoints: 0,
+        totalMistakes: 0,
+        questionResults: [],
+        isFinished: false,
+        questionStartTime: Date.now(),
+        currentQuestionMistakes: 0,
+      },
+      opponent: {
+        playerId: opponentPlayerId,
+        playerName: opponentPlayerName,
+        currentQuestionIndex: 0,
+        questionsAnswered: 0,
+        totalPoints: 0,
+        totalMistakes: 0,
+        questionResults: [],
+        isFinished: false,
+        questionStartTime: Date.now(),
+        currentQuestionMistakes: 0,
+      },
+      allowSkip: false,
+    };
+  } catch (err) {
+    console.error("Failed to initialize multiplayer game:", err);
+    return null;
+  }
+};
+
+
+
+
 // Game initialization
 export const initializeGame = (
     mode: GameMode,

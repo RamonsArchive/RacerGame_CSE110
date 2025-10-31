@@ -14,7 +14,7 @@ const MultiplayerSetup = ({
   players: MultiplayerPlayer[];
   isVisible: boolean;
   onClose: () => void;
-  onConnect: (playerId: string) => void;
+  onConnect: (playerId: string, playerName: string) => void;
   playerName: string;
   incomingRequest?: {
     matchId: string;
@@ -25,6 +25,9 @@ const MultiplayerSetup = ({
   onRejectRequest?: () => void;
 }) => {
   if (!isVisible) return null;
+
+  console.log("Players:", players);
+  console.log("Incoming request:", incomingRequest);
 
   return (
     // Backdrop - darkened and blurred background
@@ -94,7 +97,7 @@ const MultiplayerSetup = ({
                     </p>
                   </div>
                   <button
-                    onClick={() => onConnect(player.id)}
+                    onClick={() => onConnect(player.id, player.name)}
                     className="bg-green-500 hover:bg-green-600 text-white font-nunito font-bold px-6 py-3 rounded-lg hover:scale-105 transition-all duration-200 shadow-lg"
                   >
                     Connect
