@@ -474,7 +474,7 @@ const TypeQuestPage = () => {
   console.log("Rendering - gameStatus:", gameStatus, "gameState:", gameState);
 
   return (
-    <div className="w-full h-dvh bg-linear-to-br from-primary-800 via-secondary-800 to-tertiary-700">
+    <div className={`w-full h-dvh ${gameStatus === "active" ? "" : "bg-linear-to-br from-primary-800 via-secondary-800 to-tertiary-700"}`}>
       {gameStatus === "setup" && (
         <TQ_SetupScreen
           gameStatus={gameStatus}

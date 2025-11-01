@@ -30,54 +30,75 @@ const TQ_SetupScreen = ({
     gameState?.currentPlayer.playerName || "You"
   );
   return (
-    <div key={gameStatus} className="flex-center w-full h-dvh">
-      <div className="flex flex-col w-full max-w-2xl p-10 gap-10 bg-linear-to-b from-pink-700 via-primary-900 to-secondary-800 bg-cover bg-no-repeat rounded-xl shadow-lg">
+    <div 
+      key={gameStatus} 
+      className="flex-center w-full h-dvh relative"
+      style={{
+        backgroundImage: 'url(/Assets/TypeQuest/background.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      {/* Background gradient overlay - darker on left, transparent on right */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent pointer-events-none z-0"></div>
+      
+      {/* Content aligned to left */}
+      <div className="flex flex-col items-start justify-start p-10 gap-8 relative z-10 max-w-3xl">
         <Link
           href="/"
-          className="group flex flex-row items-center px-3 hover:cursor-pointer hover:underline hover:text-slate-300 transition-all duration-300 ease-in-out"
+          className="group flex flex-row items-center px-4 py-2 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20 hover:cursor-pointer hover:bg-slate-800/80 hover:border-white/30 transition-all duration-300 ease-in-out"
         >
-          <ChevronLeft className="w-6 h-6 text-slate-100 group-hover:text-slate-300 group-hover:underline transition-all duration-300 ease-in-out" />
-          <p className="font-bold text-md font-nunito text-slate-100 group-hover:text-slate-300 group-hover:underline transition-all duration-300 ease-in-out">
-            Back To Home
+          <ChevronLeft className="w-6 h-6 text-white group-hover:text-slate-300 transition-all duration-300 ease-in-out" />
+          <p className="font-bold text-lg text-white group-hover:text-slate-300 transition-all duration-300 ease-in-out">
+            Back to Home
           </p>
         </Link>
 
-        <h1 className="font-nunito text-6xl font-black text-center text-slate-100 drop-shadow-2xl animate-bright-gradient">
-          Type Quest
-        </h1>
-        <div className="flex items-center justify-between w-full gap-10">
-          <div className="flex flex-col gap-2 items-start w-full">
-            <p className="font-nunito text-sm text-slate-100">Grade Level</p>
-            <select
-              value={gradeLevel}
-              onChange={(e) => setGradeLevel(e.target.value as GradeLevel)}
-              className="bg-slate-100 text-slate-900 p-2 rounded-md w-full"
-            >
-              <option value="K">Kindergarten</option>
-              <option value="1-2">Grades 1-2</option>
-              <option value="3-4">Grades 3-4</option>
-              <option value="5-6">Grades 5-6</option>
-            </select>
-          </div>
-          <div className="flex flex-col gap-2 items-start w-full">
-            <p className="font-nunito text-sm text-slate-100">Game Mode</p>
-            <select
-              value={gameMode}
-              onChange={(e) => setGameMode(e.target.value as GameMode)}
-              className="bg-slate-100 text-slate-900 p-2 rounded-md w-full"
-            >
-              <option value="solo">Solo</option>
-              <option value="multiplayer">Multiplayer</option>
-            </select>
-          </div>
+        {/* Title - split into two lines */}
+        <div className="flex flex-col">
+          <h1 className="text-7xl md:text-8xl font-black text-white leading-tight">
+            Type Racer
+          </h1>
+          <h1 className="text-7xl md:text-8xl font-black text-white leading-tight">
+            Championship
+          </h1>
         </div>
+
+        {/* Game Mode Selection */}
+        <div className="flex flex-col gap-3 w-full max-w-md">
+          <p className="text-xl text-white font-semibold">Select game mode:</p>
+          <select
+            value={gameMode}
+            onChange={(e) => setGameMode(e.target.value as GameMode)}
+            className="bg-slate-900/60 backdrop-blur-sm border border-white/20 text-white text-xl p-4 rounded-lg w-full focus:outline-none focus:border-white/40 transition-all"
+          >
+            <option value="solo" className="bg-slate-900 text-white">Solo</option>
+            <option value="multiplayer" className="bg-slate-900 text-white">Multiplayer</option>
+          </select>
+        </div>
+
+        {/* Grade Level Selection */}
+        <div className="flex flex-col gap-3 w-full max-w-md">
+          <p className="text-xl text-white font-semibold">Grade Level:</p>
+          <select
+            value={gradeLevel}
+            onChange={(e) => setGradeLevel(e.target.value as GradeLevel)}
+            className="bg-slate-900/60 backdrop-blur-sm border border-white/20 text-white text-xl p-4 rounded-lg w-full focus:outline-none focus:border-white/40 transition-all"
+          >
+            <option value="K" className="bg-slate-900 text-white">Kindergarten</option>
+            <option value="1-2" className="bg-slate-900 text-white">Grades 1-2</option>
+            <option value="3-4" className="bg-slate-900 text-white">Grades 3-4</option>
+            <option value="5-6" className="bg-slate-900 text-white">Grades 5-6</option>
+          </select>
+        </div>
+
+        {/* Start Game Button */}
         <button
           onClick={() => handleGameStart(gameMode, gradeLevel, playerName)}
-          className="bg-green-400 text-slate-700 px-5 py-4 rounded-lg hover:cursor-pointer hover:scale-105 transition-all duration-300 ease-in-out"
+          className="bg-slate-900/60 backdrop-blur-sm border border-white/20 text-white text-2xl font-bold px-8 py-5 rounded-lg hover:cursor-pointer hover:bg-slate-800/80 hover:border-white/30 hover:scale-105 transition-all duration-300 ease-in-out w-full max-w-md"
         >
-          <p className="font-nunito text-2xl font-black text-center">
-            Start Game
-          </p>
+          Start Game
         </button>
       </div>
     </div>
