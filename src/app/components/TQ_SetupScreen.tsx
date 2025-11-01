@@ -33,7 +33,7 @@ const TQ_SetupScreen = ({
   return (
     <div 
       key={gameStatus} 
-      className="flex-center w-full h-dvh relative"
+      className="flex-center w-full h-dvh relative overflow-hidden"
       style={{
         backgroundImage: 'url(/Assets/TypeQuest/background.png)',
         backgroundSize: 'cover',
@@ -43,6 +43,46 @@ const TQ_SetupScreen = ({
     >
       {/* Background gradient overlay - darker on left, transparent on right */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent pointer-events-none z-0"></div>
+      
+      {/* Animated road lines - decorative scrolling effect at 35 degrees */}
+      <div 
+        className="absolute pointer-events-none z-[1] overflow-hidden" 
+        style={{
+          width: '150vw',
+          height: '4px',
+          top: '50%',
+          left: '50%',
+          transformOrigin: 'center center',
+          transform: 'translate(-64%, -36%) rotate(35deg)',
+        }}
+      >
+        <div 
+          className="w-full h-full animate-road-line" 
+          style={{
+            backgroundImage: 'repeating-linear-gradient(90deg, transparent 0px, transparent 50px, rgba(255, 255, 255, 0.95) 50px, rgba(255, 255, 255, 0.95) 100px)',
+            backgroundSize: '120px 100%',
+          }}
+        ></div>
+      </div>
+      
+      {/* Car positioned above the road line - behind text */}
+      <div 
+        className="absolute pointer-events-none z-[5]" 
+        style={{
+          top: '70%',
+          left: '30%',
+          transformOrigin: 'center center',
+          transform: 'translate(-33%, -67%) rotate(0deg)',
+        }}
+      >
+        <Image
+          src="/Assets/TypeQuest/car_setup.png"
+          alt="Setup Car"
+          width={1600}
+          height={800}
+          className="object-contain"
+        />
+      </div>
       
       {/* Content aligned to left */}
       <div className="flex flex-col items-start justify-start p-10 gap-8 relative z-10 max-w-3xl">
@@ -68,11 +108,12 @@ const TQ_SetupScreen = ({
 
         {/* Game Mode Selection */}
         <div className="flex flex-col gap-3 w-full max-w-md">
-          <p className="text-xl text-white font-semibold">Select game mode:</p>
+          <p className="text-2xl md:text-3xl text-white font-semibold">Select game mode:</p>
           <select
             value={gameMode}
             onChange={(e) => setGameMode(e.target.value as GameMode)}
-            className="bg-slate-900/60 backdrop-blur-sm border border-white/20 text-white text-xl p-4 rounded-lg w-full focus:outline-none focus:border-white/40 transition-all"
+            className="bg-transparent backdrop-blur-sm border border-white/30 text-white text-2xl p-4 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all"
+            style={{ backgroundColor: 'transparent' }}
           >
             <option value="solo" className="bg-slate-900 text-white">Solo</option>
             <option value="multiplayer" className="bg-slate-900 text-white">Multiplayer</option>
@@ -81,11 +122,12 @@ const TQ_SetupScreen = ({
 
         {/* Grade Level Selection */}
         <div className="flex flex-col gap-3 w-full max-w-md">
-          <p className="text-xl text-white font-semibold">Grade Level:</p>
+          <p className="text-2xl md:text-3xl text-white font-semibold">Grade Level:</p>
           <select
             value={gradeLevel}
             onChange={(e) => setGradeLevel(e.target.value as GradeLevel)}
-            className="bg-slate-900/60 backdrop-blur-sm border border-white/20 text-white text-xl p-4 rounded-lg w-full focus:outline-none focus:border-white/40 transition-all"
+            className="bg-transparent backdrop-blur-sm border border-white/30 text-white text-2xl p-4 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all"
+            style={{ backgroundColor: 'transparent' }}
           >
             <option value="K" className="bg-slate-900 text-white">Kindergarten</option>
             <option value="1-2" className="bg-slate-900 text-white">Grades 1-2</option>
