@@ -36,20 +36,19 @@ const TQ_ActiveScreen = ({
   console.log(currentPlayerPositionPercentage, opponentPositionPercentage);
 
   return (
-    <div
+    <div 
       className="flex w-full h-dvh flex-col gap-5 p-10 relative"
       style={{
-        backgroundImage: "url(/Assets/TypeQuest/background.png)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
+        backgroundImage: 'url(/Assets/TypeQuest/background.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
       }}
     >
       {/* Background gradient overlay - darker on left, transparent on right */}
-      <div className="absolute inset-0 bg-linear-to-r from-black/50 via-black/30 to-transparent pointer-events-none z-0"></div>
-
-      {/* Header */}
-      <div className="flex justify-between items-center w-full shrink-0 relative z-10">
+      <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent pointer-events-none z-0"></div>
+      
+      <div className="flex justify-between items-center w-full relative z-10">
         <BackTo title="Back To Home" onClick={handleGameReset} />
         <div className="flex flex-row items-center gap-4">
           <div className="flex flex-row items-center gap-2 px-4 py-2 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
@@ -67,9 +66,7 @@ const TQ_ActiveScreen = ({
           </div>
         </div>
       </div>
-
-      {/* Progress Bars */}
-      <div className="flex flex-row items-center gap-10 shrink-0 relative z-10">
+      <div className="flex flex-row items-center gap-10 relative z-10">
         <div className="flex flex-col gap-2 w-[50%] items-start px-4 py-3 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
           <p className="text-sm font-semibold text-slate-100">Your Progress</p>
           <div className="relative w-full h-5 bg-slate-100 rounded-full">
@@ -91,11 +88,24 @@ const TQ_ActiveScreen = ({
           </div>
         </div>
         <div className="flex flex-1 flex-col gap-2 items-start px-4 py-3 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
-          <div className="flex flex-row gap-5 items-center w-full">
-            <p
-              className={`text-sm font-semibold text-slate-100 ${
-                opponentLeftGame ? "line-through opacity-60" : ""
-              }`}
+          <p className="text-sm font-semibold text-slate-100">
+            Opponent Progress
+          </p>
+          <div className="relative w-full h-5 bg-slate-100 rounded-full">
+            <div
+              className={`aboslute top-0 left-0 h-full bg-yellow-500 rounded-full`}
+              style={{
+                width: `${Math.max(
+                  0,
+                  Math.min(
+                    100,
+                    getProgressPercentage(
+                      opponent?.questionsAnswered || 0,
+                      gameState?.totalQuestions || 0
+                    )
+                  )
+                )}%`,
+              }} // clamp 0–100
             >
               Opponent Progress
             </p>
@@ -146,9 +156,7 @@ const TQ_ActiveScreen = ({
           }
         `}</style>
       </div>
-
-      {/* Question Area */}
-      <div className="flex flex-col gap-3 w-full max-w-2xl mx-auto pt-3 p-5 shrink-0 relative z-10">
+      <div className="flex flex-col gap-5 w-full max-w-2xl mx-auto pt-10 p-5 relative z-10">
         <div className="flex-center w-full">
           <p className="text-3xl font-bold text-slate-100">
             {currentQuestion?.prompt}
@@ -184,9 +192,7 @@ const TQ_ActiveScreen = ({
           </div>
         </div>
       </div>
-
-      {/* Race Track - Takes remaining space */}
-      <div id="race_track" className="flex-1 w-full min-h-0 relative z-10">
+      <div id="race_track" className="flex flex-row w-full relative z-10">
         <div className="relative w-full h-full">
           <Image
             src="/Assets/TypeQuest/startFinish.png"
