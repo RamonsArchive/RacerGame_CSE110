@@ -225,19 +225,11 @@ body {
   }
   100% {
     background-position: 120px 0;
-/* Road line scrolling animation - reversed */
-@keyframes road-line-scroll {
-  0% {
-    background-position: -120px 0;
-  }
-  100% {
-    background-position: 0 0;
   }
 }
 
 .animate-road-line {
   animation: road-line 1s linear infinite;
-  animation: road-line-scroll 0.2s linear infinite;
 }
 
 
