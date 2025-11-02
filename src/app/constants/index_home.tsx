@@ -6,7 +6,7 @@ export const GAMES: GameType[] = [
     title: "Type Quest",
     description:
       "Race against the clock to type as many gramatically correct words as possible.",
-    image_path: "/Assets/TypeQuest/tq_gamePic.jpg",
+    image_path: "/Assets/TypeQuest/typeracer.png",
     href: "/typequest",
     type: "main",
   },
@@ -15,7 +15,7 @@ export const GAMES: GameType[] = [
     title: "Treasure Hunt",
     description:
       "Find the hidden treasure in the maze by finding the correct words to the solution.",
-    image_path: "/Assets/TreasureHunt/th_gamePic.jpg",
+    image_path: "/Assets/TreasureHunt/treasure.png",
     href: "/treasurehunt",
     type: "mini",
   },
@@ -24,7 +24,7 @@ export const GAMES: GameType[] = [
     title: "Unscramble",
     description:
       "Unscramble the words to reveal the hidden message by finding the correct words to the solution.",
-    image_path: "/Assets/Unscramble/us_gamePic.jpg",
+    image_path: "/Assets/Unscramble/unscramble.png",
     href: "/unscramble",
     type: "mini",
   },
