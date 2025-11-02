@@ -218,8 +218,8 @@ body {
   animation: shimmer-effect 2s ease-in-out infinite;
 }
 
-/* Road line scrolling animation - reversed */
-@keyframes road-line-scroll {
+/* Road line scrolling animation for setup screen */
+@keyframes road-line {
   0% {
     background-position: 0 0;
   }
@@ -229,7 +229,35 @@ body {
 }
 
 .animate-road-line {
-  animation: road-line-scroll 0.2s linear infinite;
+  animation: road-line 1s linear infinite;
+}
+
+/* Shiny border animation for leaderboard button */
+@keyframes shine-border {
+  0% {
+    border-color: rgba(251, 191, 36, 0.6); /* amber-400 */
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.4), 0 0 20px rgba(251, 191, 36, 0.2);
+  }
+  25% {
+    border-color: rgba(245, 158, 11, 0.8); /* amber-500 */
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.6), 0 0 30px rgba(245, 158, 11, 0.3);
+  }
+  50% {
+    border-color: rgba(251, 191, 36, 1); /* amber-400 full */
+    box-shadow: 0 0 20px rgba(251, 191, 36, 0.8), 0 0 40px rgba(251, 191, 36, 0.4);
+  }
+  75% {
+    border-color: rgba(245, 158, 11, 0.8); /* amber-500 */
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.6), 0 0 30px rgba(245, 158, 11, 0.3);
+  }
+  100% {
+    border-color: rgba(251, 191, 36, 0.6); /* amber-400 */
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.4), 0 0 20px rgba(251, 191, 36, 0.2);
+  }
+}
+
+.animate-shine-border {
+  animation: shine-border 2s ease-in-out infinite;
 }
 
 

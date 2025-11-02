@@ -1,21 +1,20 @@
 "use client";
-import React, { Dispatch, SetStateAction, useState } from "react";
-import { GameState, GameStatus } from "../constants/index_typequest";
+import React, { useState } from "react";
+import { GameState } from "../constants/index_typequest";
 import BackTo from "./BackTo";
 import { getProgressPercentage } from "@/lib/utils_typequest";
 import Image from "next/image";
 
 const TQ_ActiveScreen = ({
-  setGameStatus,
   gameState,
   onAnswerSubmit,
   handleGameReset,
+  opponentLeftGame = false,
 }: {
-  setGameStatus: Dispatch<SetStateAction<GameStatus>>;
-
   gameState: GameState | null;
   onAnswerSubmit: (userAnswer: string) => void;
   handleGameReset: () => void;
+  opponentLeftGame?: boolean;
 }) => {
   const [textInput, setTextInput] = useState<string>("");
   const currentPlayer = gameState?.currentPlayer || null;
@@ -110,12 +109,14 @@ const TQ_ActiveScreen = ({
           </div>
         </div>
       </div>
-      <div className="flex flex-row items-center gap-10 relative z-10">
+
+      {/* Progress Bars */}
+      <div className="flex flex-row items-center gap-10 shrink-0 relative z-10">
         <div className="flex flex-col gap-2 w-[50%] items-start px-4 py-3 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
           <p className="text-sm font-semibold text-slate-100">Your Progress</p>
           <div className="relative w-full h-5 bg-slate-100 rounded-full">
             <div
-              className={`aboslute top-0 left-0 h-full bg-green-500 rounded-full`}
+              className={`absolute top-0 left-0 h-full bg-green-500 rounded-full`}
               style={{
                 width: `${Math.max(
                   0,
@@ -128,35 +129,64 @@ const TQ_ActiveScreen = ({
                   )
                 )}%`,
               }} // clamp 0–100
-            >
-              {" "}
-            </div>
+            />
           </div>
         </div>
         <div className="flex flex-1 flex-col gap-2 items-start px-4 py-3 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
-          <p className="text-sm font-semibold text-slate-100">
-            Opponent Progress
-          </p>
-          <div className="relative w-full h-5 bg-slate-100 rounded-full">
-            <div
-              className={`aboslute top-0 left-0 h-full bg-yellow-500 rounded-full`}
-              style={{
-                width: `${Math.max(
-                  0,
-                  Math.min(
-                    100,
-                    getProgressPercentage(
-                      opponent?.questionsAnswered || 0,
-                      gameState?.totalQuestions || 0
-                    )
-                  )
-                )}%`,
-              }} // clamp 0–100
+          <div className="flex flex-row gap-5 items-center w-full">
+            <p
+              className={`text-sm font-semibold text-slate-100 ${
+                opponentLeftGame ? "line-through opacity-60" : ""
+              }`}
             >
-              {" "}
-            </div>
+              Opponent Progress
+            </p>
+            {opponentLeftGame && (
+              <p className="text-xs font-bold text-red-400 animate-pulse">
+                ⚠️ Opponent left game
+              </p>
+            )}
+          </div>
+          <div className="relative w-full h-5 bg-slate-100 rounded-full overflow-hidden">
+            {opponentLeftGame ? (
+              // Red fill animation when opponent leaves (2 second drop down)
+              <div
+                className="absolute top-0 left-0 h-full bg-red-500 rounded-full animate-[slideRight_2s_ease-out_forwards]"
+                style={{
+                  width: "0%",
+                  animation: "slideRight 2s ease-out forwards",
+                }}
+              />
+            ) : (
+              // Normal yellow progress bar
+              <div
+                className={`absolute top-0 left-0 h-full bg-yellow-500 rounded-full transition-all duration-300`}
+                style={{
+                  width: `${Math.max(
+                    0,
+                    Math.min(
+                      100,
+                      getProgressPercentage(
+                        opponent?.questionsAnswered || 0,
+                        gameState?.totalQuestions || 0
+                      )
+                    )
+                  )}%`,
+                }}
+              />
+            )}
           </div>
         </div>
+        <style jsx>{`
+          @keyframes slideRight {
+            from {
+              width: 0%;
+            }
+            to {
+              width: 100%;
+            }
+          }
+        `}</style>
       </div>
       <div className="flex flex-col gap-5 w-full max-w-2xl ml-10 pt-10 p-5 relative z-10">
         <div className="flex-center w-full">

@@ -1,6 +1,10 @@
 "use client";
 import React, { useState, useCallback, useEffect } from "react";
-import { TreasureHuntGameState, GameStatus, GAME_CONFIG } from "@/app/constants/index_treasurehunt";
+import {
+  TreasureHuntGameState,
+  GameStatus,
+  GAME_CONFIG,
+} from "@/app/constants/index_treasurehunt";
 import {
   validateGrammarSentence,
   handleCorrectAnswer,
@@ -30,7 +34,8 @@ const TH_ActiveScreen = ({
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
   const [showHintPopup, setShowHintPopup] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
-  const [currentGameState, setCurrentGameState] = useState<TreasureHuntGameState>(gameState);
+  const [currentGameState, setCurrentGameState] =
+    useState<TreasureHuntGameState>(gameState);
   const [backgroundImage, setBackgroundImage] = useState<number>(1);
 
   // Rotate background images
@@ -43,17 +48,25 @@ const TH_ActiveScreen = ({
   // Calculate progress percentage
   const progressPercentage =
     currentGameState.totalQuestions > 0
-      ? (currentGameState.currentQuestionIndex / currentGameState.totalQuestions) * 100
+      ? (currentGameState.currentQuestionIndex /
+          currentGameState.totalQuestions) *
+        100
       : 0;
 
-  const currentQuestion = currentGameState.questions[currentGameState.currentQuestionIndex];
+  const currentQuestion =
+    currentGameState.questions[currentGameState.currentQuestionIndex];
   const questionProgress = getCurrentQuestionProgress(currentGameState);
 
   // Show hint button after first mistake
-  const canShowHint = questionProgress && questionProgress.mistakes >= GAME_CONFIG.HINT_MISTAKE_THRESHOLD && !questionProgress.hintShown;
-  
+  const canShowHint =
+    questionProgress &&
+    questionProgress.mistakes >= GAME_CONFIG.HINT_MISTAKE_THRESHOLD &&
+    !questionProgress.hintShown;
+
   // Show give up button after 3 mistakes
-  const canGiveUp = questionProgress && questionProgress.mistakes >= GAME_CONFIG.GIVE_UP_MISTAKE_THRESHOLD;
+  const canGiveUp =
+    questionProgress &&
+    questionProgress.mistakes >= GAME_CONFIG.GIVE_UP_MISTAKE_THRESHOLD;
 
   // Save game state when it changes
   useEffect(() => {
@@ -86,11 +99,20 @@ const TH_ActiveScreen = ({
         setUserInput("");
       }, 1500);
     } else {
-      const updatedState = handleIncorrectAnswer(currentGameState, userInput.trim());
+      const updatedState = handleIncorrectAnswer(
+        currentGameState,
+        userInput.trim()
+      );
       setCurrentGameState(updatedState);
       setShowIncorrectPopup(true);
     }
-  }, [userInput, currentQuestion, currentGameState, setGameStatus, onGameFinished]);
+  }, [
+    userInput,
+    currentQuestion,
+    currentGameState,
+    setGameStatus,
+    onGameFinished,
+  ]);
 
   const handleTryAgain = useCallback(() => {
     setShowIncorrectPopup(false);
@@ -104,7 +126,11 @@ const TH_ActiveScreen = ({
   }, [currentGameState]);
 
   const handleGiveUpClick = useCallback(() => {
-    if (confirm("Are you sure you want to give up on this question? You won't get a point for it.")) {
+    if (
+      confirm(
+        "Are you sure you want to give up on this question? You won't get a point for it."
+      )
+    ) {
       const updatedState = handleGiveUp(currentGameState);
       setCurrentGameState(updatedState);
       setUserInput("");
@@ -143,7 +169,7 @@ const TH_ActiveScreen = ({
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-yellow-200/20 via-orange-300/30 to-blue-400/20" />
+        <div className="absolute inset-0 bg-linear-to-b from-yellow-200/20 via-orange-300/30 to-blue-400/20" />
       </div>
 
       {/* Main Content */}
@@ -158,7 +184,7 @@ const TH_ActiveScreen = ({
               <ChevronLeft className="w-5 h-5" />
               <span>Home</span>
             </Link>
-            
+
             <button
               onClick={() => setShowSettingsModal(true)}
               className="p-3 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition-all hover:scale-110"
@@ -170,27 +196,29 @@ const TH_ActiveScreen = ({
 
           {/* Title */}
           <h1 className="text-5xl md:text-6xl font-black text-center text-orange-600 drop-shadow-[0_2px_2px_rgba(0,0,0,0.2)]">
-            <span className="inline-block align-middle">🏴‍☠️</span>{' '}
-            <span className="text-yellow-600">Treasure</span>{' '}
-            <span className="text-yellow-600">Hunt</span>{' '}
+            <span className="inline-block align-middle">🏴‍☠️</span>{" "}
+            <span className="text-yellow-600">Treasure</span>{" "}
+            <span className="text-yellow-600">Hunt</span>{" "}
             <span className="inline-block align-middle">🏴‍☠️</span>
           </h1>
-
 
           {/* Progress Bar - Kid Friendly */}
           <div className="flex flex-col gap-3">
             <div className="flex justify-between items-center">
               <p className="text-xl font-bold text-blue-700">
-                Question {currentGameState.currentQuestionIndex + 1} of {currentGameState.totalQuestions}
+                Question {currentGameState.currentQuestionIndex + 1} of{" "}
+                {currentGameState.totalQuestions}
               </p>
               <div className="flex items-center gap-2 px-4 py-2 bg-green-400 rounded-full">
                 <span className="text-2xl">⭐</span>
-                <p className="text-xl font-bold text-white">Score: {currentGameState.score}</p>
+                <p className="text-xl font-bold text-white">
+                  Score: {currentGameState.score}
+                </p>
               </div>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-8 overflow-hidden shadow-inner">
               <div
-                className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2"
+                className="bg-linear-to-r from-yellow-400 via-orange-500 to-red-500 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2"
                 style={{ width: `${Math.max(progressPercentage, 5)}%` }}
               >
                 {progressPercentage > 15 && (
@@ -230,7 +258,7 @@ const TH_ActiveScreen = ({
               <button
                 onClick={handleAnswerSubmit}
                 disabled={!userInput.trim()}
-                className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-2xl px-8 py-5 rounded-2xl transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
+                className="flex-1 bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-2xl px-8 py-5 rounded-2xl transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
               >
                 ✅ Submit Answer
               </button>
@@ -238,7 +266,7 @@ const TH_ActiveScreen = ({
               {canShowHint && (
                 <button
                   onClick={handleShowHint}
-                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold text-lg px-6 py-5 rounded-2xl transition-all hover:scale-105 shadow-lg"
+                  className="flex items-center justify-center gap-2 bg-linear-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold text-lg px-6 py-5 rounded-2xl transition-all hover:scale-105 shadow-lg"
                 >
                   <Lightbulb className="w-6 h-6" />
                   💡 See Hint
@@ -248,7 +276,7 @@ const TH_ActiveScreen = ({
               {canGiveUp && (
                 <button
                   onClick={handleGiveUpClick}
-                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-bold text-lg px-6 py-5 rounded-2xl transition-all hover:scale-105 shadow-lg"
+                  className="flex items-center justify-center gap-2 bg-linear-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-bold text-lg px-6 py-5 rounded-2xl transition-all hover:scale-105 shadow-lg"
                 >
                   <HelpCircle className="w-6 h-6" />
                   Give Up
@@ -262,7 +290,7 @@ const TH_ActiveScreen = ({
       {/* Success Message */}
       {showSuccessMessage && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
-          <div className="bg-gradient-to-br from-green-400 to-green-600 text-white p-10 rounded-3xl text-center shadow-2xl border-4 border-white animate-bounce">
+          <div className="bg-linear-to-br from-green-400 to-green-600 text-white p-10 rounded-3xl text-center shadow-2xl border-4 border-white animate-bounce">
             <p className="text-5xl font-bold mb-4">🎉 Awesome! 🎉</p>
             <p className="text-2xl">Correct! Moving to next treasure...</p>
           </div>
@@ -272,7 +300,7 @@ const TH_ActiveScreen = ({
       {/* Incorrect Answer Popup */}
       {showIncorrectPopup && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
-          <div className="bg-gradient-to-br from-red-400 to-red-600 text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl border-4 border-white">
+          <div className="bg-linear-to-br from-red-400 to-red-600 text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl border-4 border-white">
             <p className="text-4xl font-bold mb-4">😅 Try Again!</p>
             <p className="text-xl mb-6">
               Not quite right yet! Take another look and try again.
@@ -290,7 +318,7 @@ const TH_ActiveScreen = ({
       {/* Hint Popup */}
       {showHintPopup && currentQuestion.hint && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
-          <div className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl border-4 border-white">
+          <div className="bg-linear-to-br from-yellow-400 to-orange-500 text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl border-4 border-white">
             <p className="text-4xl mb-4">💡 Hint!</p>
             <p className="text-xl mb-6">{currentQuestion.hint}</p>
             <button
@@ -319,7 +347,7 @@ const TH_ActiveScreen = ({
                   setShowSettingsModal(false);
                   onRestartGame();
                 }}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold text-xl px-6 py-4 rounded-xl hover:scale-105 transition-all"
+                className="bg-linear-to-r from-blue-500 to-purple-600 text-white font-bold text-xl px-6 py-4 rounded-xl hover:scale-105 transition-all"
               >
                 🔄 Restart Game
               </button>

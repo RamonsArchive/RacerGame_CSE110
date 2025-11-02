@@ -3,7 +3,12 @@
 import React, { useEffect, useState } from "react";
 import { X, Trophy, Medal, Award, Trash2 } from "lucide-react";
 import { GameResult, GradeLevel, GameMode } from "../constants/index_typequest";
-import { getLeaderboard, clearLeaderboard } from "@/lib/utils_typequest";
+import {
+  getLeaderboard,
+  clearLeaderboard,
+  getLeaderboardMultiplayer,
+  clearLeaderboardMultiplayer,
+} from "@/lib/utils_typequest";
 
 interface TQ_LeaderboardProps {
   isOpen: boolean;
@@ -23,10 +28,31 @@ const TQ_Leaderboard = ({
   const [shouldAnimate, setShouldAnimate] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState<GameResult[]>([]);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const loadLeaderboard = () => {
-    const data = getLeaderboard(gradeLevel, mode, 10);
-    setLeaderboardData(data);
+  /**
+   * ✅ Fetch leaderboard data
+   * - Multiplayer: Fetch from Redis API
+   * - Solo: Fetch from localStorage
+   */
+  const loadLeaderboard = async () => {
+    setIsLoading(true);
+    try {
+      if (mode === "multiplayer" && gradeLevel) {
+        // Fetch from Redis API
+        const data = await getLeaderboardMultiplayer(mode, gradeLevel, 10);
+        setLeaderboardData(data);
+      } else {
+        // Fetch from localStorage (solo)
+        const data = getLeaderboard(gradeLevel, mode, 10);
+        setLeaderboardData(data);
+      }
+    } catch (error) {
+      console.error("Failed to load leaderboard:", error);
+      setLeaderboardData([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -43,10 +69,29 @@ const TQ_Leaderboard = ({
     }
   }, [isOpen, gradeLevel, mode]);
 
-  const handleClearLeaderboard = () => {
-    clearLeaderboard();
-    setLeaderboardData([]);
-    setShowConfirmClear(false);
+  /**
+   * ✅ Clear leaderboard
+   * - Multiplayer: DELETE request to Redis API
+   * - Solo: Clear localStorage
+   */
+  const handleClearLeaderboard = async () => {
+    try {
+      if (mode === "multiplayer" && gradeLevel) {
+        // Clear from Redis
+        const success = await clearLeaderboardMultiplayer(mode, gradeLevel);
+        if (success) {
+          setLeaderboardData([]);
+        }
+      } else {
+        // Clear localStorage (solo)
+        clearLeaderboard();
+        setLeaderboardData([]);
+      }
+    } catch (error) {
+      console.error("Failed to clear leaderboard:", error);
+    } finally {
+      setShowConfirmClear(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -111,19 +156,34 @@ const TQ_Leaderboard = ({
             <div className="flex items-center gap-2">
               <Trash2 className="w-5 h-5 text-red-400" />
               <p className="text-white font-semibold">
-                Clear all leaderboard data?
+                Clear {mode === "multiplayer" ? "this" : "all"} leaderboard
+                data?
               </p>
             </div>
             <p className="text-sm text-slate-300">
-              This will permanently delete all {leaderboardData.length} recorded
-              games. This action cannot be undone.
+              {mode === "multiplayer" ? (
+                <>
+                  This will permanently delete {leaderboardData.length} recorded
+                  games for{" "}
+                  <strong>
+                    {mode} - {gradeLevel}
+                  </strong>{" "}
+                  from the server. This action cannot be undone.
+                </>
+              ) : (
+                <>
+                  This will permanently delete all {leaderboardData.length}{" "}
+                  recorded games from your browser. This action cannot be
+                  undone.
+                </>
+              )}
             </p>
             <div className="flex gap-3">
               <button
                 onClick={handleClearLeaderboard}
                 className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
               >
-                Yes, Clear All
+                Yes, Clear {mode === "multiplayer" ? "Server Data" : "All"}
               </button>
               <button
                 onClick={() => setShowConfirmClear(false)}
@@ -163,7 +223,12 @@ const TQ_Leaderboard = ({
 
         {/* Leaderboard Entries */}
         <div className="flex flex-col gap-2 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-          {leaderboardData.length === 0 ? (
+          {isLoading ? (
+            <div className="text-center py-12 text-slate-400">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-500 mx-auto mb-4"></div>
+              <p className="text-lg">Loading leaderboard...</p>
+            </div>
+          ) : leaderboardData.length === 0 ? (
             <div className="text-center py-12 text-slate-400">
               <Trophy className="w-16 h-16 mx-auto mb-4 opacity-30" />
               <p className="text-lg">No games recorded yet</p>
