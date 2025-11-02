@@ -36,19 +36,30 @@ const TQ_ActiveScreen = ({
   console.log(currentPlayerPositionPercentage, opponentPositionPercentage);
 
   return (
-    <div className="flex w-full h-dvh flex-col gap-5 p-10">
+    <div
+      className="flex w-full h-dvh flex-col gap-5 p-10 relative"
+      style={{
+        backgroundImage: "url(/Assets/TypeQuest/background.png)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      {/* Background gradient overlay - darker on left, transparent on right */}
+      <div className="absolute inset-0 bg-linear-to-r from-black/50 via-black/30 to-transparent pointer-events-none z-0"></div>
+
       {/* Header */}
-      <div className="flex justify-between items-center w-full shrink-0">
+      <div className="flex justify-between items-center w-full shrink-0 relative z-10">
         <BackTo title="Back To Home" onClick={handleGameReset} />
-        <div className="flex flex-row items-center gap-10">
-          <div className="flex flex-row items-center gap-2">
+        <div className="flex flex-row items-center gap-4">
+          <div className="flex flex-row items-center gap-2 px-4 py-2 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
             <p className="text-md font-semibold text-slate-100">Question</p>
             <p className="text-md font-bold text-slate-100">
               {currentPlayer?.questionsAnswered || 0} {" / "}{" "}
               {gameState?.totalQuestions || 0}
             </p>
           </div>
-          <div className="flex flex-row items-center gap-2">
+          <div className="flex flex-row items-center gap-2 px-4 py-2 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
             <p className="text-md font-semibold text-slate-100">Mistakes</p>
             <p className="text-md font-bold text-slate-100">
               {currentPlayer?.currentQuestionMistakes || 0}
@@ -58,8 +69,8 @@ const TQ_ActiveScreen = ({
       </div>
 
       {/* Progress Bars */}
-      <div className="flex flex-row items-center gap-10 shrink-0">
-        <div className="flex flex-col gap-2 w-[50%] items-start">
+      <div className="flex flex-row items-center gap-10 shrink-0 relative z-10">
+        <div className="flex flex-col gap-2 w-[50%] items-start px-4 py-3 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
           <p className="text-sm font-semibold text-slate-100">Your Progress</p>
           <div className="relative w-full h-5 bg-slate-100 rounded-full">
             <div
@@ -79,7 +90,7 @@ const TQ_ActiveScreen = ({
             />
           </div>
         </div>
-        <div className="flex flex-1 flex-col gap-2 items-start">
+        <div className="flex flex-1 flex-col gap-2 items-start px-4 py-3 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
           <div className="flex flex-row gap-5 items-center w-full">
             <p
               className={`text-sm font-semibold text-slate-100 ${
@@ -137,7 +148,7 @@ const TQ_ActiveScreen = ({
       </div>
 
       {/* Question Area */}
-      <div className="flex flex-col gap-5 w-full max-w-2xl mx-auto pt-5 shrink-0">
+      <div className="flex flex-col gap-5 w-full max-w-2xl mx-auto pt-10 p-5 shrink-0 relative z-10">
         <div className="flex-center w-full">
           <p className="text-3xl font-bold text-slate-100">
             {currentQuestion?.prompt}
@@ -147,7 +158,7 @@ const TQ_ActiveScreen = ({
           {choices.map((choice: string, index: number) => (
             <div
               key={index}
-              className="flex flex-col items-center bg-slate-500 rounded-md px-5 py-4 hover:cursor-pointer hover:bg-slate-600 transition-all duration-300 ease-in-out shadow-md"
+              className="flex flex-col items-center bg-slate-900/60 backdrop-blur-sm rounded-md px-5 py-4 hover:cursor-pointer hover:bg-slate-800/80 transition-all duration-300 ease-in-out shadow-md border border-white/20"
             >
               <p className="text-lg text-center font-semibold text-slate-100">
                 {choice}
@@ -156,9 +167,9 @@ const TQ_ActiveScreen = ({
           ))}
         </div>
         <div className="flex flex-col gap-5">
-          <div className="relative flex-row items-center rounded-md border border-primary-100 shadow-md">
+          <div className="relative flex-row items-center rounded-md border border-white/30 shadow-md bg-slate-900/60 backdrop-blur-sm">
             <input
-              className="w-full text-semibold text-lg px-5 py-5 rounded-md border border-primary-100 bg-slate-100 text-slate-900 outline-none focus:outline-none focus:ring-0"
+              className="w-full text-semibold text-lg px-5 py-5 rounded-md border-0 bg-transparent text-slate-100 placeholder:text-slate-400 outline-none focus:outline-none focus:ring-0"
               value={textInput}
               onChange={(e) => setTextInput(e.target.value)}
               onKeyDown={(e) => {
@@ -175,7 +186,7 @@ const TQ_ActiveScreen = ({
       </div>
 
       {/* Race Track - Takes remaining space */}
-      <div id="race_track" className="flex-1 w-full min-h-0">
+      <div id="race_track" className="flex-1 w-full min-h-0 relative z-10">
         <div className="relative w-full h-full">
           <Image
             src="/Assets/TypeQuest/startFinish.png"
