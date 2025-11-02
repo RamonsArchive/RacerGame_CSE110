@@ -151,6 +151,32 @@ export const initializeGameMultiplayer = async (
 
     console.log("🎯 Game state built with", questions.length, "questions");
 
+    // ✅ Push initial player state to Redis (so opponent sees 0s immediately)
+    try {
+      await fetch("/api/game/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roomId: matchId,
+          playerId: myPlayerId,
+          playerName: myPlayerName,
+          progress: {
+            currentQuestionIndex: 0,
+            questionsAnswered: 0,
+            totalPoints: 0,
+            totalMistakes: 0,
+            isFinished: false,
+            finishTime: null,
+            questionResults: [],
+          },
+        }),
+      });
+      console.log("✅ Pushed initial player state to Redis");
+    } catch (err) {
+      console.error("⚠️ Failed to push initial state:", err);
+      // Don't fail the game initialization if this fails
+    }
+
     // Build game state with shared questions
     return {
       gameId: roomId,
@@ -372,7 +398,12 @@ export const createGameResult = (gameState: GameState): GameResult => {
   }
   
   // ✅ CRITICAL: Save to localStorage here!
-  saveGameResult(result);
+
+  if (mode === "multiplayer") {
+    saveGameResultMultiplayer(result);
+  } else {
+    saveGameResult(result);
+  }
   console.log('Game result saved to leaderboard:', result);
   
   return result;
@@ -448,6 +479,94 @@ export const createGameResult = (gameState: GameState): GameResult => {
         .slice(0, GAME_CONFIG.MAX_LEADERBOARD_ENTRIES);
       
       localStorage.setItem(GAME_CONFIG.LEADERBOARD_KEY, JSON.stringify(sorted));
+    }
+  };
+
+  /**
+   * Save multiplayer game result to Redis leaderboard
+   */
+  export const saveGameResultMultiplayer = async (result: GameResult): Promise<boolean> => {
+    try {
+      if (typeof window !== 'undefined') {
+        const res = await fetch("/api/leaderboard", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(result),
+        });
+        
+        const data = await res.json();
+        
+        if (data.ok) {
+          console.log("✅ Game result saved to Redis leaderboard");
+          return true;
+        } else {
+          console.error("❌ Failed to save to leaderboard:", data.error);
+          return false;
+        }
+      }
+      return false;
+    } catch (error) {
+      console.error("❌ Failed to save game result to leaderboard:", error);
+      return false;
+    }
+  };
+
+  /**
+   * Fetch leaderboard from Redis (multiplayer) or localStorage (solo)
+   */
+  export const getLeaderboardMultiplayer = async (
+    mode: GameMode,
+    gradeLevel: GradeLevel,
+    limit: number = 10
+  ): Promise<GameResult[]> => {
+    try {
+      const res = await fetch(
+        `/api/leaderboard?mode=${mode}&gradeLevel=${gradeLevel}&limit=${limit}`
+      );
+      
+      const data = await res.json();
+      
+      if (data.ok) {
+        console.log("✅ Fetched leaderboard from Redis:", data.count, "entries");
+        return data.leaderboard || [];
+      } else {
+        console.error("❌ Failed to fetch leaderboard:", data.error);
+        return [];
+      }
+    } catch (error) {
+      console.error("❌ Failed to fetch leaderboard:", error);
+      return [];
+    }
+  };
+
+  /**
+   * Clear Redis leaderboard (for manual cleanup)
+   */
+  export const clearLeaderboardMultiplayer = async (
+    mode?: GameMode,
+    gradeLevel?: GradeLevel
+  ): Promise<boolean> => {
+    try {
+      const params = new URLSearchParams();
+      if (mode) params.append("mode", mode);
+      if (gradeLevel) params.append("gradeLevel", gradeLevel);
+      
+      const res = await fetch(`/api/leaderboard?${params.toString()}`, {
+        method: "DELETE",
+      });
+      
+      const data = await res.json();
+      
+      if (data.ok) {
+        console.log("✅ Cleared leaderboard:", data.message);
+        return true;
+      } else {
+        console.error("❌ Failed to clear leaderboard:", data.error);
+        return false;
+      }
+    } catch (error) {
+      console.error("❌ Failed to clear leaderboard:", error);
+      return false;
     }
   };
   

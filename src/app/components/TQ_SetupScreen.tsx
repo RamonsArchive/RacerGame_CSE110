@@ -58,9 +58,12 @@ const TQ_SetupScreen = ({
     gradeLevel: GradeLevel,
     playerName: string
   ) => {
-    if (gameMode === "multiplayer" && playerName.length < 3) {
+    if (
+      (gameMode === "multiplayer" && playerName.length < 2) ||
+      playerName.length > 10
+    ) {
       alert(
-        "Player name must be at least 3 characters long for multiplayer mode"
+        "Player name must be between 2 and 10 characters long for multiplayer mode"
       );
       return;
     }

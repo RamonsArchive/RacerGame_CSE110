@@ -24,6 +24,7 @@ import {
   simulateCPUAnswer,
   clearGameState,
   createGameResult,
+  saveGameResultMultiplayer,
 } from "@/lib/utils_typequest";
 import TQ_SetupScreen from "@/app/components/TQ_SetupScreen";
 import TQ_ActiveScreen from "@/app/components/TQ_ActiveScreen";
@@ -395,7 +396,7 @@ const TypeQuestPage = () => {
       !hasBeenSaved
     ) {
       try {
-        const result = createGameResult(gameState);
+        const result = createGameResult(gameState); // this saves game result as well
         console.log("Game result created:", result);
       } catch (error) {
         console.error("Error creating game result:", error);
