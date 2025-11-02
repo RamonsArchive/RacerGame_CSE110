@@ -38,7 +38,8 @@ const TQ_ActiveScreen = ({
 
   return (
     <div className="flex w-full h-dvh flex-col gap-5 p-10">
-      <div className="flex justify-between items-center w-full">
+      {/* Header */}
+      <div className="flex justify-between items-center w-full shrink-0">
         <BackTo title="Back To Home" onClick={handleGameReset} />
         <div className="flex flex-row items-center gap-10">
           <div className="flex flex-row items-center gap-2">
@@ -56,12 +57,14 @@ const TQ_ActiveScreen = ({
           </div>
         </div>
       </div>
-      <div className="flex flex-row items-center gap-10">
+
+      {/* Progress Bars */}
+      <div className="flex flex-row items-center gap-10 shrink-0">
         <div className="flex flex-col gap-2 w-[50%] items-start">
           <p className="text-sm font-semibold text-slate-100">Your Progress</p>
           <div className="relative w-full h-5 bg-slate-100 rounded-full">
             <div
-              className={`aboslute top-0 left-0 h-full bg-green-500 rounded-full`}
+              className={`absolute top-0 left-0 h-full bg-green-500 rounded-full`}
               style={{
                 width: `${Math.max(
                   0,
@@ -74,9 +77,7 @@ const TQ_ActiveScreen = ({
                   )
                 )}%`,
               }} // clamp 0–100
-            >
-              {" "}
-            </div>
+            />
           </div>
         </div>
         <div className="flex flex-1 flex-col gap-2 items-start">
@@ -85,7 +86,7 @@ const TQ_ActiveScreen = ({
           </p>
           <div className="relative w-full h-5 bg-slate-100 rounded-full">
             <div
-              className={`aboslute top-0 left-0 h-full bg-yellow-500 rounded-full`}
+              className={`absolute top-0 left-0 h-full bg-yellow-500 rounded-full`}
               style={{
                 width: `${Math.max(
                   0,
@@ -98,13 +99,13 @@ const TQ_ActiveScreen = ({
                   )
                 )}%`,
               }} // clamp 0–100
-            >
-              {" "}
-            </div>
+            />
           </div>
         </div>
       </div>
-      <div className="flex flex-col gap-5 w-full max-w-2xl mx-auto pt-10 p-5">
+
+      {/* Question Area */}
+      <div className="flex flex-col gap-5 w-full max-w-2xl mx-auto pt-5 shrink-0">
         <div className="flex-center w-full">
           <p className="text-3xl font-bold text-slate-100">
             {currentQuestion?.prompt}
@@ -123,7 +124,7 @@ const TQ_ActiveScreen = ({
           ))}
         </div>
         <div className="flex flex-col gap-5">
-          <div className="relaitve flex-row items-center rounded-md border border-primary-100 shadow-md">
+          <div className="relative flex-row items-center rounded-md border border-primary-100 shadow-md">
             <input
               className="w-full text-semibold text-lg px-5 py-5 rounded-md border border-primary-100 bg-slate-100 text-slate-900 outline-none focus:outline-none focus:ring-0"
               value={textInput}
@@ -140,7 +141,9 @@ const TQ_ActiveScreen = ({
           </div>
         </div>
       </div>
-      <div id="race_track" className="flex flex-row w-full">
+
+      {/* Race Track - Takes remaining space */}
+      <div id="race_track" className="flex-1 w-full min-h-0">
         <div className="relative w-full h-full">
           <Image
             src="/Assets/TypeQuest/startFinish.png"

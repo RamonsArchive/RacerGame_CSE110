@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Redis } from "@upstash/redis";
-
+import redis from "@/lib/redis";
 export const runtime = "edge";
-const redis = Redis.fromEnv(); 
+
 
 const MATCH_KEY = (matchId: string) => `tq:match:${matchId}`;
 const MATCH_TTL = 300; // 5 minutes

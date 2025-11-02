@@ -13,7 +13,6 @@ import MultiplayerSetup from "./MultiplayerSetup";
 
 interface Props {
   gameStatus: GameStatus;
-  gameState?: GameState | null;
   handleGameStart: (
     gameMode: GameMode,
     gradeLevel: GradeLevel,
@@ -23,7 +22,11 @@ interface Props {
   multiplayerView: boolean;
   handleAcceptMatch: () => void;
   handleRejectMatch: () => void;
-  joinLobby: (playerName: string) => void;
+  joinLobby: (
+    playerName: string,
+    gradeLevel: GradeLevel,
+    gameMode: GameMode
+  ) => void;
   leaveLobby: () => void;
   handleConnect: (playerId: string, playerName: string) => void;
   incomingRequest: {
@@ -35,7 +38,6 @@ interface Props {
 
 const TQ_SetupScreen = ({
   gameStatus,
-  gameState,
   handleGameStart,
   multiplayerPlayers,
   multiplayerView,
@@ -46,13 +48,10 @@ const TQ_SetupScreen = ({
   handleConnect,
   incomingRequest,
 }: Props) => {
-  const [gradeLevel, setGradeLevel] = useState<GradeLevel>(
-    gameState?.gradeLevel || "K"
-  );
-  const [gameMode, setGameMode] = useState<GameMode>(gameState?.mode || "solo");
-  const [playerName, setPlayerName] = useState<string>(
-    gameState?.currentPlayer.playerName || "You"
-  );
+  // Local state for smooth typing (no parent re-renders)
+  const [gradeLevel, setGradeLevel] = useState<GradeLevel>("K");
+  const [gameMode, setGameMode] = useState<GameMode>("solo");
+  const [playerName, setPlayerName] = useState<string>("Player");
 
   const handleStartGame = (
     gameMode: GameMode,
@@ -66,7 +65,7 @@ const TQ_SetupScreen = ({
       return;
     }
     if (gameMode === "multiplayer") {
-      joinLobby(playerName);
+      joinLobby(playerName, gradeLevel, gameMode);
       return;
     }
     handleGameStart(gameMode, gradeLevel, playerName);
@@ -138,11 +137,11 @@ const TQ_SetupScreen = ({
         </div>
       </div>
       <MultiplayerSetup
+        playerName={playerName}
         players={multiplayerPlayers}
         isVisible={multiplayerView}
         onClose={leaveLobby}
         onConnect={handleConnect}
-        playerName={playerName}
         incomingRequest={incomingRequest}
         onAcceptRequest={handleAcceptMatch}
         onRejectRequest={handleRejectMatch}

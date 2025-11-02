@@ -1,13 +1,10 @@
 // app/api/lobby/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { Redis } from "@upstash/redis";
+import redis from "@/lib/redis";
 import { GradeLevel, GameMode } from "@/app/constants/index_typequest";
 
 // Run on Edge for snappy responses
 export const runtime = "edge";
-
-const redis = Redis.fromEnv();
-
 // Keys
 const LOBBY_SET = "tq:lobby:v1";      // Set of active player IDs
 const PLAYER_KEY = (id: string) => `tq:player:${id}`;

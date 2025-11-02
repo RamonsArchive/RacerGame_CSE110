@@ -9,12 +9,14 @@ interface TQ_FinishedScreenProps {
   gameState: GameState | null;
   onPlayAgain: () => void;
   onBackHome: () => void;
+  shouldPollOpponent: boolean;
 }
 
 const TQ_FinishedScreen = ({
   gameState,
   onPlayAgain,
   onBackHome,
+  shouldPollOpponent,
 }: TQ_FinishedScreenProps) => {
   const [openLeaderboard, setOpenLeaderboard] = useState(false);
 
@@ -90,11 +92,32 @@ const TQ_FinishedScreen = ({
             </h1>
           </div>
 
+          {/* Live Update Indicator - only show if opponent still playing */}
+          {shouldPollOpponent && gameState?.mode === "multiplayer" && (
+            <div className="flex items-center justify-center gap-3 px-4 py-3 bg-blue-500/20 border border-blue-400/40 rounded-lg backdrop-blur-sm">
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                <p className="text-sm font-semibold text-blue-200">
+                  🎮 Opponent still playing...
+                </p>
+              </div>
+              <p className="text-xs text-blue-300/80">Updating live</p>
+            </div>
+          )}
+
           {/* Winner Announcement */}
           <div className="flex justify-center w-full">{getWinnerMessage()}</div>
 
           {/* Summary */}
-          {gameState && <TQ_Summary gameState={gameState} />}
+          {gameState && (
+            <TQ_Summary
+              gameState={gameState}
+              shouldPollOpponent={shouldPollOpponent}
+            />
+          )}
 
           {/* Action Buttons */}
           <div className="flex flex-col w-full gap-3">

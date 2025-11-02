@@ -1,12 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Redis } from "@upstash/redis";
+import redis from "@/lib/redis";
 
 export const runtime = "edge";
-const redis = Redis.fromEnv();
 
 const PROGRESS_KEY = (roomId: string, playerId: string) =>
   `tq:progress:${roomId}:${playerId}`;
 const PROGRESS_TTL = 3600; // 1 hour
+
+type QuestionResult = {
+  questionId: string;
+  prompt: string;
+  userAnswer: string;
+  correctAnswer: string;
+  correct: boolean;
+  timeSpent: number;
+  mistakes: number;
+  points: number;
+  timestamp: number;
+};
 
 type PlayerProgress = {
   playerId: string;
@@ -17,6 +28,7 @@ type PlayerProgress = {
   totalMistakes: number;
   isFinished: boolean;
   finishTime: number | null;
+  questionResults: QuestionResult[]; // ✅ Add for metrics
   lastUpdate: number;
 };
 
@@ -37,7 +49,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const playerProgress: PlayerProgress = {
+    const playerProgress = {
       playerId,
       playerName: playerName || "Player",
       currentQuestionIndex: progress.currentQuestionIndex || 0,
@@ -46,6 +58,7 @@ export async function POST(req: NextRequest) {
       totalMistakes: progress.totalMistakes || 0,
       isFinished: progress.isFinished || false,
       finishTime: progress.finishTime || null,
+      questionResults: JSON.stringify(progress.questionResults || []), // ✅ Stringify for Redis
       lastUpdate: Date.now(),
     };
 
@@ -112,6 +125,8 @@ export async function GET(req: NextRequest) {
       });
     }
 
+
+    console.log("🔍 Opponent question results:", opponentProgress.questionResults);
     return NextResponse.json({
       ok: true,
       opponentProgress: {
@@ -125,6 +140,7 @@ export async function GET(req: NextRequest) {
         finishTime: opponentProgress.finishTime
           ? Number(opponentProgress.finishTime)
           : null,
+        questionResults: opponentProgress.questionResults, // ✅ Parse for client
         lastUpdate: Number(opponentProgress.lastUpdate),
       },
     });

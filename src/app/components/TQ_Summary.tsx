@@ -7,7 +7,13 @@ import {
   calculateCharactersPerSecond,
 } from "@/lib/utils_typequest";
 
-const TQ_Summary = ({ gameState }: { gameState: GameState }) => {
+const TQ_Summary = ({
+  gameState,
+  shouldPollOpponent,
+}: {
+  gameState: GameState;
+  shouldPollOpponent?: boolean;
+}) => {
   return (
     <div className="flex flex-row w-full p-4 gap-4 bg-linear-to-br from-slate-800/70 via-slate-700/60 to-slate-900/70 rounded-lg shadow-md border border-white/10">
       {/* You */}
@@ -54,7 +60,19 @@ const TQ_Summary = ({ gameState }: { gameState: GameState }) => {
       </div>
 
       {/* Opponent */}
-      <div className="flex flex-1 flex-col gap-3">
+      <div className="flex flex-1 flex-col gap-3 relative">
+        {/* Live updating indicator */}
+        {shouldPollOpponent && (
+          <div className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-1 bg-green-500/30 border border-green-400/50 rounded-full">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            <span className="text-[10px] font-semibold text-green-200">
+              LIVE
+            </span>
+          </div>
+        )}
         <SummaryRow
           label="Opponent points"
           value={`${gameState.opponent?.totalPoints}`}

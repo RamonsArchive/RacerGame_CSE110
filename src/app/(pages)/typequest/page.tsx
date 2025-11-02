@@ -37,6 +37,7 @@ const TypeQuestPage = () => {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [gameStatus, setGameStatus] = useState<GameStatus>("setup");
   const [hasBeenSaved, setHasBeenSaved] = useState(false);
+  const [shouldPollOpponent, setShouldPollOpponent] = useState(false);
   const cpuTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasResetRef = useRef(false); // Add this
 
@@ -59,6 +60,13 @@ const TypeQuestPage = () => {
     MultiplayerPlayer[]
   >([]);
 
+  // Store setup values in ref (doesn't cause re-renders, but available when needed)
+  const setupValuesRef = useRef({
+    gradeLevel: "K" as GradeLevel,
+    gameMode: "solo" as GameMode,
+    playerName: "Player",
+  });
+
   useEffect(() => {
     const savedState = loadGameState();
     if (savedState) {
@@ -79,12 +87,16 @@ const TypeQuestPage = () => {
 
   // 🎮 MULTIPLAYER: Poll opponent's progress
   useEffect(() => {
-    if (
-      gameState?.mode !== "multiplayer" ||
-      gameStatus !== "active" ||
-      !gameState?.gameId ||
-      !gameState?.currentPlayer.playerId
-    ) {
+    // ✅ Keep polling even in "finished" state until BOTH players are done
+    const shouldPoll =
+      gameState?.mode === "multiplayer" &&
+      gameState?.gameId &&
+      gameState?.currentPlayer.playerId &&
+      (gameStatus === "active" ||
+        (gameStatus === "finished" && !gameState?.opponent?.isFinished));
+
+    setShouldPollOpponent(shouldPoll as boolean);
+    if (!shouldPoll) {
       return;
     }
 
@@ -103,6 +115,10 @@ const TypeQuestPage = () => {
             if (!prevState || prevState.mode !== "multiplayer")
               return prevState;
 
+            const bothFinished =
+              opponentProgress.isFinished && prevState.currentPlayer.isFinished;
+
+            console.log("🔍 Opponent progress:", opponentProgress);
             return {
               ...prevState,
               opponent: {
@@ -112,26 +128,21 @@ const TypeQuestPage = () => {
                 totalPoints: opponentProgress.totalPoints,
                 totalMistakes: opponentProgress.totalMistakes,
                 isFinished: opponentProgress.isFinished,
+                questionResults: opponentProgress.questionResults,
               },
-              // If opponent finished, check if game should end
-              status:
-                opponentProgress.isFinished &&
-                prevState.currentPlayer.isFinished
-                  ? "finished"
-                  : prevState.status,
-              endTime:
-                opponentProgress.isFinished &&
-                prevState.currentPlayer.isFinished
-                  ? Date.now()
-                  : prevState.endTime,
+              // Only mark game as finished when BOTH players are done
+              status: bothFinished ? "finished" : prevState.status,
+              endTime: bothFinished ? Date.now() : prevState.endTime,
             };
           });
 
-          // If opponent finished, update game status
+          // If opponent just finished and we're already finished, update game status
           if (
             opponentProgress.isFinished &&
-            gameState.currentPlayer.isFinished
+            gameState.currentPlayer.isFinished &&
+            gameStatus !== "finished"
           ) {
+            console.log("🏁 Both players finished! Game over.");
             setGameStatus("finished");
           }
         }
@@ -153,6 +164,7 @@ const TypeQuestPage = () => {
     gameState?.gameId,
     gameState?.currentPlayer.playerId,
     gameState?.currentPlayer.isFinished,
+    gameState?.opponent?.isFinished,
   ]);
 
   const updateCPUProgress = useCallback(
@@ -523,17 +535,24 @@ const TypeQuestPage = () => {
           };
         }
 
+        // ✅ For MULTIPLAYER: Keep game "active" until both finish, but mark player as finished
+        // ✅ For SOLO: Game ends when player finishes
+        const shouldEndGame =
+          isPlayerFinished &&
+          (gameState.mode === "solo" ||
+            (gameState.mode === "multiplayer" && finalOpponent?.isFinished));
+
         const updatedGameState: GameState = {
           ...gameState,
           currentPlayer: updatedPlayer,
           opponent: finalOpponent,
-          status: isPlayerFinished ? "finished" : "active", // ✅ Player finishing = game over
-          endTime: isPlayerFinished ? Date.now() : null,
+          status: shouldEndGame ? "finished" : "active",
+          endTime: shouldEndGame ? Date.now() : null,
         };
 
         setGameState(updatedGameState);
 
-        // 🎮 MULTIPLAYER: Push progress update to opponent
+        // 🎮 MULTIPLAYER: Push progress update to opponent (including questionResults for metrics)
         if (gameState.mode === "multiplayer" && gameState.gameId) {
           fetch("/api/game/progress", {
             method: "POST",
@@ -549,18 +568,25 @@ const TypeQuestPage = () => {
                 totalMistakes: updatedPlayer.totalMistakes,
                 isFinished: updatedPlayer.isFinished,
                 finishTime: isPlayerFinished ? Date.now() : null,
+                questionResults: updatedPlayer.questionResults, // ✅ Sync for metrics!
               },
             }),
           }).catch((err) => console.error("Failed to push progress:", err));
         }
 
-        if (isPlayerFinished) {
+        // Update UI to show finished screen (but keep polling if opponent isn't done)
+        if (isPlayerFinished && gameState.mode === "solo") {
           setGameStatus("finished");
-          // Clear CPU timer when game ends
+          // Clear CPU timer when solo game ends
           if (cpuTimerRef.current) {
             clearTimeout(cpuTimerRef.current);
             cpuTimerRef.current = null;
           }
+        } else if (isPlayerFinished && gameState.mode === "multiplayer") {
+          // Show finished screen but keep status "active" until both done
+          console.log("🏁 You finished! Waiting for opponent...");
+          setGameStatus("finished"); // Show finished UI
+          // Polling will continue until opponent finishes
         }
       } else {
         // Incorrect answer - increment mistakes
@@ -606,16 +632,24 @@ const TypeQuestPage = () => {
   /* ****************************************************** */
 
   // Join lobby and start polling for players
-  const joinLobby = async (playerName: string) => {
+  const joinLobby = async (
+    playerName: string,
+    gradeLevel: GradeLevel,
+    gameMode: GameMode
+  ) => {
     try {
-      console.log("Joining lobby");
+      console.log("Joining lobby with:", { playerName, gradeLevel, gameMode });
+
+      // Store setup values in ref for later use (when initializing multiplayer game)
+      setupValuesRef.current = { playerName, gradeLevel, gameMode };
+
       const res = await fetch("/api/lobby", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: playerName,
-          gradeLevel: gameState?.gradeLevel as GradeLevel,
-          gameMode: gameState?.mode as GameMode,
+          gradeLevel,
+          gameMode,
         }),
       });
       console.log("Response:", res);
@@ -753,10 +787,10 @@ const TypeQuestPage = () => {
           const newGameState = await initializeGameMultiplayer(
             matchId,
             myPlayerId!,
-            gameState?.currentPlayer.playerName || "Player",
+            setupValuesRef.current.playerName,
             opponentId,
             opponentName,
-            gameState?.gradeLevel as GradeLevel,
+            setupValuesRef.current.gradeLevel,
             GAME_CONFIG.DEFAULT_QUESTIONS
           );
 
@@ -818,10 +852,10 @@ const TypeQuestPage = () => {
       const newGameState = await initializeGameMultiplayer(
         incomingRequest.matchId,
         myPlayerId!,
-        gameState?.currentPlayer.playerName || "Player",
+        setupValuesRef.current.playerName,
         opponentId,
         incomingRequest.from,
-        gameState?.gradeLevel as GradeLevel,
+        setupValuesRef.current.gradeLevel,
         GAME_CONFIG.DEFAULT_QUESTIONS
       );
 
@@ -873,7 +907,6 @@ const TypeQuestPage = () => {
       {gameStatus === "setup" && (
         <TQ_SetupScreen
           gameStatus={gameStatus}
-          gameState={gameState}
           key={`setup-${Date.now()}`} // Force new instance every time
           handleGameStart={handleGameStart}
           multiplayerPlayers={multiplayerPlayers}
@@ -899,6 +932,7 @@ const TypeQuestPage = () => {
           gameState={gameState}
           onPlayAgain={handleGameReset}
           onBackHome={handleBackHome}
+          shouldPollOpponent={shouldPollOpponent as boolean}
         />
       )}
       {!gameStatus ||

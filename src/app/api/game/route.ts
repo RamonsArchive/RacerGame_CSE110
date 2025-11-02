@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Redis } from "@upstash/redis";
-
-export const runtime = "edge";
-const redis = Redis.fromEnv();
-
+import redis from "@/lib/redis";
 const GAME_ROOM_KEY = (roomId: string) => `tq:gameroom:${roomId}`;
 const GAME_TTL = 3600; // 1 hour
 
@@ -37,7 +33,9 @@ export async function POST(req: NextRequest) {
       questions,
     } = body;
 
+    console.log("🎮 POST request body of game room:", body);
     if (!roomId || !player1Id || !player2Id || !questions) {
+      console.log("❌ Missing required fields");
       return NextResponse.json(
         { ok: false, error: "Missing required fields" },
         { status: 400 }
@@ -48,6 +46,7 @@ export async function POST(req: NextRequest) {
 
     // Check if room already exists (handle race condition)
     const existing = await redis.hgetall(GAME_ROOM_KEY(roomId));
+    console.log("🎮 Existing game room:", existing);
     if (existing && existing.roomId) {
       console.log("Game room already exists, returning existing:", roomId);
       return NextResponse.json({
@@ -58,6 +57,7 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    console.log("🎮 Creating new game room:", roomId);
     const gameRoom: GameRoom = {
       roomId,
       player1Id,
@@ -83,6 +83,7 @@ export async function POST(req: NextRequest) {
       message: "Game room created",
     });
   } catch (err: any) {
+    console.error("❌ Failed to create game room: in match route", err);
     return NextResponse.json(
       { ok: false, error: err?.message || "Failed to create game room" },
       { status: 500 }
