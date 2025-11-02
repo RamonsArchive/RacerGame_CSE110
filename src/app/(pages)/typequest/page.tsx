@@ -1085,6 +1085,7 @@ const TypeQuestPage = () => {
       {gameStatus === "setup" && (
         <TQ_SetupScreen
           gameStatus={gameStatus}
+          gameState={gameState}
           key={`setup-${Date.now()}`} // Force new instance every time
           handleGameStart={handleGameStart}
           multiplayerPlayers={multiplayerPlayers}

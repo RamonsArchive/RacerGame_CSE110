@@ -6,11 +6,12 @@ import {
   GameStatus,
   GradeLevel,
 } from "@/app/constants/index_typequest";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Trophy } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { MultiplayerPlayer } from "@/lib/GlobalTypes";
 import MultiplayerSetup from "./MultiplayerSetup";
+import TQ_Leaderboard from "./TQ_Leaderboard";
 
 interface Props {
   gameStatus: GameStatus;
@@ -35,6 +36,7 @@ interface Props {
     from: string;
     gradeLevel: GradeLevel;
   } | null;
+  gameState: GameState | null;
 }
 
 const TQ_SetupScreen = ({
@@ -48,12 +50,13 @@ const TQ_SetupScreen = ({
   leaveLobby,
   handleConnect,
   incomingRequest,
+  gameState,
 }: Props) => {
   // Local state for smooth typing (no parent re-renders)
   const [gradeLevel, setGradeLevel] = useState<GradeLevel>("K");
   const [gameMode, setGameMode] = useState<GameMode>("solo");
   const [playerName, setPlayerName] = useState<string>("Player");
-
+  const [leaderboardView, setLeaderboardView] = useState<boolean>(false);
   const handleStartGame = (
     gameMode: GameMode,
     gradeLevel: GradeLevel,
@@ -133,15 +136,26 @@ const TQ_SetupScreen = ({
 
         {/* Content - more compact */}
         <div className="flex flex-col items-start justify-start p-8 gap-5 relative z-10 max-w-2xl">
-          <Link
-            href="/"
-            className="group flex flex-row items-center px-4 py-2 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20 hover:cursor-pointer hover:bg-slate-800/80 hover:border-white/30 transition-all duration-300 ease-in-out"
-          >
-            <ChevronLeft className="w-5 h-5 text-white group-hover:text-slate-300 transition-all duration-300 ease-in-out" />
-            <p className="font-bold text-md text-white group-hover:text-slate-300 transition-all duration-300 ease-in-out">
-              Back to Home
-            </p>
-          </Link>
+          <div className="flex w-full items-center justify-between gap-2">
+            <Link
+              href="/"
+              className="group flex flex-row items-center px-4 py-2 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20 hover:cursor-pointer hover:bg-slate-800/80 hover:border-white/30 transition-all duration-300 ease-in-out"
+            >
+              <ChevronLeft className="w-5 h-5 text-white group-hover:text-slate-300 transition-all duration-300 ease-in-out" />
+              <p className="font-bold text-md text-white group-hover:text-slate-300 transition-all duration-300 ease-in-out">
+                Back to Home
+              </p>
+            </Link>
+            <button
+              onClick={() => setLeaderboardView(true)}
+              className="group gap-1 flex flex-row items-center px-4 py-2 rounded-lg bg-slate-900/60 backdrop-blur-sm border-2 border-amber-400/60 animate-shine-border hover:cursor-pointer hover:bg-slate-800/80 transition-all duration-300 ease-in-out"
+            >
+              <Trophy className="w-5 h-5 text-amber-400 group-hover:text-amber-300 transition-all duration-300 ease-in-out" />
+              <p className="font-bold text-md text-amber-400 group-hover:text-amber-300 transition-all duration-300 ease-in-out">
+                Leaderboard
+              </p>
+            </button>
+          </div>
 
           {/* Title - compact */}
           <h1 className="text-6xl font-black text-white leading-tight">
@@ -220,6 +234,14 @@ const TQ_SetupScreen = ({
         incomingRequest={incomingRequest}
         onAcceptRequest={handleAcceptMatch}
         onRejectRequest={handleRejectMatch}
+      />
+
+      <TQ_Leaderboard
+        isOpen={leaderboardView}
+        onClose={() => setLeaderboardView(false)}
+        gradeLevel={gradeLevel}
+        mode={gameMode}
+        currentGameId={gameState?.gameId}
       />
     </>
   );
