@@ -38,9 +38,9 @@ const TQ_FinishedScreen = ({
     switch (winner) {
       case "win":
         return (
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-start gap-2">
             <p className="text-5xl">🎉</p>
-            <p className="text-3xl font-bold text-green-400 animate-bounce">
+            <p className="text-5xl font-bold text-green-400 animate-bounce">
               You Won!
             </p>
             <p className="text-lg text-slate-300">
@@ -53,7 +53,7 @@ const TQ_FinishedScreen = ({
         );
       case "loss":
         return (
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-start gap-2">
             <p className="text-5xl">💪</p>
             <p className="text-3xl font-bold text-red-400">
               Better Luck Next Time!
@@ -68,7 +68,7 @@ const TQ_FinishedScreen = ({
         );
       case "tie":
         return (
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-start gap-2">
             <p className="text-5xl">🤝</p>
             <p className="text-3xl font-bold text-yellow-400">It's a Tie!</p>
             <p className="text-lg text-slate-300">
@@ -81,44 +81,58 @@ const TQ_FinishedScreen = ({
 
   return (
     <>
-      <div className="flex items-center justify-center w-full h-dvh p-4">
-        <div className="flex flex-col w-full max-w-2xl p-10 gap-8 bg-linear-to-b from-pink-700 via-primary-900 to-secondary-800 rounded-2xl shadow-2xl">
-          {/* Title */}
-          <div className="flex justify-center w-full">
-            <h1 className="text-5xl font-bold text-white drop-shadow-2xl text-center">
-              Race Completed! 🏁
-            </h1>
+      <div 
+        className="flex items-start justify-end w-full h-dvh p-4 relative"
+        style={{
+          backgroundImage: 'url(/Assets/TypeQuest/finish.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        }}
+      >
+        <div className="flex flex-row items-start gap-8 w-full max-w-5xl p-10 bg-transparent rounded-2xl mt-8 mr-8">
+          {/* Left side: Title and Winner Announcement */}
+          <div className="flex flex-col gap-6 flex-shrink-0">
+            {/* Title */}
+            <div className="flex items-start">
+              <h1 className="text-5xl font-bold text-white drop-shadow-2xl">
+                Race Completed! 
+              </h1>
+            </div>
+
+            {/* Winner Announcement */}
+            <div className="flex items-start">{getWinnerMessage()}</div>
           </div>
 
-          {/* Winner Announcement */}
-          <div className="flex justify-center w-full">{getWinnerMessage()}</div>
+          {/* Right side: Summary and Action Buttons */}
+          <div className="flex flex-col gap-8 flex-1">
+            {/* Summary */}
+            {gameState && <TQ_Summary gameState={gameState} />}
 
-          {/* Summary */}
-          {gameState && <TQ_Summary gameState={gameState} />}
-
-          {/* Action Buttons */}
-          <div className="flex flex-col w-full gap-3">
-            <button
-              onClick={() => setOpenLeaderboard(true)}
-              className="flex items-center justify-center gap-2 w-full bg-slate-200 hover:bg-slate-100 text-slate-900 font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
-            >
-              <span>🏆</span>
-              View Leaderboard
-            </button>
-
-            <div className="flex flex-row w-full gap-4">
+            {/* Action Buttons */}
+            <div className="flex flex-col w-full gap-3">
               <button
-                onClick={onPlayAgain}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+                onClick={() => setOpenLeaderboard(true)}
+                className="flex items-center justify-center gap-2 w-full bg-slate-200/80 hover:bg-slate-100/80 text-slate-900 font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
               >
-                Play Again
+                <span>🏆</span>
+                View Leaderboard
               </button>
-              <button
-                onClick={onBackHome}
-                className="flex-1 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
-              >
-                Home
-              </button>
+
+              <div className="flex flex-row w-full gap-4">
+                <button
+                  onClick={onPlayAgain}
+                  className="flex-3 bg-green-600/80 hover:bg-green-700/80 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+                >
+                  Play Again
+                </button>
+                <button
+                  onClick={onBackHome}
+                  className="flex-3 bg-primary-600/80 hover:bg-primary-700/80 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+                >
+                  Home
+                </button>
+              </div>
             </div>
           </div>
         </div>
