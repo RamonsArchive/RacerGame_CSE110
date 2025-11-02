@@ -177,40 +177,87 @@ const TQ_SetupScreen = ({
           <div className="flex gap-4 w-full max-w-md">
             <div className="flex flex-col gap-2 flex-1">
               <p className="text-lg text-white font-semibold">Grade:</p>
-              <select
-                value={gradeLevel}
-                onChange={(e) => setGradeLevel(e.target.value as GradeLevel)}
-                className="bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-lg p-3 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all"
-              >
-                <option value="K" className="bg-slate-900 text-white">
-                  K
-                </option>
-                <option value="1-2" className="bg-slate-900 text-white">
-                  1-2
-                </option>
-                <option value="3-4" className="bg-slate-900 text-white">
-                  3-4
-                </option>
-                <option value="5-6" className="bg-slate-900 text-white">
-                  5-6
-                </option>
-              </select>
+              <div className="relative">
+                <select
+                  value={gradeLevel}
+                  onChange={(e) => setGradeLevel(e.target.value as GradeLevel)}
+                  className="appearance-none bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-lg p-3 pr-10 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all cursor-pointer"
+                  style={{
+                    WebkitAppearance: "none",
+                    MozAppearance: "none",
+                  }}
+                >
+                  <option value="K" className="bg-slate-900 text-white">
+                    K
+                  </option>
+                  <option value="1-2" className="bg-slate-900 text-white">
+                    1-2
+                  </option>
+                  <option value="3-4" className="bg-slate-900 text-white">
+                    3-4
+                  </option>
+                  <option value="5-6" className="bg-slate-900 text-white">
+                    5-6
+                  </option>
+                </select>
+                {/* Custom dropdown arrow */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg
+                    className="w-5 h-5 text-white/70"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
             </div>
 
             <div className="flex flex-col gap-2 flex-1">
               <p className="text-lg text-white font-semibold">Mode:</p>
-              <select
-                value={gameMode}
-                onChange={(e) => setGameMode(e.target.value as GameMode)}
-                className="bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-lg p-3 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all"
-              >
-                <option value="solo" className="bg-slate-900 text-white">
-                  Solo
-                </option>
-                <option value="multiplayer" className="bg-slate-900 text-white">
-                  Multiplayer
-                </option>
-              </select>
+              <div className="relative">
+                <select
+                  value={gameMode}
+                  onChange={(e) => setGameMode(e.target.value as GameMode)}
+                  className="appearance-none bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-lg p-3 pr-10 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all cursor-pointer"
+                  style={{
+                    WebkitAppearance: "none",
+                    MozAppearance: "none",
+                  }}
+                >
+                  <option value="solo" className="bg-slate-900 text-white">
+                    Solo
+                  </option>
+                  <option
+                    value="multiplayer"
+                    className="bg-slate-900 text-white"
+                  >
+                    Multiplayer
+                  </option>
+                </select>
+                {/* Custom dropdown arrow */}
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <svg
+                    className="w-5 h-5 text-white/70"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
             </div>
           </div>
 
