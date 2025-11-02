@@ -39,10 +39,6 @@ const MultiplayerSetup = ({
           <h2 className="font-nunito text-3xl font-black text-slate-100 text-center">
             Find an Opponent
           </h2>
-          <p className="font-nunito text-sm text-slate-300 text-center">
-            Playing as:{" "}
-            <span className="font-bold text-slate-100">{playerName}</span>
-          </p>
         </div>
 
         {/* Incoming Match Request */}
