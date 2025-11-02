@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import redis from "@/lib/redis";
 import { GradeLevel, GameMode } from "@/app/constants/index_typequest";
+import { checkRateLimit, lobbyMatchLimiter } from "@/lib/rateLimiter";
 
 // Run on Edge for snappy responses
 export const runtime = "edge";
@@ -28,6 +29,15 @@ function bad(msg: string, code = 400) {
  */
 export async function POST(req: NextRequest) {
   try {
+    // ✅ Check rate limit FIRST
+    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "lobby:join");
+    if (!rateLimitCheck.success) {
+      return json(
+        { ok: false, error: rateLimitCheck.error },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const name = (body?.name || "").toString().trim();
     const gradeLevel = body?.gradeLevel || "K";
@@ -62,6 +72,15 @@ export async function POST(req: NextRequest) {
  */
 export async function GET(req: NextRequest) {
   try {
+    // ✅ Check rate limit FIRST
+    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "lobby:list");
+    if (!rateLimitCheck.success) {
+      return json(
+        { ok: false, error: rateLimitCheck.error },
+        { status: 429 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const exclude = searchParams.get("exclude") || "";
 
@@ -118,6 +137,15 @@ export async function GET(req: NextRequest) {
  */
 export async function PATCH(req: NextRequest) {
   try {
+    // ✅ Check rate limit FIRST
+    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "lobby:heartbeat");
+    if (!rateLimitCheck.success) {
+      return json(
+        { ok: false, error: rateLimitCheck.error },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const id = (body?.id || "").toString();
 
@@ -145,6 +173,15 @@ export async function PATCH(req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   try {
+    // ✅ Check rate limit FIRST
+    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "lobby:leave");
+    if (!rateLimitCheck.success) {
+      return json(
+        { ok: false, error: rateLimitCheck.error },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const id = (body?.id || "").toString();
 

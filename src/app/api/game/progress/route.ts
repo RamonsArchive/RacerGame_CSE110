@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import redis from "@/lib/redis";
+import { checkRateLimit, gameProgressLimiter } from "@/lib/rateLimiter";
 
 export const runtime = "edge";
 
@@ -39,6 +40,18 @@ type PlayerProgress = {
  */
 export async function POST(req: NextRequest) {
   try {
+    // ✅ Check rate limit FIRST
+    const rateLimitCheck = await checkRateLimit(
+      gameProgressLimiter,
+      "progress:post"
+    );
+    if (!rateLimitCheck.success) {
+      return NextResponse.json(
+        { ok: false, error: rateLimitCheck.error },
+        { status: 429 } // Too Many Requests
+      );
+    }
+
     const body = await req.json();
     const { roomId, playerId, playerName, progress } = body;
 
@@ -84,6 +97,18 @@ export async function POST(req: NextRequest) {
  */
 export async function GET(req: NextRequest) {
   try {
+
+     // ✅ Check rate limit FIRST
+    const rateLimitCheck = await checkRateLimit(
+        gameProgressLimiter,
+        "progress:get"
+    );
+    if (!rateLimitCheck.success) {
+        return NextResponse.json(
+        { ok: false, error: rateLimitCheck.error },
+        { status: 429 } // Too Many Requests
+        );
+    }
     const { searchParams } = new URL(req.url);
     const roomId = searchParams.get("roomId");
     const playerId = searchParams.get("playerId");

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import redis from "@/lib/redis";
+import { checkRateLimit, gameRoomLimiter } from "@/lib/rateLimiter";
+
 const GAME_ROOM_KEY = (roomId: string) => `tq:gameroom:${roomId}`;
 const GAME_TTL = 3600; // 1 hour
 
@@ -22,6 +24,15 @@ type GameRoom = {
  */
 export async function POST(req: NextRequest) {
   try {
+    // ✅ Check rate limit FIRST
+    const rateLimitCheck = await checkRateLimit(gameRoomLimiter, "room:create");
+    if (!rateLimitCheck.success) {
+      return NextResponse.json(
+        { ok: false, error: rateLimitCheck.error },
+        { status: 429 } // Too Many Requests
+      );
+    }
+
     const body = await req.json();
     const {
       roomId,
@@ -97,6 +108,15 @@ export async function POST(req: NextRequest) {
  */
 export async function GET(req: NextRequest) {
   try {
+    // ✅ Check rate limit FIRST
+    const rateLimitCheck = await checkRateLimit(gameRoomLimiter, "room:get");
+    if (!rateLimitCheck.success) {
+      return NextResponse.json(
+        { ok: false, error: rateLimitCheck.error },
+        { status: 429 } // Too Many Requests
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const roomId = searchParams.get("roomId");
 
@@ -134,6 +154,15 @@ export async function GET(req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   try {
+    // ✅ Check rate limit FIRST
+    const rateLimitCheck = await checkRateLimit(gameRoomLimiter, "room:delete");
+    if (!rateLimitCheck.success) {
+      return NextResponse.json(
+        { ok: false, error: rateLimitCheck.error },
+        { status: 429 } // Too Many Requests
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const roomId = searchParams.get("roomId");
 

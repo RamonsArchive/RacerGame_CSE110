@@ -130,7 +130,7 @@ const TQ_Leaderboard = ({
           </div>
           <div className="flex items-center gap-2">
             {/* Clear Leaderboard Button */}
-            {leaderboardData.length > 0 && mode !== "multiplayer" && (
+            {leaderboardData.length > 0 && (
               <button
                 onClick={() => setShowConfirmClear(true)}
                 className="p-2 rounded-full hover:bg-red-500/20 transition-colors group"

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import redis from "@/lib/redis";
+import { checkRateLimit, leaderboardLimiter } from "@/lib/rateLimiter";
 
 export const runtime = "edge";
 
@@ -20,6 +21,15 @@ const MAX_ENTRIES_PER_BOARD = 100; // Keep top 100 per board
  */
 export async function GET(req: NextRequest) {
   try {
+    // ✅ Check rate limit FIRST
+    const rateLimitCheck = await checkRateLimit(leaderboardLimiter, "leaderboard:get");
+    if (!rateLimitCheck.success) {
+      return NextResponse.json(
+        { ok: false, error: rateLimitCheck.error },
+        { status: 429 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const mode = searchParams.get("mode") || "solo";
     const gradeLevel = searchParams.get("gradeLevel") || "K";
@@ -64,6 +74,15 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
+    // ✅ Check rate limit FIRST
+    const rateLimitCheck = await checkRateLimit(leaderboardLimiter, "leaderboard:save");
+    if (!rateLimitCheck.success) {
+      return NextResponse.json(
+        { ok: false, error: rateLimitCheck.error },
+        { status: 429 }
+      );
+    }
+
     const gameResult = await req.json();
 
     const { mode, gradeLevel, totalPoints } = gameResult;
@@ -112,6 +131,15 @@ export async function POST(req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   try {
+    // ✅ Check rate limit FIRST
+    const rateLimitCheck = await checkRateLimit(leaderboardLimiter, "leaderboard:delete");
+    if (!rateLimitCheck.success) {
+      return NextResponse.json(
+        { ok: false, error: rateLimitCheck.error },
+        { status: 429 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const mode = searchParams.get("mode");
     const gradeLevel = searchParams.get("gradeLevel");
