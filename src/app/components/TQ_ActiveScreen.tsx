@@ -148,7 +148,7 @@ const TQ_ActiveScreen = ({
       </div>
 
       {/* Question Area */}
-      <div className="flex flex-col gap-5 w-full max-w-2xl mx-auto pt-10 p-5 shrink-0 relative z-10">
+      <div className="flex flex-col gap-3 w-full max-w-2xl mx-auto pt-3 p-5 shrink-0 relative z-10">
         <div className="flex-center w-full">
           <p className="text-3xl font-bold text-slate-100">
             {currentQuestion?.prompt}
