@@ -89,18 +89,14 @@ const TQ_RematchButton = ({
             await fetch(`/api/match?matchId=${matchId}`, { method: "DELETE" });
           }
         } else if (!data.ok && res.status === 404) {
-          // ✅ Match was deleted (opponent accepted on their end)
-          // This means the game is starting, so stop polling
+          // ✅ Match was deleted (opponent accepted on their end and started the game)
           console.log("🎮 Match deleted - opponent accepted, starting game...");
           if (hasCompleted) return;
           hasCompleted = true;
           clearInterval(checkInterval);
-          // Wait a moment for the other player to initialize the game
-          setTimeout(() => {
-            // If we're still waiting after 2 seconds, they probably accepted
-            // and we should check if game state updated
-            console.log("⏳ Waiting for game to start...");
-          }, 2000);
+
+          // ✅ IMPORTANT: Opponent accepted and deleted the match, so we need to start our game too!
+          onRematchAccepted(matchId, opponentId, opponentName);
         }
       } catch (err) {
         console.error("Failed to check rematch status:", err);

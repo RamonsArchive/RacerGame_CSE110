@@ -30,6 +30,7 @@ type PlayerProgress = {
   isFinished: boolean;
   finishTime: number | null;
   questionResults: QuestionResult[]; // ✅ Add for metrics
+  isActive: boolean; // ✅ Track if player is still in game (for detecting quits)
   lastUpdate: number;
 };
 
@@ -73,6 +74,7 @@ export async function POST(req: NextRequest) {
       isFinished: progress.isFinished || false,
       finishTime: progress.finishTime || null,
       questionResults: JSON.stringify(progress.questionResults || []), // ✅ Stringify for Redis
+      isActive: progress.isActive !== undefined ? progress.isActive : true, // ✅ Default to active
       lastUpdate: Date.now(),
     };
 
@@ -168,6 +170,7 @@ export async function GET(req: NextRequest) {
           ? Number(opponentProgress.finishTime)
           : null,
         questionResults: opponentProgress.questionResults, // ✅ Parse for client
+        isActive: opponentProgress.isActive === "true" || opponentProgress.isActive === true || opponentProgress.isActive === undefined, // ✅ Default to true for backward compatibility
         lastUpdate: Number(opponentProgress.lastUpdate),
       },
     });

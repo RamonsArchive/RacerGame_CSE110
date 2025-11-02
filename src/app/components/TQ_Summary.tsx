@@ -12,11 +12,13 @@ const TQ_Summary = ({
   shouldPollOpponent,
   currentPlayerTotalPoints,
   opponentTotalPoints,
+  opponentLeftGame = false,
 }: {
   gameState: GameState;
   shouldPollOpponent?: boolean;
   currentPlayerTotalPoints: number;
   opponentTotalPoints: number;
+  opponentLeftGame?: boolean;
 }) => {
   return (
     <div className="flex flex-row w-full p-4 gap-4 bg-linear-to-br from-slate-800/70 via-slate-700/60 to-slate-900/70 rounded-lg shadow-md border border-white/10">
@@ -62,8 +64,14 @@ const TQ_Summary = ({
 
       {/* Opponent */}
       <div className="flex flex-1 flex-col gap-3 relative">
-        {/* Live updating indicator */}
-        {shouldPollOpponent && (
+        {/* Live updating indicator OR Final indicator if opponent left */}
+        {opponentLeftGame ? (
+          <div className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-1 bg-red-500/30 border border-red-400/50 rounded-full">
+            <span className="text-[10px] font-semibold text-red-200">
+              ⚠️ FINAL
+            </span>
+          </div>
+        ) : shouldPollOpponent && !gameState.opponent?.isFinished ? (
           <div className="absolute -top-2 -right-2 flex items-center gap-1 px-2 py-1 bg-green-500/30 border border-green-400/50 rounded-full">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -73,7 +81,7 @@ const TQ_Summary = ({
               LIVE
             </span>
           </div>
-        )}
+        ) : null}
         <SummaryRow label="Opponent points" value={`${opponentTotalPoints}`} />
         <SummaryRow
           label="Opponent progress"

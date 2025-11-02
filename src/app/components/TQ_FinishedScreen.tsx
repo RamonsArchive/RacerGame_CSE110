@@ -12,6 +12,7 @@ interface TQ_FinishedScreenProps {
   onPlayAgain: () => void;
   onBackHome: () => void;
   shouldPollOpponent: boolean;
+  opponentLeftGame?: boolean;
   // Multiplayer rematch props
   myPlayerId?: string | null;
   onRematchAccepted?: (
@@ -26,6 +27,7 @@ const TQ_FinishedScreen = ({
   onPlayAgain,
   onBackHome,
   shouldPollOpponent,
+  opponentLeftGame = false,
   myPlayerId,
   onRematchAccepted,
 }: TQ_FinishedScreenProps) => {
@@ -40,20 +42,40 @@ const TQ_FinishedScreen = ({
     return null;
   }
 
-  // ✅ Calculate points inline
+  // ✅ Calculate points - MUST match createGameResult logic exactly!
   const calculateCurrentPlayerTotalPoints = () => {
+    if (!gameState || !gameState.startTime) return 0;
+
+    // ✅ Use player's individual finishTime (same as createGameResult)
+    const playerEndTime =
+      gameState.currentPlayer.finishTime || gameState.endTime || Date.now();
     const currentPlayerPerfect = gameState?.currentPlayer?.totalMistakes === 0;
+
     return calculateGameScore(
       gameState?.currentPlayer?.questionResults,
-      currentPlayerPerfect
+      currentPlayerPerfect,
+      gameState.startTime,
+      playerEndTime,
+      gameState.targetTimePerQuestion,
+      gameState.totalQuestions
     );
   };
 
   const calculateOpponentTotalPoints = () => {
+    if (!gameState || !gameState.startTime || !gameState.opponent) return 0;
+
+    // ✅ Use opponent's individual finishTime (same as createGameResult)
+    const opponentEndTime =
+      gameState.opponent.finishTime || gameState.endTime || Date.now();
     const opponentPerfect = gameState?.opponent?.totalMistakes === 0;
+
     return calculateGameScore(
       gameState?.opponent?.questionResults || [],
-      opponentPerfect
+      opponentPerfect,
+      gameState.startTime,
+      opponentEndTime,
+      gameState.targetTimePerQuestion,
+      gameState.totalQuestions
     );
   };
 
@@ -156,6 +178,7 @@ const TQ_FinishedScreen = ({
               currentPlayerTotalPoints={currentPlayerTotalPoints}
               opponentTotalPoints={opponentTotalPoints}
               shouldPollOpponent={shouldPollOpponent}
+              opponentLeftGame={opponentLeftGame}
             />
           )}
 

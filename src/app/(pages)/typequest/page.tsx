@@ -39,6 +39,7 @@ const TypeQuestPage = () => {
   const [gameStatus, setGameStatus] = useState<GameStatus>("setup");
   const [hasBeenSaved, setHasBeenSaved] = useState(false);
   const [shouldPollOpponent, setShouldPollOpponent] = useState(false);
+  const [opponentLeftGame, setOpponentLeftGame] = useState(false); // Track if opponent quit
   const cpuTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasResetRef = useRef(false); // Add this
 
@@ -111,6 +112,37 @@ const TypeQuestPage = () => {
         if (data.ok && data.opponentProgress) {
           const opponentProgress = data.opponentProgress;
 
+          // ✅ Check if opponent left the game
+          if (opponentProgress.isActive === false && !opponentLeftGame) {
+            console.log("⚠️ Opponent left the game!");
+            setOpponentLeftGame(true);
+            // Opponent left - mark their current state as final
+            setGameState((prevState) => {
+              if (!prevState || prevState.mode !== "multiplayer")
+                return prevState;
+              return {
+                ...prevState,
+                opponent: {
+                  ...prevState.opponent!,
+                  currentQuestionIndex: opponentProgress.currentQuestionIndex,
+                  questionsAnswered: opponentProgress.questionsAnswered,
+                  totalPoints: opponentProgress.totalPoints,
+                  totalMistakes: opponentProgress.totalMistakes,
+                  isFinished: true, // Mark as finished when they leave
+                  finishTime: opponentProgress.finishTime || Date.now(), // ✅ Sync finish time
+                  questionResults: opponentProgress.questionResults,
+                },
+                status: prevState.currentPlayer.isFinished
+                  ? "finished"
+                  : prevState.status,
+                endTime: prevState.currentPlayer.isFinished
+                  ? Date.now()
+                  : prevState.endTime,
+              };
+            });
+            return; // Stop processing further
+          }
+
           // Update opponent state with fetched progress
           setGameState((prevState) => {
             if (!prevState || prevState.mode !== "multiplayer")
@@ -129,6 +161,7 @@ const TypeQuestPage = () => {
                 totalPoints: opponentProgress.totalPoints,
                 totalMistakes: opponentProgress.totalMistakes,
                 isFinished: opponentProgress.isFinished,
+                finishTime: opponentProgress.finishTime, // ✅ Sync individual finish time
                 questionResults: opponentProgress.questionResults,
               },
               // Only mark game as finished when BOTH players are done
@@ -407,6 +440,36 @@ const TypeQuestPage = () => {
   const handleGameReset = useCallback(() => {
     hasResetRef.current = true; // Prevent load effect from running
 
+    // ✅ MULTIPLAYER: Notify opponent that we're leaving
+    if (
+      gameState?.mode === "multiplayer" &&
+      gameState?.gameId &&
+      gameState?.currentPlayer.playerId
+    ) {
+      console.log("🚪 Leaving multiplayer game, notifying opponent...");
+      fetch("/api/game/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roomId: gameState.gameId,
+          playerId: gameState.currentPlayer.playerId,
+          playerName: gameState.currentPlayer.playerName,
+          progress: {
+            currentQuestionIndex: gameState.currentPlayer.currentQuestionIndex,
+            questionsAnswered: gameState.currentPlayer.questionsAnswered,
+            totalPoints: gameState.currentPlayer.totalPoints,
+            totalMistakes: gameState.currentPlayer.totalMistakes,
+            isFinished: gameState.currentPlayer.isFinished,
+            finishTime: gameState.endTime,
+            questionResults: gameState.currentPlayer.questionResults,
+            isActive: false, // ✅ Mark as inactive (left game)
+          },
+        }),
+      }).catch((err) =>
+        console.error("Failed to notify opponent of leaving:", err)
+      );
+    }
+
     // Clear CPU timer on reset
     if (cpuTimerRef.current) {
       clearTimeout(cpuTimerRef.current);
@@ -419,12 +482,13 @@ const TypeQuestPage = () => {
       setGameState(null);
       setHasBeenSaved(false);
       setGameStatus("setup");
+      setOpponentLeftGame(false); // Reset opponent left flag
     });
 
     setTimeout(() => {
       hasResetRef.current = false;
     }, 100);
-  }, []);
+  }, [gameState]);
 
   const handleGameStart = useCallback(
     (gameMode: GameMode, gradeLevel: GradeLevel, playerName: string) => {
@@ -513,6 +577,7 @@ const TypeQuestPage = () => {
           currentQuestionMistakes: 0,
           questionStartTime: isPlayerFinished ? null : Date.now(),
           isFinished: isPlayerFinished,
+          finishTime: isPlayerFinished ? Date.now() : null, // ✅ Track individual finish time
         };
 
         let finalOpponent = gameState.opponent;
@@ -533,6 +598,7 @@ const TypeQuestPage = () => {
           finalOpponent = {
             ...gameState.opponent,
             isFinished: true, // Mark as finished
+            finishTime: Date.now(), // ✅ Mark CPU finish time
           };
         }
 
@@ -568,8 +634,9 @@ const TypeQuestPage = () => {
                 totalPoints: updatedPlayer.totalPoints,
                 totalMistakes: updatedPlayer.totalMistakes,
                 isFinished: updatedPlayer.isFinished,
-                finishTime: isPlayerFinished ? Date.now() : null,
+                finishTime: updatedPlayer.finishTime, // ✅ Use player's individual finish time
                 questionResults: updatedPlayer.questionResults, // ✅ Sync for metrics!
+                isActive: true, // ✅ Player is still active during normal gameplay
               },
             }),
           }).catch((err) => console.error("Failed to push progress:", err));
@@ -1032,10 +1099,10 @@ const TypeQuestPage = () => {
       )}
       {gameStatus === "active" && (
         <TQ_ActiveScreen
-          setGameStatus={setGameStatus}
           gameState={gameState}
           onAnswerSubmit={handleAnswerSubmit}
           handleGameReset={handleGameReset}
+          opponentLeftGame={opponentLeftGame}
         />
       )}
       {gameStatus === "finished" && gameState && (
@@ -1044,6 +1111,7 @@ const TypeQuestPage = () => {
           onPlayAgain={handleGameReset}
           onBackHome={handleBackHome}
           shouldPollOpponent={shouldPollOpponent as boolean}
+          opponentLeftGame={opponentLeftGame}
           myPlayerId={myPlayerId}
           onRematchAccepted={handleRematchAccepted}
         />

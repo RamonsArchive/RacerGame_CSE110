@@ -60,10 +60,10 @@ const TQ_SetupScreen = ({
   ) => {
     if (
       (gameMode === "multiplayer" && playerName.length < 2) ||
-      playerName.length > 10
+      playerName.length > 20
     ) {
       alert(
-        "Player name must be between 2 and 10 characters long for multiplayer mode"
+        "Player name must be between 2 and 20 characters long for multiplayer mode"
       );
       return;
     }

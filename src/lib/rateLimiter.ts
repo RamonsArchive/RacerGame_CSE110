@@ -1,7 +1,6 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { NextRequest } from "next/server";
-import crypto from "crypto";
 
 // Shared Redis instance (same as game data - perfectly fine!)
 const redis = new Redis({
@@ -80,9 +79,9 @@ export const generalLimiter = new Ratelimit({
 /**
  * Get unique client identifier from cookies or IP hash
  * Priority: userId cookie > IP + fingerprint hash
- * ✅ Edge Runtime Compatible (uses NextRequest instead of next/headers)
+ * ✅ Edge Runtime Compatible (uses Web Crypto API instead of Node.js crypto)
  */
-export const getClientId = (req: NextRequest): string => {
+export const getClientId = async (req: NextRequest): Promise<string> => {
   try {
     // Try session cookie first (from middleware)
     const userId = req.cookies.get("userId")?.value;
@@ -91,16 +90,18 @@ export const getClientId = (req: NextRequest): string => {
       return `user:${userId}`;
     }
 
-    // Fallback to IP + fingerprint hash
+    // Fallback to IP + fingerprint hash using Web Crypto API (Edge-compatible)
     const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
     const userAgent = req.headers.get("user-agent") || "";
     const acceptLanguage = req.headers.get("accept-language") || "";
 
-    const fingerprint = crypto
-      .createHash("sha256")
-      .update(`${ip}-${userAgent}-${acceptLanguage}`)
-      .digest("hex")
-      .substring(0, 16); // Shorter hash for cleaner keys
+    const data = `${ip}-${userAgent}-${acceptLanguage}`;
+    const encoder = new TextEncoder();
+    const dataBuffer = encoder.encode(data);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", dataBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    const fingerprint = hashHex.substring(0, 16); // Shorter hash for cleaner keys
 
     return `guest:${fingerprint}`;
   } catch (error) {
@@ -111,7 +112,7 @@ export const getClientId = (req: NextRequest): string => {
 
 /**
  * Check rate limit for a specific action
- * ✅ Edge Runtime Compatible
+ * ✅ Edge Runtime Compatible (uses Web Crypto API)
  * Returns: { success: boolean, error?: string }
  */
 export const checkRateLimit = async (
@@ -120,7 +121,7 @@ export const checkRateLimit = async (
   req: NextRequest
 ): Promise<{ success: boolean; error?: string; limit?: number; remaining?: number }> => {
   try {
-    const clientId = getClientId(req);
+    const clientId = await getClientId(req);
     const identifier = `${clientId}:${action}`;
 
     const { success, limit, remaining, reset } = await limiter.limit(identifier);

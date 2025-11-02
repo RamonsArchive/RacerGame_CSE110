@@ -65,6 +65,7 @@ export interface PlayerProgress {
   totalMistakes: number;
   questionResults: QuestionResult[];
   isFinished: boolean;
+  finishTime: number | null; // ✅ Individual player's finish timestamp
 }
 
 export interface GameState {
@@ -105,6 +106,8 @@ export interface GameResult {
   accuracy: number; // percentage
   averageTimePerQuestion: number; // seconds
   charactersPerSecond?: number; // typing speed metric
+  startTime: number;
+  endTime: number;
 
   // Multiplayer specific
   opponent?: {
@@ -141,16 +144,19 @@ export const GAME_CONFIG = {
       mistakeRate: 0.4,
       speedMultiplier: 0.5,
       pointsMultiplier: 0.7,
+      timeBonusMultiplier: 0.5,
     },
     medium: {
       mistakeRate: 0.2,
       speedMultiplier: 1,
       pointsMultiplier: 1.2,
+      timeBonusMultiplier: 1,
     },
     hard: {
       mistakeRate: 0.1,
       speedMultiplier: 1.3,
       pointsMultiplier: 1.3,
+      timeBonusMultiplier: 1.3,
     },
   },
 

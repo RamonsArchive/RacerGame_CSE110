@@ -25,11 +25,26 @@ export const calculateQuestionPoints = (
   
   export const calculateGameScore = (
     questionResults: QuestionResult[],
-    hadPerfectGame: boolean
+    hadPerfectGame: boolean,
+    startTime: number,
+    endTime: number,
+    targetTimePerQuestion: number,
+    totalQuestions: number
   ): number => {
     const baseScore = questionResults.reduce((total, q) => total + q.points, 0);
     const perfectBonus = hadPerfectGame ? GAME_CONFIG.PERFECT_BONUS : 0;
-    return baseScore + perfectBonus;
+    
+    // ✅ Speed bonus: reward finishing FASTER than target time
+    const actualTime = (endTime - startTime) / 1000; // in seconds
+    const expectedTime = targetTimePerQuestion * totalQuestions;
+    const timeSaved = expectedTime - actualTime;
+    
+    // Only give bonus if finished faster than expected (timeSaved > 0)
+    const speedBonus = timeSaved > 0 
+      ? Math.round(timeSaved * GAME_CONFIG.SPEED_BONUS_MULTIPLIER)
+      : 0;
+    
+    return baseScore + perfectBonus + speedBonus;
   };
 
 
@@ -152,6 +167,7 @@ export const initializeGameMultiplayer = async (
     console.log("🎯 Game state built with", questions.length, "questions");
 
     // ✅ Push initial player state to Redis (so opponent sees 0s immediately)
+    // This also OVERWRITES any old progress from previous games with the same matchId
     try {
       await fetch("/api/game/progress", {
         method: "POST",
@@ -168,6 +184,7 @@ export const initializeGameMultiplayer = async (
             isFinished: false,
             finishTime: null,
             questionResults: [],
+            isActive: true, // ✅ Player is active at game start
           },
         }),
       });
@@ -175,6 +192,33 @@ export const initializeGameMultiplayer = async (
     } catch (err) {
       console.error("⚠️ Failed to push initial state:", err);
       // Don't fail the game initialization if this fails
+    }
+    
+    // ✅ Also push initial state for opponent (as null/inactive) to clear old data
+    // This prevents Player B from seeing Player A's old progress before Player A starts
+    try {
+      await fetch("/api/game/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roomId: matchId,
+          playerId: opponentPlayerId,
+          playerName: opponentPlayerName,
+          progress: {
+            currentQuestionIndex: 0,
+            questionsAnswered: 0,
+            totalPoints: 0,
+            totalMistakes: 0,
+            isFinished: false,
+            finishTime: null,
+            questionResults: [],
+            isActive: true, // ✅ Set opponent as active initially (they're joining the game)
+          },
+        }),
+      });
+      console.log("✅ Pre-initialized opponent state in Redis");
+    } catch (err) {
+      console.error("⚠️ Failed to pre-initialize opponent state:", err);
     }
 
     // Build game state with shared questions
@@ -197,6 +241,7 @@ export const initializeGameMultiplayer = async (
         totalMistakes: 0,
         questionResults: [],
         isFinished: false,
+        finishTime: null,
         questionStartTime: Date.now(),
         currentQuestionMistakes: 0,
       },
@@ -209,6 +254,7 @@ export const initializeGameMultiplayer = async (
         totalMistakes: 0,
         questionResults: [],
         isFinished: false,
+        finishTime: null,
         questionStartTime: Date.now(),
         currentQuestionMistakes: 0,
       },
@@ -263,6 +309,7 @@ export const initializeGame = (
         totalMistakes: 0,
         questionResults: [],
         isFinished: false,
+        finishTime: null,
         questionStartTime: null,
         currentQuestionMistakes: 0,
       },
@@ -275,6 +322,7 @@ export const initializeGame = (
         totalMistakes: 0,
         questionResults: [],
         isFinished: false,
+        finishTime: null,
         questionStartTime: null,
         currentQuestionMistakes: 0,
       } : undefined,
@@ -357,23 +405,40 @@ export const initializeGame = (
   
  // Game result creation - MUST call saveGameResult!
 export const createGameResult = (gameState: GameState): GameResult => {
-  const { currentPlayer, opponent, startTime, endTime, gradeLevel, mode, totalQuestions } = gameState;
+  const { currentPlayer, opponent, startTime, endTime, gradeLevel, mode, totalQuestions, targetTimePerQuestion } = gameState;
   
-  const totalTime = endTime && startTime ? (endTime - startTime) / 1000 : 0;
+  // ✅ Use player's individual finish time for accurate speed bonus calculation
+  const playerEndTime = currentPlayer.finishTime || endTime || Date.now();
+  const totalTime = startTime ? (playerEndTime - startTime) / 1000 : 0;
   const correctAnswers = currentPlayer.questionResults.filter(q => q.correct).length;
   const totalCharacters = currentPlayer.questionResults.reduce(
     (sum, q) => sum + q.correctAnswer.length, 0
   );
   
   const hadPerfectGame = currentPlayer.totalMistakes === 0;
-  const finalPoints = calculateGameScore(currentPlayer.questionResults, hadPerfectGame);
+  const finalPoints = calculateGameScore(
+    currentPlayer.questionResults, 
+    hadPerfectGame, 
+    startTime!, 
+    playerEndTime, 
+    targetTimePerQuestion, 
+    totalQuestions
+  );
+  
+  // ✅ For multiplayer, append playerId to gameId to ensure uniqueness in leaderboard
+  // (Both players will have different gameIds even though they share the same matchId)
+  const uniqueGameId = mode === "multiplayer" && currentPlayer.playerId
+    ? `${gameState.gameId}_${currentPlayer.playerId}`
+    : gameState.gameId;
   
   const result: GameResult = {
-    gameId: gameState.gameId,
+    gameId: uniqueGameId,
     date: Date.now(),
     gradeLevel,
     mode,
     playerName: currentPlayer.playerName,
+    startTime: gameState.startTime!,
+    endTime: playerEndTime, // ✅ Use individual finish time
     totalPoints: finalPoints,
     totalQuestions,
     correctAnswers,
@@ -387,7 +452,15 @@ export const createGameResult = (gameState: GameState): GameResult => {
   // Add opponent data for solo mode
   if (opponent && mode === 'solo') {
     const opponentPerfect = opponent.totalMistakes === 0;
-    const opponentPoints = calculateGameScore(opponent.questionResults, opponentPerfect);
+    const opponentEndTime = opponent.finishTime || endTime || Date.now();
+    const opponentPoints = calculateGameScore(
+      opponent.questionResults, 
+      opponentPerfect, 
+      startTime!, 
+      opponentEndTime, // ✅ Use opponent's individual finish time
+      targetTimePerQuestion, 
+      totalQuestions
+    );
     
     result.opponent = {
       name: opponent.playerName,
