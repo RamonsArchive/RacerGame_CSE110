@@ -185,7 +185,15 @@ const TQ_FinishedScreen = ({
           {/* Right side: Summary and Action Buttons */}
           <div className="flex flex-col gap-8 flex-1">
             {/* Summary */}
-            {gameState && <TQ_Summary gameState={gameState} />}
+            {gameState && (
+              <TQ_Summary
+                gameState={gameState}
+                shouldPollOpponent={shouldPollOpponent}
+                currentPlayerTotalPoints={currentPlayerTotalPoints}
+                opponentTotalPoints={opponentTotalPoints}
+                opponentLeftGame={opponentLeftGame}
+              />
+            )}
 
             {/* Action Buttons */}
             <div className="flex flex-col w-full gap-3">
