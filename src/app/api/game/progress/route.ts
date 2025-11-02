@@ -43,7 +43,8 @@ export async function POST(req: NextRequest) {
     // ✅ Check rate limit FIRST
     const rateLimitCheck = await checkRateLimit(
       gameProgressLimiter,
-      "progress:post"
+      "progress:post",
+      req
     );
     if (!rateLimitCheck.success) {
       return NextResponse.json(
@@ -101,7 +102,8 @@ export async function GET(req: NextRequest) {
      // ✅ Check rate limit FIRST
     const rateLimitCheck = await checkRateLimit(
         gameProgressLimiter,
-        "progress:get"
+        "progress:get",
+        req
     );
     if (!rateLimitCheck.success) {
         return NextResponse.json(

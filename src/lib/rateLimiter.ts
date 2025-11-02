@@ -1,6 +1,6 @@
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { cookies, headers } from "next/headers";
+import { NextRequest } from "next/server";
 import crypto from "crypto";
 
 // Shared Redis instance (same as game data - perfectly fine!)
@@ -80,22 +80,21 @@ export const generalLimiter = new Ratelimit({
 /**
  * Get unique client identifier from cookies or IP hash
  * Priority: userId cookie > IP + fingerprint hash
+ * ✅ Edge Runtime Compatible (uses NextRequest instead of next/headers)
  */
-export const getClientId = async (): Promise<string> => {
+export const getClientId = (req: NextRequest): string => {
   try {
     // Try session cookie first (from middleware)
-    const cookieStore = await cookies();
-    const userId = cookieStore.get("userId")?.value;
+    const userId = req.cookies.get("userId")?.value;
 
     if (userId) {
       return `user:${userId}`;
     }
 
     // Fallback to IP + fingerprint hash
-    const headersList = await headers();
-    const ip = headersList.get("x-forwarded-for") || headersList.get("x-real-ip") || "unknown";
-    const userAgent = headersList.get("user-agent") || "";
-    const acceptLanguage = headersList.get("accept-language") || "";
+    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "unknown";
+    const userAgent = req.headers.get("user-agent") || "";
+    const acceptLanguage = req.headers.get("accept-language") || "";
 
     const fingerprint = crypto
       .createHash("sha256")
@@ -112,14 +111,16 @@ export const getClientId = async (): Promise<string> => {
 
 /**
  * Check rate limit for a specific action
+ * ✅ Edge Runtime Compatible
  * Returns: { success: boolean, error?: string }
  */
 export const checkRateLimit = async (
   limiter: Ratelimit,
-  action: string
+  action: string,
+  req: NextRequest
 ): Promise<{ success: boolean; error?: string; limit?: number; remaining?: number }> => {
   try {
-    const clientId = await getClientId();
+    const clientId = getClientId(req);
     const identifier = `${clientId}:${action}`;
 
     const { success, limit, remaining, reset } = await limiter.limit(identifier);

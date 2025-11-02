@@ -25,7 +25,7 @@ type GameRoom = {
 export async function POST(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(gameRoomLimiter, "room:create");
+    const rateLimitCheck = await checkRateLimit(gameRoomLimiter, "room:create", req);
     if (!rateLimitCheck.success) {
       return NextResponse.json(
         { ok: false, error: rateLimitCheck.error },
@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(gameRoomLimiter, "room:get");
+    const rateLimitCheck = await checkRateLimit(gameRoomLimiter, "room:get", req);
     if (!rateLimitCheck.success) {
       return NextResponse.json(
         { ok: false, error: rateLimitCheck.error },
@@ -155,7 +155,7 @@ export async function GET(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(gameRoomLimiter, "room:delete");
+    const rateLimitCheck = await checkRateLimit(gameRoomLimiter, "room:delete", req);
     if (!rateLimitCheck.success) {
       return NextResponse.json(
         { ok: false, error: rateLimitCheck.error },

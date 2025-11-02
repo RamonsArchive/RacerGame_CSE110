@@ -22,7 +22,7 @@ const MAX_ENTRIES_PER_BOARD = 100; // Keep top 100 per board
 export async function GET(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(leaderboardLimiter, "leaderboard:get");
+    const rateLimitCheck = await checkRateLimit(leaderboardLimiter, "leaderboard:get", req);
     if (!rateLimitCheck.success) {
       return NextResponse.json(
         { ok: false, error: rateLimitCheck.error },
@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(leaderboardLimiter, "leaderboard:save");
+    const rateLimitCheck = await checkRateLimit(leaderboardLimiter, "leaderboard:save", req);
     if (!rateLimitCheck.success) {
       return NextResponse.json(
         { ok: false, error: rateLimitCheck.error },
@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(leaderboardLimiter, "leaderboard:delete");
+    const rateLimitCheck = await checkRateLimit(leaderboardLimiter, "leaderboard:delete", req);
     if (!rateLimitCheck.success) {
       return NextResponse.json(
         { ok: false, error: rateLimitCheck.error },

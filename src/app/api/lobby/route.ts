@@ -30,7 +30,7 @@ function bad(msg: string, code = 400) {
 export async function POST(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "lobby:join");
+    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "lobby:join", req);
     if (!rateLimitCheck.success) {
       return json(
         { ok: false, error: rateLimitCheck.error },
@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "lobby:list");
+    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "lobby:list", req);
     if (!rateLimitCheck.success) {
       return json(
         { ok: false, error: rateLimitCheck.error },
@@ -138,7 +138,7 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "lobby:heartbeat");
+    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "lobby:heartbeat", req);
     if (!rateLimitCheck.success) {
       return json(
         { ok: false, error: rateLimitCheck.error },
@@ -174,7 +174,7 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "lobby:leave");
+    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "lobby:leave", req);
     if (!rateLimitCheck.success) {
       return json(
         { ok: false, error: rateLimitCheck.error },
