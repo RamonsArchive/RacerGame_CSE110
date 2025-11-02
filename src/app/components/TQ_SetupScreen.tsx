@@ -10,26 +10,69 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
-const TQ_SetupScreen = ({
-  gameStatus,
-  gameState,
-  handleGameStart,
-}: {
+interface Props {
   gameStatus: GameStatus;
-  gameState?: GameState | null;
   handleGameStart: (
     gameMode: GameMode,
     gradeLevel: GradeLevel,
     playerName: string
   ) => void;
-}) => {
-  const [gradeLevel, setGradeLevel] = useState<GradeLevel>(
-    gameState?.gradeLevel || "K"
-  );
-  const [gameMode, setGameMode] = useState<GameMode>(gameState?.mode || "solo");
-  const [playerName, setPlayerName] = useState<string>(
-    gameState?.currentPlayer.playerName || "You"
-  );
+  multiplayerPlayers: MultiplayerPlayer[];
+  multiplayerView: boolean;
+  handleAcceptMatch: () => void;
+  handleRejectMatch: () => void;
+  joinLobby: (
+    playerName: string,
+    gradeLevel: GradeLevel,
+    gameMode: GameMode
+  ) => void;
+  leaveLobby: () => void;
+  handleConnect: (playerId: string, playerName: string) => void;
+  incomingRequest: {
+    matchId: string;
+    from: string;
+    gradeLevel: GradeLevel;
+  } | null;
+}
+
+const TQ_SetupScreen = ({
+  gameStatus,
+  handleGameStart,
+  multiplayerPlayers,
+  multiplayerView,
+  handleAcceptMatch,
+  handleRejectMatch,
+  joinLobby,
+  leaveLobby,
+  handleConnect,
+  incomingRequest,
+}: Props) => {
+  // Local state for smooth typing (no parent re-renders)
+  const [gradeLevel, setGradeLevel] = useState<GradeLevel>("K");
+  const [gameMode, setGameMode] = useState<GameMode>("solo");
+  const [playerName, setPlayerName] = useState<string>("Player");
+
+  const handleStartGame = (
+    gameMode: GameMode,
+    gradeLevel: GradeLevel,
+    playerName: string
+  ) => {
+    if (
+      (gameMode === "multiplayer" && playerName.length < 2) ||
+      playerName.length > 20
+    ) {
+      alert(
+        "Player name must be between 2 and 20 characters long for multiplayer mode"
+      );
+      return;
+    }
+    if (gameMode === "multiplayer") {
+      joinLobby(playerName, gradeLevel, gameMode);
+      return;
+    }
+    handleGameStart(gameMode, gradeLevel, playerName);
+  };
+
   return (
     <div 
       key={gameStatus} 
@@ -144,7 +187,19 @@ const TQ_SetupScreen = ({
           Start Game
         </button>
       </div>
-    </div>
+
+      {/* Multiplayer Setup Modal */}
+      <MultiplayerSetup
+        playerName={playerName}
+        players={multiplayerPlayers}
+        isVisible={multiplayerView}
+        onClose={leaveLobby}
+        onConnect={handleConnect}
+        incomingRequest={incomingRequest}
+        onAcceptRequest={handleAcceptMatch}
+        onRejectRequest={handleRejectMatch}
+      />
+    </>
   );
 };
 

@@ -6,3 +6,12 @@ export type GameType = {
     href: string, // link to game page
     type: "main" | "mini", // main game or mini game
 }
+
+
+export type MultiplayerPlayer = {
+  id: string;
+  name: string;
+  joinedAt: number;
+  gradeLevel: string;
+  gameMode: string;
+}
