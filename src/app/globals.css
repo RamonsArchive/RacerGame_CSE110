@@ -218,4 +218,18 @@ body {
   animation: shimmer-effect 2s ease-in-out infinite;
 }
 
+/* Road line scrolling animation for setup screen */
+@keyframes road-line {
+  0% {
+    background-position: 0% 0;
+  }
+  100% {
+    background-position: 120px 0;
+  }
+}
+
+.animate-road-line {
+  animation: road-line 1s linear infinite;
+}
+
 
