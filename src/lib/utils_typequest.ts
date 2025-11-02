@@ -5,7 +5,7 @@ export const calculateQuestionPoints = (
     timeInSeconds: number,
     mistakes: number,
     targetTime: number,
-    basePoints: number = GAME_CONFIG.BASE_POINTS
+    basePoints: number = GAME_CONFIG.BASE_POINTS,
   ): number => {
     // Speed bonus: earn points for being faster than target
     const timeDiff = targetTime - timeInSeconds;
@@ -21,6 +21,7 @@ export const calculateQuestionPoints = (
     
     return totalPoints;
   };
+
   
   export const calculateGameScore = (
     questionResults: QuestionResult[],

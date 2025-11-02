@@ -622,8 +622,51 @@ const TypeQuestPage = () => {
 
   const handleBackHome = useCallback(() => {
     handleGameReset();
+    setMyPlayerId(null);
+    setMultiplayerView(false);
+    setMultiplayerPlayers([]);
+    setIncomingRequest(null);
     router.push("/");
   }, [handleGameReset, router]);
+
+  // Handle rematch acceptance
+  const handleRematchAccepted = useCallback(
+    async (matchId: string, opponentId: string, opponentName: string) => {
+      console.log("🔄 Starting rematch:", {
+        matchId,
+        opponentId,
+        opponentName,
+      });
+
+      // Reset game state
+      handleGameReset();
+
+      // Wait a bit for state to clear
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Initialize new multiplayer game with same settings
+      const newGameState = await initializeGameMultiplayer(
+        matchId,
+        myPlayerId!,
+        setupValuesRef.current.playerName,
+        opponentId,
+        opponentName,
+        setupValuesRef.current.gradeLevel,
+        GAME_CONFIG.DEFAULT_QUESTIONS
+      );
+
+      if (newGameState) {
+        setGameState(newGameState);
+        setGameStatus("active");
+        console.log("🎮 Rematch started!");
+      } else {
+        console.error("❌ Failed to start rematch");
+        alert("Failed to start rematch");
+        setGameStatus("setup");
+      }
+    },
+    [myPlayerId, handleGameReset]
+  );
 
   console.log("Rendering - gameStatus:", gameStatus, "gameState:", gameState);
 
@@ -733,7 +776,8 @@ const TypeQuestPage = () => {
     }
 
     setMultiplayerView(false);
-    setMyPlayerId(null);
+    // ✅ Don't clear myPlayerId here - we need it for rematch!
+    // setMyPlayerId(null);
     setMultiplayerPlayers([]);
   };
 
@@ -768,47 +812,96 @@ const TypeQuestPage = () => {
       opponentName,
     });
 
+    let hasCompleted = false;
+
     const checkInterval = setInterval(async () => {
-      const res = await fetch(`/api/match?matchId=${matchId}`);
-      const data = await res.json();
+      try {
+        const res = await fetch(`/api/match?matchId=${matchId}`);
+        const data = await res.json();
 
-      if (data.ok && data.match) {
-        console.log("📊 Match status:", data.match.status);
+        if (data.ok && data.match) {
+          console.log("📊 Match status:", data.match.status);
 
-        // must be accepted and not rejected
-        if (data.match.status === "accepted") {
-          clearInterval(checkInterval);
-          console.log("✅ Match accepted! Starting game...");
+          if (data.match.status === "completed") {
+            if (hasCompleted) return;
+            hasCompleted = true;
+            clearInterval(checkInterval);
+            console.log("❌ Match completed");
+            alert("Match request timed out");
 
-          // START GAME!
-          await leaveLobby();
+            // ✅ Clean up completed match
+            fetch(`/api/match?matchId=${matchId}`, { method: "DELETE" }).catch(
+              (err) => console.error("Failed to clean up completed match:", err)
+            );
 
-          // Initialize multiplayer game with shared questions
-          const newGameState = await initializeGameMultiplayer(
-            matchId,
-            myPlayerId!,
-            setupValuesRef.current.playerName,
-            opponentId,
-            opponentName,
-            setupValuesRef.current.gradeLevel,
-            GAME_CONFIG.DEFAULT_QUESTIONS
-          );
-
-          if (newGameState) {
-            setGameState(newGameState);
-            setGameStatus("active");
-            console.log("🎮 Multiplayer game started!");
-          } else {
-            console.error("❌ Failed to initialize multiplayer game");
-            alert("Failed to start multiplayer game");
+            setIncomingRequest(null);
+            return;
           }
-        } else if (data.match.status === "rejected") {
+
+          // must be accepted and not rejected
+          if (data.match.status === "accepted") {
+            if (hasCompleted) return;
+            hasCompleted = true;
+            clearInterval(checkInterval);
+            console.log("✅ Match accepted! Starting game...");
+
+            // START GAME!
+            await leaveLobby();
+
+            // Initialize multiplayer game with shared questions
+            const newGameState = await initializeGameMultiplayer(
+              matchId,
+              myPlayerId!,
+              setupValuesRef.current.playerName,
+              opponentId,
+              opponentName,
+              setupValuesRef.current.gradeLevel,
+              GAME_CONFIG.DEFAULT_QUESTIONS
+            );
+
+            if (newGameState) {
+              setGameState(newGameState);
+              setGameStatus("active");
+              console.log("🎮 Multiplayer game started!");
+
+              // ✅ Wait a moment before cleanup (let both players sync)
+              setTimeout(() => {
+                fetch(`/api/match?matchId=${matchId}`, { method: "DELETE" })
+                  .then(() => console.log("🧹 Cleaned up match request"))
+                  .catch((err) =>
+                    console.error("Failed to clean up match:", err)
+                  );
+              }, 500);
+            } else {
+              console.error("❌ Failed to initialize multiplayer game");
+              alert("Failed to start multiplayer game");
+            }
+          } else if (data.match.status === "rejected") {
+            if (hasCompleted) return;
+            hasCompleted = true;
+            clearInterval(checkInterval);
+            console.log("❌ Match rejected");
+            alert("Match request declined");
+
+            // ✅ Clean up rejected match
+            fetch(`/api/match?matchId=${matchId}`, { method: "DELETE" }).catch(
+              (err) => console.error("Failed to clean up rejected match:", err)
+            );
+          }
+        } else if (!data.ok && res.status === 404) {
+          // ✅ Match was deleted (opponent accepted on their end)
+          console.log("🎮 Match deleted - opponent accepted, starting game...");
+          if (hasCompleted) return;
+          hasCompleted = true;
           clearInterval(checkInterval);
-          console.log("❌ Match rejected");
-          alert("Match request declined");
+          console.log(
+            "⏳ Opponent accepted and started game, waiting for sync..."
+          );
+        } else {
+          console.log("⏳ Still waiting for match response...");
         }
-      } else {
-        console.log("⏳ Still waiting for match response...");
+      } catch (err) {
+        console.error("Failed to check match status:", err);
       }
     }, 1000); // check every second
   };
@@ -863,6 +956,15 @@ const TypeQuestPage = () => {
         setGameState(newGameState);
         setGameStatus("active");
         console.log("🎮 Multiplayer game started!");
+
+        // ✅ Wait for other player to see "accepted" status before deleting
+        setTimeout(() => {
+          fetch(`/api/match?matchId=${incomingRequest.matchId}`, {
+            method: "DELETE",
+          })
+            .then(() => console.log("🧹 Cleaned up match request"))
+            .catch((err) => console.error("Failed to clean up match:", err));
+        }, 500);
       } else {
         console.error("❌ Failed to initialize multiplayer game");
         alert("Failed to start multiplayer game");
@@ -887,6 +989,14 @@ const TypeQuestPage = () => {
       });
       console.log("Incoming request set to null");
       console.log("Response:", res);
+
+      // ✅ Clean up rejected match request
+      await fetch(`/api/match?matchId=${incomingRequest.matchId}`, {
+        method: "DELETE",
+      })
+        .then(() => console.log("🧹 Cleaned up rejected match"))
+        .catch((err) => console.error("Failed to clean up:", err));
+
       setIncomingRequest(null);
     } catch (err) {
       console.error("Failed to reject match:", err);
@@ -933,6 +1043,8 @@ const TypeQuestPage = () => {
           onPlayAgain={handleGameReset}
           onBackHome={handleBackHome}
           shouldPollOpponent={shouldPollOpponent as boolean}
+          myPlayerId={myPlayerId}
+          onRematchAccepted={handleRematchAccepted}
         />
       )}
       {!gameStatus ||

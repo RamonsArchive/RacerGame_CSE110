@@ -65,3 +65,21 @@ export async function PATCH(req: NextRequest) {
   
     return NextResponse.json({ ok: true });
   }
+
+// DELETE: Remove match request (cleanup after game starts)
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const matchId = searchParams.get("matchId");
+
+    if (!matchId) {
+      return NextResponse.json({ ok: false, error: "matchId required" }, { status: 400 });
+    }
+
+    await redis.del(MATCH_KEY(matchId));
+
+    return NextResponse.json({ ok: true, message: "Match request deleted" });
+  } catch (err: any) {
+    return NextResponse.json({ ok: false, error: err?.message }, { status: 500 });
+  }
+}

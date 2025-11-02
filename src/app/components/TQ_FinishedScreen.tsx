@@ -1,15 +1,24 @@
 // components/TQ_FinishedScreen.tsx
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { GameState } from "../constants/index_typequest";
 import TQ_Summary from "./TQ_Summary";
 import TQ_Leaderboard from "./TQ_Leaderboard";
+import TQ_RematchButton from "./TQ_RematchButton";
+import { calculateGameScore } from "@/lib/utils_typequest";
 
 interface TQ_FinishedScreenProps {
   gameState: GameState | null;
   onPlayAgain: () => void;
   onBackHome: () => void;
   shouldPollOpponent: boolean;
+  // Multiplayer rematch props
+  myPlayerId?: string | null;
+  onRematchAccepted?: (
+    matchId: string,
+    opponentId: string,
+    opponentName: string
+  ) => void;
 }
 
 const TQ_FinishedScreen = ({
@@ -17,22 +26,72 @@ const TQ_FinishedScreen = ({
   onPlayAgain,
   onBackHome,
   shouldPollOpponent,
+  myPlayerId,
+  onRematchAccepted,
 }: TQ_FinishedScreenProps) => {
   const [openLeaderboard, setOpenLeaderboard] = useState(false);
+
+  const [currentPlayerTotalPoints, setCurrentPlayerTotalPoints] = useState(0);
+  const [opponentTotalPoints, setOpponentTotalPoints] = useState(0);
+  const [winner, setWinner] = useState<"win" | "loss" | "tie" | null>(null);
 
   // Add this early return
   if (!gameState) {
     return null;
   }
 
-  const winner =
-    gameState?.currentPlayer?.totalPoints && gameState?.opponent?.totalPoints
-      ? gameState.currentPlayer.totalPoints > gameState.opponent.totalPoints
-        ? "win"
-        : gameState.currentPlayer.totalPoints < gameState.opponent.totalPoints
-        ? "loss"
-        : "tie"
-      : null;
+  // ✅ Calculate points inline
+  const calculateCurrentPlayerTotalPoints = () => {
+    const currentPlayerPerfect = gameState?.currentPlayer?.totalMistakes === 0;
+    return calculateGameScore(
+      gameState?.currentPlayer?.questionResults,
+      currentPlayerPerfect
+    );
+  };
+
+  const calculateOpponentTotalPoints = () => {
+    const opponentPerfect = gameState?.opponent?.totalMistakes === 0;
+    return calculateGameScore(
+      gameState?.opponent?.questionResults || [],
+      opponentPerfect
+    );
+  };
+
+  useEffect(() => {
+    // ✅ Calculate points first
+    const playerPoints = calculateCurrentPlayerTotalPoints();
+    const oppPoints = calculateOpponentTotalPoints();
+
+    // ✅ Update points state
+    setCurrentPlayerTotalPoints(playerPoints);
+    setOpponentTotalPoints(oppPoints);
+
+    // ✅ Calculate winner using the JUST-CALCULATED values (not state)
+    const calculatedWinner =
+      playerPoints > 0 || oppPoints > 0
+        ? playerPoints > oppPoints
+          ? "win"
+          : playerPoints < oppPoints
+          ? "loss"
+          : "tie"
+        : null;
+
+    setWinner(calculatedWinner);
+
+    console.log("🏆 Winner calculation:", {
+      playerPoints,
+      oppPoints,
+      winner: calculatedWinner,
+    });
+  }, [gameState]);
+
+  console.log("🎮 Finished Screen State:", {
+    winner,
+    currentPlayerTotalPoints,
+    opponentTotalPoints,
+    shouldPollOpponent,
+    myPlayerId,
+  });
 
   const getWinnerMessage = () => {
     if (!winner) return null;
@@ -46,9 +105,7 @@ const TQ_FinishedScreen = ({
               You Won!
             </p>
             <p className="text-lg text-slate-300">
-              Beat opponent by{" "}
-              {(gameState?.currentPlayer?.totalPoints || 0) -
-                (gameState?.opponent?.totalPoints || 0)}{" "}
+              Beat opponent by {currentPlayerTotalPoints - opponentTotalPoints}{" "}
               points
             </p>
           </div>
@@ -61,10 +118,7 @@ const TQ_FinishedScreen = ({
               Better Luck Next Time!
             </p>
             <p className="text-lg text-slate-300">
-              Lost by{" "}
-              {(gameState?.opponent?.totalPoints || 0) -
-                (gameState?.currentPlayer?.totalPoints || 0)}{" "}
-              points
+              Lost by {opponentTotalPoints - currentPlayerTotalPoints} points
             </p>
           </div>
         );
@@ -74,7 +128,7 @@ const TQ_FinishedScreen = ({
             <p className="text-5xl">🤝</p>
             <p className="text-3xl font-bold text-yellow-400">It's a Tie!</p>
             <p className="text-lg text-slate-300">
-              Both scored {gameState?.currentPlayer?.totalPoints} points
+              Both scored {currentPlayerTotalPoints} points
             </p>
           </div>
         );
@@ -92,22 +146,6 @@ const TQ_FinishedScreen = ({
             </h1>
           </div>
 
-          {/* Live Update Indicator - only show if opponent still playing */}
-          {shouldPollOpponent && gameState?.mode === "multiplayer" && (
-            <div className="flex items-center justify-center gap-3 px-4 py-3 bg-blue-500/20 border border-blue-400/40 rounded-lg backdrop-blur-sm">
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                </span>
-                <p className="text-sm font-semibold text-blue-200">
-                  🎮 Opponent still playing...
-                </p>
-              </div>
-              <p className="text-xs text-blue-300/80">Updating live</p>
-            </div>
-          )}
-
           {/* Winner Announcement */}
           <div className="flex justify-center w-full">{getWinnerMessage()}</div>
 
@@ -115,6 +153,8 @@ const TQ_FinishedScreen = ({
           {gameState && (
             <TQ_Summary
               gameState={gameState}
+              currentPlayerTotalPoints={currentPlayerTotalPoints}
+              opponentTotalPoints={opponentTotalPoints}
               shouldPollOpponent={shouldPollOpponent}
             />
           )}
@@ -130,12 +170,29 @@ const TQ_FinishedScreen = ({
             </button>
 
             <div className="flex flex-row w-full gap-4">
-              <button
-                onClick={onPlayAgain}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
-              >
-                Play Again
-              </button>
+              {/* Multiplayer: Show Rematch button */}
+              {gameState?.mode === "multiplayer" &&
+              myPlayerId &&
+              gameState.opponent &&
+              onRematchAccepted ? (
+                <TQ_RematchButton
+                  myPlayerId={myPlayerId}
+                  opponentId={gameState.opponent.playerId}
+                  opponentName={gameState.opponent.playerName}
+                  gradeLevel={gameState.gradeLevel}
+                  gameMode={gameState.mode}
+                  onRematchAccepted={onRematchAccepted}
+                />
+              ) : (
+                /* Solo: Show Play Again button */
+                <button
+                  onClick={onPlayAgain}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+                >
+                  Play Again
+                </button>
+              )}
+
               <button
                 onClick={onBackHome}
                 className="flex-1 bg-primary-600 hover:bg-primary-700 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"

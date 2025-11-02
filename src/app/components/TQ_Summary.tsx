@@ -10,18 +10,19 @@ import {
 const TQ_Summary = ({
   gameState,
   shouldPollOpponent,
+  currentPlayerTotalPoints,
+  opponentTotalPoints,
 }: {
   gameState: GameState;
   shouldPollOpponent?: boolean;
+  currentPlayerTotalPoints: number;
+  opponentTotalPoints: number;
 }) => {
   return (
     <div className="flex flex-row w-full p-4 gap-4 bg-linear-to-br from-slate-800/70 via-slate-700/60 to-slate-900/70 rounded-lg shadow-md border border-white/10">
       {/* You */}
       <div className="flex w-[50%] flex-col gap-3">
-        <SummaryRow
-          label="Your points"
-          value={`${gameState.currentPlayer.totalPoints}`}
-        />
+        <SummaryRow label="Your points" value={`${currentPlayerTotalPoints}`} />
         <SummaryRow
           label="Your progress"
           value={`${gameState.currentPlayer.questionsAnswered} / ${gameState.totalQuestions}`}
@@ -73,10 +74,7 @@ const TQ_Summary = ({
             </span>
           </div>
         )}
-        <SummaryRow
-          label="Opponent points"
-          value={`${gameState.opponent?.totalPoints}`}
-        />
+        <SummaryRow label="Opponent points" value={`${opponentTotalPoints}`} />
         <SummaryRow
           label="Opponent progress"
           value={`${gameState.opponent?.questionsAnswered} / ${gameState.totalQuestions}`}
