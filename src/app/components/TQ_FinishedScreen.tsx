@@ -1,4 +1,4 @@
-// components/TQ_FinishedScreen.tsx
+// components/TQ_FinishedScreen.tsx DONT FORGET TO KEEP THE REMATCH BUTTON
 "use client";
 import React, { useEffect, useState } from "react";
 import { GameState } from "../constants/index_typequest";
