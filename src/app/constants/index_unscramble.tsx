@@ -60,7 +60,7 @@ export const GAME_CONFIG = {
   DEFAULT_QUESTIONS: 10,
   MIN_QUESTIONS: 5,
   MAX_QUESTIONS: 15,
-  SESSION_STORAGE_KEY: "treasurehunt_game_state",
+  SESSION_STORAGE_KEY: "unscramble_game_state",
   HINT_MISTAKE_THRESHOLD: 2, 
   GIVE_UP_MISTAKE_THRESHOLD: 3, 
 } as const;
