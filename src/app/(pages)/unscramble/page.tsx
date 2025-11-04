@@ -1,14 +1,3 @@
-// "use client"; // page renders client side Essential for user interaction
-// import React from "react";
-
-// // const UnscramblePage = () => {
-// //   return <div>UnscramblePage</div>;
-// // };
-
-// // export default UnscramblePage;
-
-
-
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
 
@@ -28,7 +17,6 @@ import {
 import UN_SetupScreen from "@/app/components/UN_SetupScreen";
 import UN_ActiveScreen from "@/app/components/UN_ActiveScreen";
 import UN_FinishedScreen from "@/app/components/UN_FinishedScreen";
-import TH_FinishedScreen from "@/app/components/TH_FinishedScreen";
 import { useRouter } from "next/navigation";
 
 const UnscramblePage = () => {
