@@ -17,7 +17,7 @@ const redis = new Redis({
  */
 export const gameProgressLimiter = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(100, "40 s"),
+  limiter: Ratelimit.slidingWindow(100, "20 s"),
   analytics: true,
   prefix: "tq:ratelimit:game",
 });
@@ -31,7 +31,7 @@ export const gameProgressLimiter = new Ratelimit({
  */
 export const lobbyMatchLimiter = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(30, "60 s"),
+  limiter: Ratelimit.slidingWindow(30, "20 s"),
   analytics: true,
   prefix: "tq:ratelimit:lobby",
 });
@@ -45,7 +45,7 @@ export const lobbyMatchLimiter = new Ratelimit({
  */
 export const gameRoomLimiter = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(10, "60 s"),
+  limiter: Ratelimit.slidingWindow(10, "20 s"),
   analytics: true,
   prefix: "tq:ratelimit:room",
 });
@@ -59,7 +59,7 @@ export const gameRoomLimiter = new Ratelimit({
  */
 export const leaderboardLimiter = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(30, "60 s"),
+  limiter: Ratelimit.slidingWindow(30, "30 s"),
   analytics: true,
   prefix: "tq:ratelimit:leaderboard",
 });
@@ -71,7 +71,7 @@ export const leaderboardLimiter = new Ratelimit({
  */
 export const generalLimiter = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(60, "60 s"),
+  limiter: Ratelimit.slidingWindow(60, "30 s"),
   analytics: true,
   prefix: "tq:ratelimit:general",
 });
