@@ -39,6 +39,7 @@ export interface UnscrambleQuestion {
   hint?: string;
 }
 
+
 export interface UnscrambleGameState {
   gameId: string;
   gradeLevel: GradeLevel;
@@ -64,6 +65,17 @@ export const GAME_CONFIG = {
   GIVE_UP_MISTAKE_THRESHOLD: 3, 
 } as const;
 
+
+export interface GameResult {
+  gameId: string;
+  date: number;
+  gradeLevel: GradeLevel;
+  totalQuestions: number;
+  score: number;
+  mistakes: number;
+  totalTime: number;
+  accuracy: number; // percentage
+}
 export const UNSCRAMBLE_QUESTIONS_BANK: Record<
   GradeLevel,
   UnscrambleQuestion[]
