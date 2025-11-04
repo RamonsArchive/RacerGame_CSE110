@@ -24,7 +24,7 @@ export interface QuestionProgress {
 
 export interface AnswerLogEntry {
   questionId: string;
-  prompt: string; // the incorrect sentence shown
+  prompt: string; // the clue (and scrambled letters) shown
   userAnswer: string;
   correctAnswer: string;
   gaveUp?: boolean;
@@ -34,7 +34,7 @@ export interface UnscrambleQuestion {
   id: string;
   question: string;
   scrambledAnswer: string;
-  unscrambledAnswer: string | string[];
+  unscrambledAnswer: string;
   gradeLevel: GradeLevel;
   hint?: string;
 }
