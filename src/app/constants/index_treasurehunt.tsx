@@ -24,6 +24,7 @@ export interface GrammarQuestion {
   gradeLevel: GradeLevel;
   grammarRule?: string; // e.g., "subject-verb agreement", "tense", "punctuation"
   hint?: string; // Helpful hint for the user
+  wordToUnderline?: string | string[]; // Word(s) in the incorrect sentence that should be underlined
 }
 
 export interface QuestionProgress {
@@ -84,10 +85,14 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
     {
       id: "k-1",
       incorrectSentence: "The dog are running in the park.",
-      correctSentence: "The dog is running in the park.",
+      correctSentence: [
+        "The dog is running in the park.",
+        "The dogs are running in the park.",
+      ],
       gradeLevel: "K",
       grammarRule: "subject-verb agreement",
-      hint: "Remember: one dog (singular) uses 'is', not 'are'",
+      hint: "Remember: one dog (singular) uses 'is', not 'are'. Or change 'dog' to 'dogs' to use 'are'",
+      wordToUnderline: ["dog", "are"],
     },
     {
       id: "k-2",
@@ -96,6 +101,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "K",
       grammarRule: "pluralization",
       hint: "When you like more than one, add an 's' at the end",
+      wordToUnderline: "apple",
     },
     {
       id: "k-3",
@@ -104,6 +110,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "K",
       grammarRule: "capitalization",
       hint: "The first word of a sentence always starts with a capital letter",
+      wordToUnderline: "the",
     },
     {
       id: "k-4",
@@ -112,6 +119,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "K",
       grammarRule: "subject-verb agreement",
       hint: "When we talk about 'she', we use 'has', not 'have'",
+      wordToUnderline: "have",
     },
     {
       id: "k-5",
@@ -120,6 +128,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "K",
       grammarRule: "capitalization",
       hint: "The first word of every sentence needs a capital letter",
+      wordToUnderline: "we",
     },
     {
       id: "k-6",
@@ -128,6 +137,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "K",
       grammarRule: "subject-verb agreement",
       hint: "One cat (singular) needs 'is', not 'are'",
+      wordToUnderline: "are",
     },
     {
       id: "k-7",
@@ -136,6 +146,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "K",
       grammarRule: "pluralization",
       hint: "When you have three or more, add an 's' to make it plural",
+      wordToUnderline: "cat",
     },
     {
       id: "k-8",
@@ -144,6 +155,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "K",
       grammarRule: "third person singular",
       hint: "When 'he' does something, add an 's' to the action word",
+      wordToUnderline: ["he", "like"],
     },
     {
       id: "k-9",
@@ -152,6 +164,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "K",
       grammarRule: "capitalization",
       hint: "Always start a sentence with a capital letter",
+      wordToUnderline: "the",
     },
     {
       id: "k-10",
@@ -160,6 +173,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "K",
       grammarRule: "pluralization",
       hint: "When you have two or more, add 's' to make it plural",
+      wordToUnderline: "ball",
     },
     {
       id: "k-11",
@@ -168,6 +182,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "K",
       grammarRule: "third person singular",
       hint: "When 'she' does something, add 's' or 'es' to the action word",
+      wordToUnderline: ["she", "go"],
     },
     {
       id: "k-12",
@@ -176,6 +191,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "K",
       grammarRule: "subject-verb agreement",
       hint: "'They' means more than one, so use 'are' not 'is'",
+      wordToUnderline: "is",
     },
     {
       id: "k-13",
@@ -184,6 +200,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "K",
       grammarRule: "capitalization and pluralization",
       hint: "Names like 'Mom' start with capitals, and check if you need 's' for plural",
+      wordToUnderline: ["mom", "cookie"],
     },
     {
       id: "k-14",
@@ -192,6 +209,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "K",
       grammarRule: "capitalization",
       hint: "The word 'I' is always a capital letter, even in the middle",
+      wordToUnderline: "i",
     },
     {
       id: "k-15",
@@ -200,6 +218,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "K",
       grammarRule: "subject-verb agreement",
       hint: "When talking about 'he', use 'has' not 'have'",
+      wordToUnderline: "have",
     },
   ],
 
@@ -211,6 +230,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "subject-verb agreement with contractions",
       hint: "When talking about 'she', use 'doesn't' not 'don't'",
+      wordToUnderline: "don't",
     },
     {
       id: "12-2",
@@ -219,6 +239,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "subject-verb agreement",
       hint: "'Books' is plural (more than one), so use 'were' not 'was'",
+      wordToUnderline: "was",
     },
     {
       id: "12-3",
@@ -227,6 +248,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "double negative",
       hint: "Can't and hardly are both negative words - you only need one!",
+      wordToUnderline: "can't",
     },
     {
       id: "12-4",
@@ -235,6 +257,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "subject-verb agreement",
       hint: "'They' means more than one person, so use 'were' not 'was'",
+      wordToUnderline: "was",
     },
     {
       id: "12-5",
@@ -243,6 +266,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "past tense",
       hint: "'Yesterday' means it already happened, so use the past tense 'went'",
+      wordToUnderline: "go",
     },
     {
       id: "12-6",
@@ -251,6 +275,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "third person singular",
       hint: "When 'she' does something, add 's' to the action word",
+      wordToUnderline: "write",
     },
     {
       id: "12-7",
@@ -259,6 +284,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "subject-verb agreement",
       hint: "'We' means more than one, so use 'were' not 'was'",
+      wordToUnderline: "was",
     },
     {
       id: "12-8",
@@ -267,6 +293,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "subject-verb agreement with compound subjects",
       hint: "When you have two things (dog AND cat), use 'are' not 'is'",
+      wordToUnderline: "is",
     },
     {
       id: "12-9",
@@ -275,6 +302,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "subject-verb agreement with contractions",
       hint: "When 'she' doesn't do something, use 'doesn't' not 'don't'",
+      wordToUnderline: "don't",
     },
     {
       id: "12-10",
@@ -283,6 +311,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "past tense",
       hint: "Use 'went' for something that happened in the past - you don't need 'have'",
+      wordToUnderline: "have",
     },
     {
       id: "12-11",
@@ -291,6 +320,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "subject-verb agreement with contractions",
       hint: "When 'he' doesn't do something, use 'doesn't' not 'don't'",
+      wordToUnderline: "don't",
     },
     {
       id: "12-12",
@@ -299,6 +329,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "subject-verb agreement",
       hint: "More than one flower means use 'were' not 'was'",
+      wordToUnderline: "was",
     },
     {
       id: "12-13",
@@ -307,6 +338,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "past tense",
       hint: "If it already happened, use the past tense form",
+      wordToUnderline: "run",
     },
     {
       id: "12-14",
@@ -315,6 +347,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "third person singular",
       hint: "When 'she' does something, add 's' or 'es' to the action word",
+      wordToUnderline: "eat",
     },
     {
       id: "12-15",
@@ -323,6 +356,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "subject-verb agreement",
       hint: "'They' means more than one person, use 'were'",
+      wordToUnderline: "was",
     },
     {
       id: "12-16",
@@ -331,6 +365,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "subject-verb agreement with compound subjects",
       hint: "Two things (bird AND bee) need 'are' not 'is'",
+      wordToUnderline: "is",
     },
     {
       id: "12-17",
@@ -339,6 +374,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "subject-verb agreement with contractions",
       hint: "For 'he', use 'doesn't' not 'don't'",
+      wordToUnderline: "don't",
     },
     {
       id: "12-18",
@@ -347,6 +383,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "past tense",
       hint: "'Last week' means it already happened, use 'saw' (past of 'see')",
+      wordToUnderline: "see",
     },
     {
       id: "12-19",
@@ -355,6 +392,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "subject-verb agreement",
       hint: "'We' is plural, use 'were' not 'was'",
+      wordToUnderline: "was",
     },
     {
       id: "12-20",
@@ -363,6 +401,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "1-2",
       grammarRule: "third person singular",
       hint: "When 'she' does something regularly, add 's' to the action word",
+      wordToUnderline: "make",
     },
   ],
 
@@ -374,6 +413,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "past tense vs. past participle",
       hint: "Use 'went' (simple past) when you mention a specific time like 'yesterday'",
+      wordToUnderline: "have",
     },
     {
       id: "34-2",
@@ -382,6 +422,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "subject-verb agreement with plural nouns",
       hint: "'Children' is plural (more than one), so use 'were' not 'was'",
+      wordToUnderline: "was",
     },
     {
       id: "34-3",
@@ -390,6 +431,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "past tense irregular verbs",
       hint: "The past tense of 'do' is 'did', not 'done'. 'Done' needs a helper word like 'has'",
+      wordToUnderline: "done",
     },
     {
       id: "34-4",
@@ -398,6 +440,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "subject-verb agreement",
       hint: "For 'he', use 'doesn't' not 'don't'",
+      wordToUnderline: "don't",
     },
     {
       id: "34-5",
@@ -406,6 +449,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "homophones (their vs. they're)",
       hint: "'Their' means it belongs to them. 'They're' means 'they are'",
+      wordToUnderline: "they're",
     },
     {
       id: "34-6",
@@ -414,6 +458,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "present perfect tense",
       hint: "When talking about something completed in the past with no specific time, use 'have seen'",
+      wordToUnderline: "seen",
     },
     {
       id: "34-7",
@@ -422,6 +467,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "subject-verb agreement with 'each'",
       hint: "'Each' is singular, so use 'has' not 'have' even if it's about multiple students",
+      wordToUnderline: "have",
     },
     {
       id: "34-8",
@@ -430,6 +476,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "subject-verb agreement with 'neither/nor'",
       hint: "With 'neither/nor', match the verb to the subject closest to it (the dog - singular)",
+      wordToUnderline: "were",
     },
     {
       id: "34-9",
@@ -438,6 +485,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "subject-verb agreement with intervening phrases",
       hint: "The main subject is 'teacher' (singular), so use 'was'. The part after the comma doesn't change it",
+      wordToUnderline: "were",
     },
     {
       id: "34-10",
@@ -446,6 +494,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "could have vs. could of",
       hint: "Always use 'could have', never 'could of'. 'Of' is a preposition, not part of a verb",
+      wordToUnderline: "of",
     },
     {
       id: "34-11",
@@ -454,6 +503,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "subject-verb agreement with collective nouns",
       hint: "When focusing on the individuals (kids), use plural 'were'",
+      wordToUnderline: "was",
     },
     {
       id: "34-12",
@@ -462,6 +512,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "subject-verb agreement with indefinite pronouns",
       hint: "'Everyone' is singular even though it means many people, so use 'was'",
+      wordToUnderline: "were",
     },
     {
       id: "34-13",
@@ -470,6 +521,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "should have vs. should of",
       hint: "Always use 'should have', never 'should of'",
+      wordToUnderline: "of",
     },
     {
       id: "34-14",
@@ -478,6 +530,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "subject-verb agreement with 'there is/are'",
       hint: "Match the verb to what comes after - 'many people' (plural) needs 'were'",
+      wordToUnderline: "was",
     },
     {
       id: "34-15",
@@ -486,6 +539,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "subject-verb agreement with 'one of'",
       hint: "'One' is the subject (singular), so use 'was' even though 'books' is plural",
+      wordToUnderline: "were",
     },
     {
       id: "34-16",
@@ -494,6 +548,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "subject-verb agreement with 'either/or'",
       hint: "With 'either/or', match the verb to the subject closest to it (dogs - plural)",
+      wordToUnderline: "was",
     },
     {
       id: "34-17",
@@ -502,6 +557,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "subject-verb agreement with collective nouns",
       hint: "'Class' as a group is singular, so use 'was'",
+      wordToUnderline: "were",
     },
     {
       id: "34-18",
@@ -510,6 +566,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "should have vs. should of",
       hint: "Never use 'should of' - always use 'should have'",
+      wordToUnderline: "of",
     },
     {
       id: "34-19",
@@ -518,6 +575,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "possessive pronouns agreement",
       hint: "When you have two separate things, each needs its own noun",
+      wordToUnderline: ["Your", "book"],
     },
     {
       id: "34-20",
@@ -526,6 +584,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "3-4",
       grammarRule: "pronoun case",
       hint: "Use 'I' when it's the subject of the sentence. Put others first as a courtesy",
+      wordToUnderline: "Me",
     },
   ],
 
@@ -537,6 +596,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "subject-verb agreement with collective nouns",
       hint: "'Data' is actually plural (the singular is 'datum'), so use 'show' not 'shows'",
+      wordToUnderline: "shows",
     },
     {
       id: "56-2",
@@ -545,6 +605,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "subjunctive mood",
       hint: "In hypothetical situations (like 'if I were you'), use 'were' not 'was'",
+      wordToUnderline: "was",
     },
     {
       id: "56-3",
@@ -553,6 +614,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "pronoun case",
       hint: "Use 'I' when it's the subject. Put others first as a courtesy",
+      wordToUnderline: "Me",
     },
     {
       id: "56-4",
@@ -561,6 +623,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "pronoun case in prepositional phrases",
       hint: "After 'to' (a preposition), use 'me' not 'I'. Try saying it without 'Sarah' to check",
+      wordToUnderline: "I",
     },
     {
       id: "56-5",
@@ -569,6 +632,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "pronoun-antecedent agreement",
       hint: "'Everyone' is singular, so use 'his or her' not 'their'",
+      wordToUnderline: "their",
     },
     {
       id: "56-6",
@@ -577,6 +641,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "pronoun-antecedent agreement with collective nouns",
       hint: "'Team' is singular, so use 'its' not 'their'",
+      wordToUnderline: "their",
     },
     {
       id: "56-7",
@@ -585,6 +650,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "than vs. then",
       hint: "'Than' is for comparisons (taller than). 'Then' is for time (first, then second)",
+      wordToUnderline: "then",
     },
     {
       id: "56-8",
@@ -593,6 +659,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "its vs. it's",
       hint: "'It's' means 'it is' (with apostrophe). 'Its' means 'belongs to it' (no apostrophe)",
+      wordToUnderline: "Its",
     },
     {
       id: "56-9",
@@ -601,6 +668,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "subject-verb agreement with intervening phrases",
       hint: "The subject is 'effect' (singular), so use 'was' even though 'medicine' comes after",
+      wordToUnderline: "were",
     },
     {
       id: "56-10",
@@ -609,6 +677,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "pronoun case with prepositions",
       hint: "After a preposition like 'between', use 'me' not 'I'",
+      wordToUnderline: "I",
     },
     {
       id: "56-11",
@@ -617,6 +686,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "subject-verb agreement with collective nouns",
       hint: "'Committee' as a group is singular, so use 'was'",
+      wordToUnderline: "were",
     },
     {
       id: "56-12",
@@ -625,6 +695,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "who vs. whom",
       hint: "Use 'who' when it's the subject of the sentence (even if it comes at the end)",
+      wordToUnderline: "Whom",
     },
     {
       id: "56-13",
@@ -633,6 +704,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "subjunctive mood",
       hint: "In wishes (unreal situations), use 'were' not 'was'",
+      wordToUnderline: "was",
     },
     {
       id: "56-14",
@@ -641,6 +713,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "subject-verb agreement with intervening phrases",
       hint: "The subject is 'impact' (singular), so use 'was'",
+      wordToUnderline: "were",
     },
     {
       id: "56-15",
@@ -649,6 +722,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "than vs. then",
       hint: "Use 'than' for comparisons, 'then' for time",
+      wordToUnderline: "then",
     },
     {
       id: "56-16",
@@ -657,6 +731,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "subject-verb agreement with collective nouns",
       hint: "'Jury' as a group is singular, so use 'was'",
+      wordToUnderline: "were",
     },
     {
       id: "56-17",
@@ -665,6 +740,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "subject-verb agreement with 'neither/nor'",
       hint: "With 'neither/nor', match the verb to the subject closest to it (teacher - singular)",
+      wordToUnderline: "were",
     },
     {
       id: "56-18",
@@ -673,6 +749,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "reason is because vs. reason is that",
       hint: "Use 'the reason is that' not 'the reason is because' (it's redundant)",
+      wordToUnderline: "because",
     },
     {
       id: "56-19",
@@ -681,6 +758,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "subject-verb agreement with 'number of'",
       hint: "'The number' is singular, so use 'was'",
+      wordToUnderline: "were",
     },
     {
       id: "56-20",
@@ -689,6 +767,7 @@ export const GRAMMAR_QUESTIONS_BANK: Record<GradeLevel, GrammarQuestion[]> = {
       gradeLevel: "5-6",
       grammarRule: "subject-verb agreement with 'a number of'",
       hint: "'A number of' means 'many', so use plural 'were'",
+      wordToUnderline: "was",
     },
   ],
 };

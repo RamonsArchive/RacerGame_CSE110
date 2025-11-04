@@ -17,7 +17,9 @@ import TH_FinishedScreen from "@/app/components/TH_FinishedScreen";
 import { useRouter } from "next/navigation";
 
 const TreasureHuntPage = () => {
-  const [gameState, setGameState] = useState<TreasureHuntGameState | null>(null);
+  const [gameState, setGameState] = useState<TreasureHuntGameState | null>(
+    null
+  );
   const [gameStatus, setGameStatus] = useState<GameStatus>("setup");
   const router = useRouter();
 
@@ -37,12 +39,15 @@ const TreasureHuntPage = () => {
     }
   }, [gameState, gameStatus]);
 
-  const handleGameStart = useCallback((gradeLevel: GradeLevel, questionCount: number) => {
-    const newGameState = initializeGame(gradeLevel, questionCount);
-    setGameState(newGameState);
-    setGameStatus("active");
-    saveGameState(newGameState);
-  }, []);
+  const handleGameStart = useCallback(
+    (gradeLevel: GradeLevel, questionCount: number) => {
+      const newGameState = initializeGame(gradeLevel, questionCount);
+      setGameState(newGameState);
+      setGameStatus("active");
+      saveGameState(newGameState);
+    },
+    []
+  );
 
   const handleGameFinished = useCallback(
     (updatedState: TreasureHuntGameState) => {
