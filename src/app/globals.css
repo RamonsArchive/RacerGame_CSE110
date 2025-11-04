@@ -221,10 +221,10 @@ body {
 /* Road line scrolling animation for setup screen */
 @keyframes road-line {
   0% {
-    background-position: 0% 0;
+    background-position: 0 0;
   }
   100% {
-    background-position: 120px 0;
+    background-position: -120px 0;
   }
 }
 

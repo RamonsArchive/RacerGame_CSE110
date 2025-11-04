@@ -31,25 +31,67 @@ const TQ_ActiveScreen = ({
     (currentPlayerPosition / totalQuestions) * 90;
   const opponentPositionPercentage = (opponentPosition / totalQuestions) * 90;
 
+  // White line is at top: 70%, left: 70%, rotated -35.5deg
+  // Cars should move along this line direction based on progress
+  // Calculate movement distance along -35.5deg direction (parallel to white line)
+  const maxDistance = 60; // Maximum distance to move along the line (in vw for consistency)
+  const angle = -35.5 * (Math.PI / 180); // Convert to radians
+  const cosAngle = Math.cos(angle); // ≈ 0.814
+  const sinAngle = Math.sin(angle); // ≈ -0.581
+  
+  // Progress from 0 to 1
+  const playerProgress = Math.min(currentPlayerPositionPercentage / 100, 1);
+  const opponentProgress = Math.min(opponentPositionPercentage / 100, 1);
+  
+  // Calculate movement components along the line direction
+  const playerDistance = playerProgress * maxDistance;
+  const opponentDistance = opponentProgress * maxDistance;
+  
+  // X and Y components of movement (parallel to white line)
+  const playerMoveX = playerDistance * cosAngle;
+  const playerMoveY = playerDistance * sinAngle;
+  const opponentMoveX = opponentDistance * cosAngle;
+  const opponentMoveY = opponentDistance * sinAngle;
+
   console.log("currentQuestionIndex", currentPlayerPosition);
   console.log("opponentQuestionIndex", opponentPosition);
   console.log(currentPlayerPositionPercentage, opponentPositionPercentage);
 
   return (
-    <div
-      className="flex w-full h-dvh flex-col gap-5 p-10 relative"
+    <div 
+      className="flex w-full h-dvh flex-col gap-5 p-10 relative overflow-hidden"
       style={{
-        backgroundImage: "url(/Assets/TypeQuest/background.png)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
+        backgroundImage: 'url(/Assets/TypeQuest/background_play.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
       }}
     >
       {/* Background gradient overlay - darker on left, transparent on right */}
-      <div className="absolute inset-0 bg-linear-to-r from-black/50 via-black/30 to-transparent pointer-events-none z-0"></div>
-
-      {/* Header */}
-      <div className="flex justify-between items-center w-full shrink-0 relative z-10">
+      <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-transparent pointer-events-none z-0"></div>
+      
+      {/* Animated road lines - decorative scrolling effect from bottom-left to top-right */}
+      <div 
+        className="absolute pointer-events-none z-[1] overflow-hidden" 
+        style={{
+          width: '150vw',
+          height: '4px',
+          top: '70%',
+          left: '70%',
+          transformOrigin: 'center center',
+          transform: 'translate(-50%, -50%) rotate(-35.5deg)',
+        }}
+      >
+        <div 
+          className="w-full h-full animate-road-line" 
+          style={{
+            backgroundImage: 'repeating-linear-gradient(90deg, transparent 0px, transparent 50px, rgba(255, 255, 255, 0.95) 50px, rgba(255, 255, 255, 0.95) 100px)',
+            backgroundSize: '120px 100%',
+          }}
+        ></div>
+      </div>
+      
+      <div className="flex justify-between items-center w-full relative z-10">
         <BackTo title="Back To Home" onClick={handleGameReset} />
         <div className="flex flex-row items-center gap-4">
           <div className="flex flex-row items-center gap-2 px-4 py-2 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
@@ -146,9 +188,7 @@ const TQ_ActiveScreen = ({
           }
         `}</style>
       </div>
-
-      {/* Question Area */}
-      <div className="flex flex-col gap-3 w-full max-w-2xl mx-auto pt-3 p-5 shrink-0 relative z-10">
+      <div className="flex flex-col gap-5 w-full max-w-2xl ml-10 pt-10 p-5 relative z-10">
         <div className="flex-center w-full">
           <p className="text-3xl font-bold text-slate-100">
             {currentQuestion?.prompt}
@@ -184,46 +224,46 @@ const TQ_ActiveScreen = ({
           </div>
         </div>
       </div>
-
-      {/* Race Track - Takes remaining space */}
-      <div id="race_track" className="flex-1 w-full min-h-0 relative z-10">
-        <div className="relative w-full h-full">
-          <Image
-            src="/Assets/TypeQuest/startFinish.png"
-            alt="Race Track"
-            width={1000}
-            height={100}
-            className="object-cover w-full h-full"
-          />
-          <div
-            className="absolute top-4 h-20 w-25 left-0 transition-all duration-300 ease-in-out bg-primary-500 rounded-full"
-            style={{
-              left: `${currentPlayerPositionPercentage}%`,
-            }}
-          >
-            <Image
-              src="/Assets/TypeQuest/tq_gamePic.jpg"
-              alt="Start"
-              width={100}
-              height={100}
-              className="object-contain h-full w-full rounded-full"
-            />
-          </div>
-          <div
-            className="absolute bottom-4 h-20 w-25 left-0 transition-all duration-300 ease-in-out bg-tertiary-500 rounded-full"
-            style={{
-              left: `${opponentPositionPercentage}%`,
-            }}
-          >
-            <Image
-              src="/Assets/TypeQuest/car2.jpg"
-              alt="Opponent"
-              width={100}
-              height={100}
-              className="object-contain h-full w-full rounded-full"
-            />
-          </div>
-        </div>
+      {/* Cars positioned on left and right sides of the road line */}
+      {/* White line center is at top: 70%, left: 70%, cars start from fixed positions on left/right sides */}
+      {/* Player's car on the left side of the road */}
+      <div
+        className="absolute pointer-events-none z-[5] transition-all duration-300 ease-in-out"
+        style={{
+          top: '80%',
+          left: '58%',
+          transformOrigin: 'center center',
+          // Fixed starting position: -80px offset to left side, then move along line direction
+          transform: `translate(calc(-50% - 80px + ${playerMoveX.toFixed(2)}vw), calc(-50% + ${playerMoveY.toFixed(2)}vw))`,
+        }}
+      >
+        <Image
+          src="/Assets/TypeQuest/racer car 1.png"
+          alt="Player Car"
+          width={320}
+          height={320}
+          className="object-contain"
+        />
+      </div>
+      
+      {/* Opponent's car on the right side of the road */}
+      <div
+        className="absolute pointer-events-none z-[5] transition-all duration-300 ease-in-out"
+        style={{
+          top: '90%',
+          left: '63%',
+          transformOrigin: 'center center',
+          // Fixed starting position: +80px offset to right side, then move along line direction
+          transform: `translate(calc(-50% + 80px + ${opponentMoveX.toFixed(2)}vw), calc(-50% + ${opponentMoveY.toFixed(2)}vw))`,
+        }}
+      >
+        <Image
+          src="/Assets/TypeQuest/racer car 2.png"
+          alt="Opponent Car"
+          width={320}
+          height={320}
+          className="object-contain"
+        />
       </div>
     </div>
   );

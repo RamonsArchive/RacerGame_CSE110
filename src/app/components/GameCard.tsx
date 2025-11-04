@@ -9,7 +9,7 @@ const GameCard = ({ game }: { game: GameType }) => {
   return (
     <Link
       id={id}
-      className="flex flex-col w-full h-fit p-6 rounded-xl border border-primary-100 shadow-lg hover:scale-105 hover:shadow-xl hover:bg-linear-to-br hover:from-primary-50/20 hover:via-secondary-50/20 hover:to-tertiary-50/20 transition-all duration-300 ease-in-out"
+      className="flex flex-col w-full h-fit p-6 rounded-xl border border-primary-100 shadow-lg bg-white/70 hover:scale-105 hover:shadow-xl hover:bg-white/80 transition-all duration-300 ease-in-out"
       href={href}
     >
       <div className="flex flex-row w-full h-fit gap-5">
@@ -24,7 +24,7 @@ const GameCard = ({ game }: { game: GameType }) => {
         </div>
         <div className="flex flex-col flex-1 gap-3">
           <div className="flex flex-col gap-2">
-            <h1 className="text-2xl font-bold bg-linear-to-r from-secondary-100 to-primary-100 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold bg-linear-to-r from-slate-700 via-slate-800 to-slate-900 bg-clip-text text-transparent">
               {title}
             </h1>
             <div className="flex">
@@ -39,7 +39,7 @@ const GameCard = ({ game }: { game: GameType }) => {
               )}
             </div>
           </div>
-          <p className="text-sm text-secondary-100 leading-relaxed">
+          <p className="text-sm text-slate-700 leading-relaxed">
             {description}
           </p>
         </div>
