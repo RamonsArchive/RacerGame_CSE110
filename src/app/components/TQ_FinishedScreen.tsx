@@ -206,15 +206,32 @@ const TQ_FinishedScreen = ({
               </button>
 
               <div className="flex flex-row w-full gap-4">
-                <button
-                  onClick={onPlayAgain}
-                  className="flex-3 bg-green-600/80 hover:bg-green-700/80 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
-                >
-                  Play Again
-                </button>
+                {/* Multiplayer: Show Rematch button */}
+                {gameState?.mode === "multiplayer" &&
+                myPlayerId &&
+                gameState.opponent?.playerId &&
+                gameState.opponent?.playerName &&
+                onRematchAccepted ? (
+                  <TQ_RematchButton
+                    myPlayerId={myPlayerId}
+                    opponentId={gameState.opponent.playerId}
+                    opponentName={gameState.opponent.playerName}
+                    gradeLevel={gameState.gradeLevel}
+                    gameMode={gameState.mode}
+                    onRematchAccepted={onRematchAccepted}
+                  />
+                ) : (
+                  /* Solo: Show Play Again button */
+                  <button
+                    onClick={onPlayAgain}
+                    className="flex-1 bg-green-600/80 hover:bg-green-700/80 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+                  >
+                    Play Again
+                  </button>
+                )}
                 <button
                   onClick={onBackHome}
-                  className="flex-3 bg-primary-600/80 hover:bg-primary-700/80 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+                  className="flex-1 bg-primary-600/80 hover:bg-primary-700/80 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
                 >
                   Home
                 </button>

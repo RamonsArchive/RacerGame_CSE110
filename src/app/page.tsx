@@ -17,7 +17,7 @@ export default function Home() {
       }}
     >
       <div className="flex flex-col w-full h-full gap-15 p-10 max-w-7xl mx-auto">
-        <h1 className="text-8xl font-black text-center bg-linear-to-r from-slate-800 via-slate-700 to-slate-900 bg-clip-text text-transparent animate-pulse drop-shadow-2xl">
+        <h1 className="text-8xl font-black text-center bg-linear-to-r from-secondary-100 via-primary-100 to-tertiary-100 bg-clip-text text-transparent animate-pulse drop-shadow-2xl">
           Type Quest
         </h1>
         <div className="flex flex-col w-full gap-5">

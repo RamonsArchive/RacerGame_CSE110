@@ -837,7 +837,8 @@ const TypeQuestPage = () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: myPlayerId }),
         });
-        console.log("Leaving body:", res.json());
+        const leaveData = await res.json();
+        console.log("Leaving body:", leaveData);
       } catch (err) {
         console.error("Failed to leave lobby:", err);
       }
@@ -857,7 +858,7 @@ const TypeQuestPage = () => {
       body: JSON.stringify({
         requesterId: myPlayerId,
         targetId: opponentId,
-        gradeLevel: gameState?.gradeLevel || "K",
+        gradeLevel: setupValuesRef.current.gradeLevel || "K",
       }),
     });
 
