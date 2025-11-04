@@ -24,7 +24,7 @@ const GameCard = ({ game }: { game: GameType }) => {
         </div>
         <div className="flex flex-col flex-1 gap-3">
           <div className="flex flex-col gap-2">
-            <h1 className="text-2xl font-bold bg-linear-to-r from-slate-700 via-slate-600 to-slate-800 bg-clip-text text-transparent">
+            <h1 className="text-2xl font-bold bg-linear-to-r from-slate-700 via-slate-800 to-slate-900 bg-clip-text text-transparent">
               {title}
             </h1>
             <div className="flex">
