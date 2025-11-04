@@ -1,5 +1,4 @@
 import {
-  GrammarQuestion,
   TreasureHuntGameState,
   GradeLevel,
   GameResult,
@@ -12,6 +11,56 @@ import {
 // Generate unique game ID
 const generateGameId = (): string => {
   return `th_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+};
+
+// Get sentence parts with underline information
+// This function returns an array of text segments with underline flags
+export interface SentencePart {
+  text: string;
+  shouldUnderline: boolean;
+}
+
+export const getSentencePartsWithUnderline = (
+  sentence: string,
+  wordToUnderline?: string | string[]
+): SentencePart[] => {
+  if (!wordToUnderline) {
+    return [{ text: sentence, shouldUnderline: false }];
+  }
+
+  const wordsToUnderline = Array.isArray(wordToUnderline)
+    ? wordToUnderline
+    : [wordToUnderline];
+
+  // Normalize words for comparison (remove punctuation for matching, case insensitive)
+  const normalizeWord = (word: string): string => {
+    return word
+      .toLowerCase()
+      .replace(/[.,!?;:]/g, "")
+      .trim();
+  };
+
+  const parts: SentencePart[] = [];
+  const wordsNormalized = wordsToUnderline.map((w) => normalizeWord(w));
+
+  // Split sentence into words and punctuation, preserving whitespace
+  // Use word boundaries to properly split words from punctuation
+  const regex = /(\S+|\s+)/g;
+  const sentenceParts = sentence.match(regex) || [];
+
+  sentenceParts.forEach((part) => {
+    if (/^\s+$/.test(part)) {
+      // Whitespace only
+      parts.push({ text: part, shouldUnderline: false });
+    } else {
+      // Word (possibly with punctuation)
+      const normalizedPart = normalizeWord(part);
+      const shouldUnderline = wordsNormalized.some((w) => normalizedPart === w);
+      parts.push({ text: part, shouldUnderline });
+    }
+  });
+
+  return parts;
 };
 
 // Validate grammar sentence - strict matching requiring proper capitalization and punctuation
@@ -286,15 +335,16 @@ export const getCurrentQuestionProgress = (
   if (!gameState.questionProgress || !gameState.questionProgress.length) {
     return null;
   }
-  
+
   const currentQuestion = gameState.questions[gameState.currentQuestionIndex];
   if (!currentQuestion) {
     return null;
   }
-  
+
   return (
-    gameState.questionProgress.find((p) => p.questionId === currentQuestion.id) ||
-    null
+    gameState.questionProgress.find(
+      (p) => p.questionId === currentQuestion.id
+    ) || null
   );
 };
 
@@ -344,7 +394,7 @@ export const loadGameState = (): TreasureHuntGameState | null => {
       const saved = localStorage.getItem(GAME_CONFIG.SESSION_STORAGE_KEY);
       if (saved) {
         const gameState = JSON.parse(saved) as TreasureHuntGameState;
-        
+
         // Initialize questionProgress if it doesn't exist (backward compatibility)
         if (!gameState.questionProgress && gameState.questions) {
           gameState.questionProgress = gameState.questions.map((q) => ({
@@ -357,7 +407,7 @@ export const loadGameState = (): TreasureHuntGameState | null => {
         if (!gameState.answerLog) {
           gameState.answerLog = [];
         }
-        
+
         return gameState;
       }
     } catch (error) {
@@ -376,4 +426,3 @@ export const clearGameState = (): void => {
     }
   }
 };
-

@@ -13,6 +13,7 @@ import {
   showHint,
   handleGiveUp,
   getCurrentQuestionProgress,
+  getSentencePartsWithUnderline,
 } from "@/lib/utils_treasurehunt";
 import { ChevronLeft, Settings, Lightbulb, HelpCircle } from "lucide-react";
 import Link from "next/link";
@@ -237,7 +238,21 @@ const TH_ActiveScreen = ({
             </p>
             <div className="bg-red-100 border-4 border-red-500 p-6 rounded-2xl shadow-lg">
               <p className="text-2xl md:text-3xl font-bold text-red-700 leading-relaxed">
-                {currentQuestion.incorrectSentence}
+                {getSentencePartsWithUnderline(
+                  currentQuestion.incorrectSentence,
+                  currentQuestion.wordToUnderline
+                ).map((part, index) =>
+                  part.shouldUnderline ? (
+                    <span
+                      key={index}
+                      className="underline decoration-red-500 decoration-2 underline-offset-2"
+                    >
+                      {part.text}
+                    </span>
+                  ) : (
+                    <span key={index}>{part.text}</span>
+                  )
+                )}
               </p>
             </div>
           </div>
