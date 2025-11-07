@@ -159,22 +159,22 @@ const TQ_FinishedScreen = ({
 
   return (
     <>
-      <div 
+      <div
         className="flex items-start justify-end w-full h-dvh p-4 relative"
         style={{
-          backgroundImage: 'url(/Assets/TypeQuest/finish.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
+          backgroundImage: "url(/Assets/TypeQuest/finish.png)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
         }}
       >
         <div className="flex flex-row items-start gap-8 w-full max-w-5xl p-10 bg-transparent rounded-2xl mt-8 mr-8">
           {/* Left side: Title and Winner Announcement */}
-          <div className="flex flex-col gap-6 flex-shrink-0">
+          <div className="flex flex-col gap-6 shrink-0">
             {/* Title */}
             <div className="flex items-start">
               <h1 className="text-5xl font-bold text-white drop-shadow-2xl">
-                Race Completed! 
+                Race Completed!
               </h1>
             </div>
 
