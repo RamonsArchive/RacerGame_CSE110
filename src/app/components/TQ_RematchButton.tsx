@@ -20,13 +20,13 @@ const TQ_RematchButton = ({
   opponentId,
   opponentName,
   gradeLevel,
-  gameMode,
+  gameMode: _gameMode,
   onRematchAccepted,
 }: RematchButtonProps) => {
   const [rematchStatus, setRematchStatus] = useState<
     "idle" | "waiting" | "ready" | "rejected"
   >("idle");
-  const [matchId, setMatchId] = useState<string>("");
+  const [_matchId, setMatchId] = useState<string>("");
 
   // Request rematch
   const handleRematchRequest = async () => {

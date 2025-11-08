@@ -20,7 +20,7 @@ type QuestionResult = {
   timestamp: number;
 };
 
-type PlayerProgress = {
+type PlayerProgressRedis = {
   playerId: string;
   playerName: string;
   currentQuestionIndex: number;
@@ -79,16 +79,16 @@ export async function POST(req: NextRequest) {
     };
 
     // Store progress in Redis
-    await redis.hset(PROGRESS_KEY(roomId, playerId), playerProgress as any);
+    await redis.hset(PROGRESS_KEY(roomId, playerId), playerProgress as Record<string, string | number | boolean>);
     await redis.expire(PROGRESS_KEY(roomId, playerId), PROGRESS_TTL);
 
     return NextResponse.json({
       ok: true,
       message: "Progress updated",
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { ok: false, error: err?.message || "Failed to update progress" },
+      { ok: false, error: err instanceof Error ? err.message : "Failed to update progress" },
       { status: 500 }
     );
   }
@@ -174,9 +174,9 @@ export async function GET(req: NextRequest) {
         lastUpdate: Number(opponentProgress.lastUpdate),
       },
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { ok: false, error: err?.message || "Failed to fetch opponent progress" },
+      { ok: false, error: err instanceof Error ? err.message : "Failed to fetch opponent progress" },
       { status: 500 }
     );
   }

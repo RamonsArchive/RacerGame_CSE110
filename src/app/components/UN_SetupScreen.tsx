@@ -1,12 +1,19 @@
 "use client";
 import React, { useState } from "react";
 
-import { GradeLevel, GameStatus, GRADE_LEVEL_LABELS, GRADE_LEVEL_DESCRIPTIONS, UnscrambleGameState, GAME_CONFIG} from "../constants/index_unscramble";
+import {
+  GradeLevel,
+  GameStatus,
+  GRADE_LEVEL_LABELS,
+  GRADE_LEVEL_DESCRIPTIONS,
+  UnscrambleGameState,
+  GAME_CONFIG,
+} from "../constants/index_unscramble";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
 const UN_SetupScreen = ({
-  gameStatus,
+  gameStatus: _gameStatus,
   gameState,
   handleGameStart,
 }: {
@@ -68,7 +75,10 @@ const UN_SetupScreen = ({
               className="bg-slate-100 text-slate-900 p-3 rounded-lg text-lg font-nunito focus:outline-none focus:ring-2 focus:ring-green-400 transition-all duration-300"
             >
               {Array.from(
-                { length: GAME_CONFIG.MAX_QUESTIONS - GAME_CONFIG.MIN_QUESTIONS + 1 },
+                {
+                  length:
+                    GAME_CONFIG.MAX_QUESTIONS - GAME_CONFIG.MIN_QUESTIONS + 1,
+                },
                 (_, i) => GAME_CONFIG.MIN_QUESTIONS + i
               ).map((num) => (
                 <option key={num} value={num}>
@@ -83,7 +93,10 @@ const UN_SetupScreen = ({
 
           <div className="bg-slate-800 p-4 rounded-lg">
             <p className="font-nunito text-sm text-slate-200">
-              <strong className="text-green-400">How to play:</strong> Unscramble the letters to find the word that matches the clue! Try rearranging the letters by dragging them around. Once you have your answer, type it and press Enter!
+              <strong className="text-green-400">How to play:</strong>{" "}
+              Unscramble the letters to find the word that matches the clue! Try
+              rearranging the letters by dragging them around. Once you have
+              your answer, type it and press Enter!
             </p>
           </div>
         </div>
@@ -102,4 +115,3 @@ const UN_SetupScreen = ({
 };
 
 export default UN_SetupScreen;
-

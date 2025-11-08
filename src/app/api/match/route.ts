@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     createdAt: Date.now(),
   };
 
-  await redis.hset(MATCH_KEY(matchId), match as any);
+  await redis.hset(MATCH_KEY(matchId), match as Record<string, string | number>);
   await redis.expire(MATCH_KEY(matchId), MATCH_TTL);
 
   return NextResponse.json({ ok: true, matchId });
@@ -87,8 +87,8 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({ ok: true, match });
-  } catch (err: any) {
-    return NextResponse.json({ ok: false, error: err?.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : "Failed to process match request" }, { status: 500 });
   }
 }
 
@@ -133,7 +133,7 @@ export async function DELETE(req: NextRequest) {
     await redis.del(MATCH_KEY(matchId));
 
     return NextResponse.json({ ok: true, message: "Match request deleted" });
-  } catch (err: any) {
-    return NextResponse.json({ ok: false, error: err?.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : "Failed to process match request" }, { status: 500 });
   }
 }

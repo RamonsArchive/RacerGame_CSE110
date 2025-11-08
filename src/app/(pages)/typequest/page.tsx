@@ -29,12 +29,10 @@ import {
 import TQ_SetupScreen from "@/app/components/TQ_SetupScreen";
 import TQ_ActiveScreen from "@/app/components/TQ_ActiveScreen";
 import TQ_FinishedScreen from "@/app/components/TQ_FinishedScreen";
-import { useRouter } from "next/navigation";
 import { flushSync } from "react-dom";
 import { MultiplayerPlayer } from "@/lib/GlobalTypes";
 
 const TypeQuestPage = () => {
-  const router = useRouter();
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [gameStatus, setGameStatus] = useState<GameStatus>("setup");
   const [hasBeenSaved, setHasBeenSaved] = useState(false);
@@ -54,9 +52,6 @@ const TypeQuestPage = () => {
     gradeLevel: GradeLevel;
   } | null>(null);
 
-  const [multiplayer, setMultiplayer] = useState<boolean>(
-    gameState?.mode === "multiplayer"
-  );
   const [multiplayerView, setMultiplayerView] = useState<boolean>(false);
   const [multiplayerPlayers, setMultiplayerPlayers] = useState<
     MultiplayerPlayer[]
@@ -195,6 +190,7 @@ const TypeQuestPage = () => {
     gameState?.currentPlayer.playerId,
     gameState?.currentPlayer.isFinished,
     gameState?.opponent?.isFinished,
+    opponentLeftGame,
   ]);
 
   const updateCPUProgress = useCallback(
@@ -408,7 +404,12 @@ const TypeQuestPage = () => {
         cpuTimerRef.current = null;
       }
     };
-  }, [gameState?.status, gameState?.mode]); // ✅ REMOVED scheduleCPUAnswer from deps
+  }, [
+    gameState?.status,
+    gameState?.mode,
+    gameState?.opponent,
+    scheduleCPUAnswer,
+  ]); // ✅ Include all dependencies
 
   // save game result for leaderboard
   useEffect(() => {
@@ -439,7 +440,13 @@ const TypeQuestPage = () => {
 
       saveResult();
     }
-  }, [gameState?.status, gameState?.endTime, gameState?.mode]); // ✅ Only trigger when actually finished
+  }, [
+    gameState?.status,
+    gameState?.endTime,
+    gameState?.mode,
+    gameState,
+    hasBeenSaved,
+  ]); // ✅ Include all dependencies
 
   const handleGameReset = useCallback(() => {
     hasResetRef.current = true; // Prevent load effect from running

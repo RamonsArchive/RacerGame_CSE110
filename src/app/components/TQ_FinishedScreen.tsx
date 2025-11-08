@@ -40,13 +40,8 @@ const TQ_FinishedScreen = ({
   const [opponentTotalPoints, setOpponentTotalPoints] = useState(0);
   const [winner, setWinner] = useState<"win" | "loss" | "tie" | null>(null);
 
-  // Add this early return
-  if (!gameState) {
-    return null;
-  }
-
   // ✅ Calculate points - MUST match createGameResult logic exactly!
-  const calculateCurrentPlayerTotalPoints = () => {
+  const calculateCurrentPlayerTotalPoints = useCallback(() => {
     if (!gameState || !gameState.startTime) return 0;
 
     // ✅ Use player's individual finishTime (same as createGameResult)
@@ -62,9 +57,9 @@ const TQ_FinishedScreen = ({
       gameState.targetTimePerQuestion,
       gameState.totalQuestions
     );
-  };
+  }, [gameState]);
 
-  const calculateOpponentTotalPoints = () => {
+  const calculateOpponentTotalPoints = useCallback(() => {
     if (!gameState || !gameState.startTime || !gameState.opponent) return 0;
 
     // ✅ Use opponent's individual finishTime (same as createGameResult)
@@ -80,7 +75,7 @@ const TQ_FinishedScreen = ({
       gameState.targetTimePerQuestion,
       gameState.totalQuestions
     );
-  };
+  }, [gameState]);
 
   useEffect(() => {
     // ✅ Calculate points first
@@ -108,18 +103,14 @@ const TQ_FinishedScreen = ({
       oppPoints,
       winner: calculatedWinner,
     });
-  }, [gameState]);
-
-  console.log("🎮 Finished Screen State:", {
-    winner,
-    currentPlayerTotalPoints,
-    opponentTotalPoints,
-    shouldPollOpponent,
-    myPlayerId,
-  });
+  }, [
+    gameState,
+    calculateCurrentPlayerTotalPoints,
+    calculateOpponentTotalPoints,
+  ]);
 
   const getWinnerMessage = useCallback(() => {
-    if (!winner) return null;
+    if (!gameState || !winner) return null;
 
     if (gameState.mode === "multiplayer" && !gameState.opponent?.isFinished) {
       return (
@@ -165,20 +156,16 @@ const TQ_FinishedScreen = ({
         return (
           <div className="flex flex-col items-start gap-2">
             <p className="text-5xl">🤝</p>
-            <p className="text-3xl font-bold text-yellow-400">It's a Tie!</p>
+            <p className="text-3xl font-bold text-yellow-400">
+              It&apos;s a Tie!
+            </p>
             <p className="text-lg text-slate-300">
               Both scored {currentPlayerTotalPoints} points
             </p>
           </div>
         );
     }
-  }, [
-    winner,
-    currentPlayerTotalPoints,
-    opponentTotalPoints,
-    gameState.mode,
-    gameState.opponent?.isFinished,
-  ]);
+  }, [winner, currentPlayerTotalPoints, opponentTotalPoints, gameState]);
 
   return (
     <>
@@ -252,7 +239,9 @@ const TQ_FinishedScreen = ({
                 ) : (
                   /* Solo: Show Play Again button */
                   <button
-                    onClick={() => handlePlayAgainWithCPU(gameState)}
+                    onClick={() =>
+                      gameState && handlePlayAgainWithCPU(gameState)
+                    }
                     className="flex-1 bg-green-600/90 hover:bg-green-700/90 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
                   >
                     Play Again
@@ -285,16 +274,18 @@ const TQ_FinishedScreen = ({
         }
       />
 
-      <TQ_RematchAcceptToast
-        myPlayerId={myPlayerId}
-        opponentId={gameState.opponent?.playerId}
-        opponentName={gameState.opponent?.playerName}
-        matchId={gameState.gameId}
-        gradeLevel={gameState.gradeLevel}
-        gameMode={gameState.mode}
-        onRematchAccepted={onRematchAccepted!}
-        handleRejectRematch={handleRejectRematch!}
-      />
+      {gameState && (
+        <TQ_RematchAcceptToast
+          myPlayerId={myPlayerId}
+          opponentId={gameState.opponent?.playerId}
+          opponentName={gameState.opponent?.playerName}
+          matchId={gameState.gameId}
+          gradeLevel={gameState.gradeLevel}
+          gameMode={gameState.mode}
+          onRematchAccepted={onRematchAccepted!}
+          handleRejectRematch={handleRejectRematch!}
+        />
+      )}
     </>
   );
 };

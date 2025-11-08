@@ -6,7 +6,7 @@ const MultiplayerSetup = ({
   isVisible,
   onClose,
   onConnect,
-  playerName,
+  playerName: _playerName,
   incomingRequest,
   onAcceptRequest,
   onRejectRequest,

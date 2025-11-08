@@ -246,11 +246,11 @@ export const initializeGameMultiplayer = async (
       },
       allowSkip: false,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("❌ Failed to initialize multiplayer game:", {
       error: err,
-      message: err?.message,
-      stack: err?.stack
+      message: err instanceof Error ? err.message : "Unknown error",
+      stack: err instanceof Error ? err.stack : undefined
     });
     return null;
   }
@@ -460,10 +460,9 @@ export const createGameResult = (gameState: GameState): GameResult => {
  * Ensures both players use the same source of truth when saving
  */
 export const createGameResultMultiplayer = async (gameState: GameState): Promise<GameResult> => {
-  const { currentPlayer, opponent, startTime, gradeLevel, mode, totalQuestions, targetTimePerQuestion, gameId } = gameState;
+  const { currentPlayer, startTime, gradeLevel, mode, totalQuestions, targetTimePerQuestion, gameId } = gameState;
   
   // ✅ For multiplayer, fetch latest opponent data AND game room startTime from Redis to ensure consistency
-  let finalOpponent = opponent;
   let finalStartTime = startTime;
   
   if (mode === "multiplayer" && gameId && currentPlayer.playerId) {
@@ -505,20 +504,7 @@ export const createGameResultMultiplayer = async (gameState: GameState): Promise
           }
         }
         
-        // ✅ Use fresh opponent data from Redis
-        if (opponent) {
-          finalOpponent = {
-            ...opponent,
-            currentQuestionIndex: progressData.opponentProgress.currentQuestionIndex,
-            questionsAnswered: progressData.opponentProgress.questionsAnswered,
-            totalPoints: progressData.opponentProgress.totalPoints,
-            totalMistakes: progressData.opponentProgress.totalMistakes,
-            isFinished: progressData.opponentProgress.isFinished,
-            finishTime: progressData.opponentProgress.finishTime,
-            questionResults: questionResults || [],
-          };
-        }
-        
+        // ✅ Log fresh opponent data from Redis (data is used in createGameResultMultiplayer via gameState)
         console.log("✅ Fetched fresh opponent data from Redis for leaderboard:", {
           opponentPoints: progressData.opponentProgress.totalPoints,
           opponentFinished: progressData.opponentProgress.isFinished,
@@ -598,7 +584,7 @@ export const createGameResultMultiplayer = async (gameState: GameState): Promise
   return result;
 };
 
-  export const getGameResults = (gameId: string): GameResult | null => {
+  export const getGameResults = (_gameId: string): GameResult | null => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(GAME_CONFIG.LEADERBOARD_KEY);
       return saved ? JSON.parse(saved) : null;
@@ -799,7 +785,7 @@ export const createGameResultMultiplayer = async (gameState: GameState): Promise
     difficulty: 'easy' | 'medium' | 'hard' = 'medium'
   ): { timeSpent: number; mistakes: number; correct: boolean } => {
     const config = GAME_CONFIG.CPU_DIFFICULTY[difficulty];
-    const baseTimePerChar = 0.3;
+    // const baseTimePerChar = 0.3; // Not used currently
     const timeSpent = (Date.now() - opponent.questionStartTime!) / 1000;
     const willMakeMistake = Math.random() < config.mistakeRate;
     const mistakes = willMakeMistake ? Math.floor(Math.random() * 2) + 1 : 0;

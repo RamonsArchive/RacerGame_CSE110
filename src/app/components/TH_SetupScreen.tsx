@@ -12,7 +12,7 @@ import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 
 const TH_SetupScreen = ({
-  gameStatus,
+  gameStatus: _gameStatus,
   gameState,
   handleGameStart,
 }: {
@@ -29,7 +29,7 @@ const TH_SetupScreen = ({
 
   return (
     <div className="flex-center w-full h-dvh">
-      <div className="flex flex-col w-full max-w-2xl p-10 gap-10 bg-gradient-to-b from-pink-700 via-primary-900 to-secondary-800 rounded-xl shadow-lg">
+      <div className="flex flex-col w-full max-w-2xl p-10 gap-10 bg-linear-to-b from-pink-700 via-primary-900 to-secondary-800 rounded-xl shadow-lg">
         <Link
           href="/"
           className="group flex flex-row items-center px-3 hover:cursor-pointer hover:underline hover:text-slate-300 transition-all duration-300 ease-in-out w-fit"
@@ -74,7 +74,10 @@ const TH_SetupScreen = ({
               className="bg-slate-100 text-slate-900 p-3 rounded-lg text-lg font-nunito focus:outline-none focus:ring-2 focus:ring-green-400 transition-all duration-300"
             >
               {Array.from(
-                { length: GAME_CONFIG.MAX_QUESTIONS - GAME_CONFIG.MIN_QUESTIONS + 1 },
+                {
+                  length:
+                    GAME_CONFIG.MAX_QUESTIONS - GAME_CONFIG.MIN_QUESTIONS + 1,
+                },
                 (_, i) => GAME_CONFIG.MIN_QUESTIONS + i
               ).map((num) => (
                 <option key={num} value={num}>
@@ -89,9 +92,9 @@ const TH_SetupScreen = ({
 
           <div className="bg-slate-800 p-4 rounded-lg">
             <p className="font-nunito text-sm text-slate-200">
-              <strong className="text-green-400">How to play:</strong> You'll be
-              shown grammatically incorrect sentences. Type the correct version
-              to advance through the treasure hunt!
+              <strong className="text-green-400">How to play:</strong>{" "}
+              You&apos;ll be shown grammatically incorrect sentences. Type the
+              correct version to advance through the treasure hunt!
             </p>
           </div>
         </div>
@@ -110,4 +113,3 @@ const TH_SetupScreen = ({
 };
 
 export default TH_SetupScreen;
-
