@@ -62,7 +62,7 @@ describe("TypeQuest Utils", () => {
   });
 
   describe("calculateGameScore", () => {
-    it("should calculate game score with perfect game bonus", () => {
+    it("should calculate game score with perfect game bonus and speed bonus", () => {
       const questionResults: QuestionResult[] = [
         {
           questionId: "1",
@@ -78,9 +78,9 @@ describe("TypeQuest Utils", () => {
       ];
 
       const hadPerfectGame = true;
-      const startTime = Date.now() - 10000; // 10 seconds ago
+      const startTime = Date.now() - 5000; // 5 seconds ago (finished in 5s)
       const endTime = Date.now();
-      const targetTimePerQuestion = 10;
+      const targetTimePerQuestion = 10; // Expected 10s per question
       const totalQuestions = 1;
 
       const score = calculateGameScore(
@@ -92,10 +92,15 @@ describe("TypeQuest Utils", () => {
         totalQuestions
       );
 
-      expect(score).toBeGreaterThan(100); // Should include perfect bonus
+      // baseScore = 100
+      // perfectBonus = 50
+      // expectedTime = 10s, actualTime = 5s, timeSaved = 5s
+      // speedBonus = 5 * 20 = 100
+      // total = 100 + 50 + 100 = 250
+      expect(score).toBe(250);
     });
 
-    it("should calculate score without perfect game bonus", () => {
+    it("should calculate score without perfect game bonus but with speed bonus", () => {
       const questionResults: QuestionResult[] = [
         {
           questionId: "1",
@@ -103,7 +108,7 @@ describe("TypeQuest Utils", () => {
           userAnswer: "test",
           correctAnswer: "test",
           correct: true,
-          timeSpent: 5,
+          timeSpent: 8,
           mistakes: 1,
           points: 90,
           timestamp: Date.now(),
@@ -111,7 +116,132 @@ describe("TypeQuest Utils", () => {
       ];
 
       const hadPerfectGame = false;
-      const startTime = Date.now() - 10000;
+      const startTime = Date.now() - 8000; // 8 seconds ago (finished in 8s)
+      const endTime = Date.now();
+      const targetTimePerQuestion = 10; // Expected 10s per question
+      const totalQuestions = 1;
+
+      const score = calculateGameScore(
+        questionResults,
+        hadPerfectGame,
+        startTime,
+        endTime,
+        targetTimePerQuestion,
+        totalQuestions
+      );
+
+      // baseScore = 90
+      // perfectBonus = 0 (had mistakes)
+      // expectedTime = 10s, actualTime = 8s, timeSaved = 2s
+      // speedBonus = 2 * 20 = 40
+      // total = 90 + 0 + 40 = 130
+      expect(score).toBe(130);
+    });
+
+    it("should calculate score without speed bonus when finished slower than target", () => {
+      const questionResults: QuestionResult[] = [
+        {
+          questionId: "1",
+          prompt: "test",
+          userAnswer: "test",
+          correctAnswer: "test",
+          correct: true,
+          timeSpent: 12,
+          mistakes: 0,
+          points: 100,
+          timestamp: Date.now(),
+        },
+      ];
+
+      const hadPerfectGame = true;
+      const startTime = Date.now() - 12000; // 12 seconds ago (finished in 12s)
+      const endTime = Date.now();
+      const targetTimePerQuestion = 10; // Expected 10s per question
+      const totalQuestions = 1;
+
+      const score = calculateGameScore(
+        questionResults,
+        hadPerfectGame,
+        startTime,
+        endTime,
+        targetTimePerQuestion,
+        totalQuestions
+      );
+
+      // baseScore = 100
+      // perfectBonus = 50
+      // expectedTime = 10s, actualTime = 12s, timeSaved = -2s (negative, so no bonus)
+      // speedBonus = 0
+      // total = 100 + 50 + 0 = 150
+      expect(score).toBe(150);
+    });
+
+    it("should calculate score for multiple questions correctly", () => {
+      const questionResults: QuestionResult[] = [
+        {
+          questionId: "1",
+          prompt: "test1",
+          userAnswer: "test1",
+          correctAnswer: "test1",
+          correct: true,
+          timeSpent: 5,
+          mistakes: 0,
+          points: 100,
+          timestamp: Date.now(),
+        },
+        {
+          questionId: "2",
+          prompt: "test2",
+          userAnswer: "test2",
+          correctAnswer: "test2",
+          correct: true,
+          timeSpent: 6,
+          mistakes: 0,
+          points: 110,
+          timestamp: Date.now(),
+        },
+      ];
+
+      const hadPerfectGame = true;
+      const startTime = Date.now() - 11000; // 11 seconds ago (finished in 11s)
+      const endTime = Date.now();
+      const targetTimePerQuestion = 10; // Expected 10s per question
+      const totalQuestions = 2;
+
+      const score = calculateGameScore(
+        questionResults,
+        hadPerfectGame,
+        startTime,
+        endTime,
+        targetTimePerQuestion,
+        totalQuestions
+      );
+
+      // baseScore = 100 + 110 = 210
+      // perfectBonus = 50
+      // expectedTime = 10 * 2 = 20s, actualTime = 11s, timeSaved = 9s
+      // speedBonus = 9 * 20 = 180
+      // total = 210 + 50 + 180 = 440
+      expect(score).toBe(440);
+    });
+
+    it("should handle zero base score correctly", () => {
+      const questionResults: QuestionResult[] = [
+        {
+          questionId: "1",
+          prompt: "test",
+          userAnswer: "wrong",
+          correctAnswer: "test",
+          correct: false,
+          timeSpent: 15,
+          mistakes: 5,
+          points: 0,
+          timestamp: Date.now(),
+        },
+      ];
+
+      const hadPerfectGame = false;
+      const startTime = Date.now() - 15000; // 15 seconds ago
       const endTime = Date.now();
       const targetTimePerQuestion = 10;
       const totalQuestions = 1;
@@ -125,8 +255,12 @@ describe("TypeQuest Utils", () => {
         totalQuestions
       );
 
-      expect(score).toBeGreaterThanOrEqual(90);
-      expect(score).toBeLessThan(200); // No perfect bonus
+      // baseScore = 0
+      // perfectBonus = 0
+      // expectedTime = 10s, actualTime = 15s, timeSaved = -5s (negative, so no bonus)
+      // speedBonus = 0
+      // total = 0 + 0 + 0 = 0
+      expect(score).toBe(0);
     });
   });
 
