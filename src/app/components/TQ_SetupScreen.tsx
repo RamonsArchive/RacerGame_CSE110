@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   GameMode,
   GameState,
@@ -55,7 +55,7 @@ const TQ_SetupScreen = ({
   // Local state for smooth typing (no parent re-renders)
   const [gradeLevel, setGradeLevel] = useState<GradeLevel>("K");
   const [gameMode, setGameMode] = useState<GameMode>("solo");
-  const [playerName, setPlayerName] = useState<string>("Player");
+  const [playerName, setPlayerName] = useState<string>("");
   const [leaderboardView, setLeaderboardView] = useState<boolean>(false);
   const handleStartGame = (
     gameMode: GameMode,
@@ -76,6 +76,19 @@ const TQ_SetupScreen = ({
       return;
     }
     handleGameStart(gameMode, gradeLevel, playerName);
+  };
+
+  // set player name from local stoarge
+  useEffect(() => {
+    const playerName = localStorage.getItem("playerName");
+    if (playerName) {
+      setPlayerName(playerName);
+    }
+  }, [playerName]);
+
+  const handlePlayerNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPlayerName(e.target.value);
+    localStorage.setItem("playerName", e.target.value);
   };
 
   return (
@@ -167,7 +180,7 @@ const TQ_SetupScreen = ({
             <p className="text-lg text-white font-semibold">Player Name:</p>
             <input
               value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
+              onChange={(e) => handlePlayerNameChange(e)}
               className="bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-lg p-3 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all placeholder:text-slate-400"
               placeholder="Enter your name"
             />
