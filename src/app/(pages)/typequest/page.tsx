@@ -689,15 +689,6 @@ const TypeQuestPage = () => {
     [gameState]
   );
 
-  const handleBackHome = useCallback(() => {
-    handleGameReset();
-    setMyPlayerId(null);
-    setMultiplayerView(false);
-    setMultiplayerPlayers([]);
-    setIncomingRequest(null);
-    router.push("/");
-  }, [handleGameReset, router]);
-
   // Handle rematch acceptance
   const handleRematchAccepted = useCallback(
     async (matchId: string, opponentId: string, opponentName: string) => {
@@ -912,12 +903,11 @@ const TypeQuestPage = () => {
           console.error("Failed to clean up match requests:", err);
         }
 
-        const res = await fetch("/api/lobby", {
+        await fetch("/api/lobby", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: myPlayerId }),
         });
-        const leaveData = await res.json();
       } catch (err) {
         console.error("Failed to leave lobby:", err);
       }
