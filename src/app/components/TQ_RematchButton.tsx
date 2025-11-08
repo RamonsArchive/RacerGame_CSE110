@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { GradeLevel, GameMode } from "@/app/constants/index_typequest";
 
 interface RematchButtonProps {
