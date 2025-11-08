@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
         ok: true,
         roomId,
         questions: existing.questions,
+        createdAt: existing.createdAt, // ✅ Return createdAt as startTime
         message: "Game room already exists",
       });
     }
@@ -91,6 +92,7 @@ export async function POST(req: NextRequest) {
       ok: true,
       roomId,
       questions,
+      createdAt: gameRoom.createdAt, // ✅ Return createdAt as startTime
       message: "Game room created",
     });
   } catch (err: any) {

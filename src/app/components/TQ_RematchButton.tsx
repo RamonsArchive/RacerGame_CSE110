@@ -52,12 +52,7 @@ const TQ_RematchButton = ({
       } else {
         // Handle error (e.g., match already exists)
         console.error("Failed to create rematch request:", data.error);
-        if (res.status === 409) {
-          // Match already exists - this shouldn't happen, but handle gracefully
-          alert("A rematch request already exists. Please wait.");
-        } else {
-          alert("Failed to send rematch request");
-        }
+        alert("Failed to send rematch request");
       }
     } catch (err) {
       console.error("Failed to request rematch:", err);
@@ -153,39 +148,6 @@ const TQ_RematchButton = ({
       }
     }, 30000);
   };
-
-  // Check for incoming rematch requests (only when idle)
-  // useEffect(() => {
-  //   // ✅ Only poll for incoming requests if we're not waiting for our own request
-  //   if (rematchStatus !== "idle") {
-  //     return;
-  //   }
-
-  //   const checkForIncomingRematch = async () => {
-  //     try {
-  //       const incomingMatchId = `${opponentId}_${myPlayerId}`;
-  //       const res = await fetch(`/api/match?matchId=${incomingMatchId}`);
-  //       const data = await res.json();
-
-  //       if (data.ok && data.match && data.match.status === "pending") {
-  //         console.log("📥 Incoming rematch request detected");
-  //         setMatchId(incomingMatchId);
-  //         setRematchStatus("ready");
-  //       }
-  //     } catch (err) {
-  //       // No incoming request (404 is expected if no request exists)
-  //       console.log("⏳ No incoming rematch yet");
-  //     }
-  //   };
-
-  //   // Initial check
-  //   checkForIncomingRematch();
-
-  //   // Poll for incoming requests every 2 seconds
-  //   const interval = setInterval(checkForIncomingRematch, 2000);
-
-  //   return () => clearInterval(interval);
-  // }, [myPlayerId, opponentId, rematchStatus]);
 
   return (
     <div className="flex flex-col flex-1">

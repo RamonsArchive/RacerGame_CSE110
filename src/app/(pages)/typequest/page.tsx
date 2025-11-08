@@ -24,6 +24,7 @@ import {
   simulateCPUAnswer,
   clearGameState,
   createGameResult,
+  createGameResultMultiplayer,
   saveGameResultMultiplayer,
 } from "@/lib/utils_typequest";
 import TQ_SetupScreen from "@/app/components/TQ_SetupScreen";
@@ -417,13 +418,29 @@ const TypeQuestPage = () => {
       gameState.endTime &&
       !hasBeenSaved
     ) {
-      try {
-        const result = createGameResult(gameState); // this saves game result as well
-      } catch (error) {
-        console.error("Error creating game result:", error);
-      }
+      const saveResult = async () => {
+        try {
+          // ✅ For multiplayer, use async version that fetches latest opponent data from Redis
+          // This ensures both players use the same source of truth
+          if (gameState.mode === "multiplayer") {
+            const result = await createGameResultMultiplayer(gameState);
+            console.log(
+              "✅ Saved multiplayer game result with fresh opponent data:",
+              result
+            );
+          } else {
+            const result = createGameResult(gameState);
+            console.log("✅ Saved solo game result:", result);
+          }
+          setHasBeenSaved(true);
+        } catch (error) {
+          console.error("Error creating game result:", error);
+        }
+      };
+
+      saveResult();
     }
-  }, [gameState?.status, gameState?.endTime]); // ✅ Only trigger when actually finished
+  }, [gameState?.status, gameState?.endTime, gameState?.mode]); // ✅ Only trigger when actually finished
 
   const handleGameReset = useCallback(() => {
     hasResetRef.current = true; // Prevent load effect from running
@@ -731,6 +748,15 @@ const TypeQuestPage = () => {
     gameMode: GameMode
   ) => {
     try {
+      // ✅ Stop any existing polling first (in case of rejoin)
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+
+      // ✅ Clear any stale incoming requests
+      setIncomingRequest(null);
+
       // Store setup values in ref for later use (when initializing multiplayer game)
       setupValuesRef.current = { playerName, gradeLevel, gameMode };
 
@@ -745,9 +771,37 @@ const TypeQuestPage = () => {
       });
       const data = await res.json();
       if (data.ok) {
-        setMyPlayerId(data.player.id);
+        const newPlayerId = data.player.id;
+
+        // ✅ Clean up any old match requests involving the NEW playerId
+        // (This handles cases where player rejoins with same or different name)
+        try {
+          // Get all players in lobby to check for old match requests
+          const lobbyRes = await fetch(`/api/lobby?exclude=${newPlayerId}`);
+          const lobbyData = await lobbyRes.json();
+          console.log("joining lobby", lobbyData);
+          if (lobbyData.ok && lobbyData.players) {
+            for (const player of lobbyData.players) {
+              // Clean up match requests in both directions for the NEW playerId
+              const matchId1 = `${newPlayerId}_${player.id}`;
+              const matchId2 = `${player.id}_${newPlayerId}`;
+              await Promise.all([
+                fetch(`/api/match?matchId=${matchId1}`, {
+                  method: "DELETE",
+                }).catch(() => {}),
+                fetch(`/api/match?matchId=${matchId2}`, {
+                  method: "DELETE",
+                }).catch(() => {}),
+              ]);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to clean up old match requests:", err);
+        }
+
+        setMyPlayerId(newPlayerId);
         setMultiplayerView(true);
-        startPollingPlayers(data.player.id);
+        startPollingPlayers(newPlayerId);
       } else {
         alert(data.error || "Failed to join lobby");
       }
@@ -768,20 +822,37 @@ const TypeQuestPage = () => {
           setMultiplayerPlayers(data.players);
         }
 
-        // Check for incoming match requests
+        // Check for incoming match requests (only from current lobby players)
         const lobbyPlayers = data.players || [];
+        const now = Date.now();
+        const MATCH_MAX_AGE = 5 * 60 * 1000; // 5 minutes (matches TTL)
+
         for (const player of lobbyPlayers) {
           const matchId = `${player.id}_${myId}`;
           const matchRes = await fetch(`/api/match?matchId=${matchId}`);
           const matchData = await matchRes.json();
 
           if (matchData.ok && matchData.match?.status === "pending") {
-            setIncomingRequest({
-              matchId,
-              from: player.name,
-              gradeLevel: matchData.match.gradeLevel,
-            });
-            break; // Only show one request at a time
+            // ✅ Filter out stale match requests (older than 5 minutes)
+            const matchAge =
+              now -
+              (matchData.match.createdAt
+                ? Number(matchData.match.createdAt)
+                : 0);
+            if (matchAge < MATCH_MAX_AGE) {
+              setIncomingRequest({
+                matchId,
+                from: player.name,
+                gradeLevel: matchData.match.gradeLevel,
+              });
+              break; // Only show one request at a time
+            } else {
+              // ✅ Clean up stale match request
+              console.log("🧹 Cleaning up stale match request:", matchId);
+              fetch(`/api/match?matchId=${matchId}`, {
+                method: "DELETE",
+              }).catch(() => {});
+            }
           }
         }
       } catch (err) {
@@ -797,14 +868,51 @@ const TypeQuestPage = () => {
   };
 
   // Stop polling and leave lobby
-  const leaveLobby = async () => {
+  const leaveLobby = async (excludeMatchId?: string) => {
+    // ✅ Stop polling FIRST
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = null;
     }
 
+    // ✅ Clear incoming request
+    setIncomingRequest(null);
+
     if (myPlayerId) {
       try {
+        // ✅ Clean up any match requests involving this player before leaving
+        // BUT exclude the accepted match (so the requester can still see "accepted")
+        try {
+          const lobbyRes = await fetch(`/api/lobby?exclude=${myPlayerId}`);
+          const lobbyData = await lobbyRes.json();
+          if (lobbyData.ok && lobbyData.players) {
+            for (const player of lobbyData.players) {
+              // Clean up match requests in both directions
+              const matchId1 = `${myPlayerId}_${player.id}`;
+              const matchId2 = `${player.id}_${myPlayerId}`;
+
+              // ✅ Don't delete the accepted match - let the requester delete it
+              if (
+                excludeMatchId &&
+                (matchId1 === excludeMatchId || matchId2 === excludeMatchId)
+              ) {
+                continue;
+              }
+
+              await Promise.all([
+                fetch(`/api/match?matchId=${matchId1}`, {
+                  method: "DELETE",
+                }).catch(() => {}),
+                fetch(`/api/match?matchId=${matchId2}`, {
+                  method: "DELETE",
+                }).catch(() => {}),
+              ]);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to clean up match requests:", err);
+        }
+
         const res = await fetch("/api/lobby", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
@@ -894,14 +1002,13 @@ const TypeQuestPage = () => {
               setGameState(newGameState);
               setGameStatus("active");
 
-              // ✅ Wait a moment before cleanup (let both players sync)
-              setTimeout(() => {
-                fetch(`/api/match?matchId=${matchId}`, {
-                  method: "DELETE",
-                }).catch((err) =>
-                  console.error("Failed to clean up match:", err)
-                );
-              }, 500);
+              // ✅ Player A (requester) deletes the match after seeing "accepted" and starting game
+              // This ensures Player A always sees the status before deletion
+              fetch(`/api/match?matchId=${matchId}`, {
+                method: "DELETE",
+              }).catch((err) =>
+                console.error("Failed to clean up match:", err)
+              );
             } else {
               console.error("❌ Failed to initialize multiplayer game");
               alert("Failed to start multiplayer game");
@@ -910,7 +1017,6 @@ const TypeQuestPage = () => {
             if (hasCompleted) return;
             hasCompleted = true;
             clearInterval(checkInterval);
-            alert("Match request declined");
 
             // ✅ Clean up rejected match
             fetch(`/api/match?matchId=${matchId}`, { method: "DELETE" }).catch(
@@ -918,16 +1024,20 @@ const TypeQuestPage = () => {
             );
           }
         } else if (!data.ok && res.status === 404) {
-          // ✅ Match was deleted (opponent accepted on their end)
+          // ✅ Match was deleted - this means opponent accepted a different request or match expired
+          // Just stop polling silently (no error needed)
           if (hasCompleted) return;
           hasCompleted = true;
           clearInterval(checkInterval);
-        } else {
         }
       } catch (err) {
         console.error("Failed to check match status:", err);
       }
     }, 1000); // check every second
+
+    return () => {
+      clearInterval(checkInterval);
+    };
   };
 
   // Accept incoming match request
@@ -955,7 +1065,8 @@ const TypeQuestPage = () => {
       const [opponentId] = incomingRequest.matchId.split("_");
 
       // Start game!
-      await leaveLobby();
+      // ✅ Don't delete the accepted match - let Player A (requester) delete it after seeing "accepted"
+      await leaveLobby(incomingRequest.matchId);
 
       // Initialize multiplayer game with shared questions
       const newGameState = await initializeGameMultiplayer(
@@ -972,12 +1083,9 @@ const TypeQuestPage = () => {
         setGameState(newGameState);
         setGameStatus("active");
 
-        // ✅ Wait for other player to see "accepted" status before deleting
-        setTimeout(() => {
-          fetch(`/api/match?matchId=${incomingRequest.matchId}`, {
-            method: "DELETE",
-          }).catch((err) => console.error("Failed to clean up match:", err));
-        }, 500);
+        // ✅ Player B (accepter) does NOT delete the match
+        // Player A (requester) will delete it after seeing "accepted" status
+        // This ensures Player A always sees the status before deletion
       } else {
         console.error("❌ Failed to initialize multiplayer game");
         alert("Failed to start multiplayer game");

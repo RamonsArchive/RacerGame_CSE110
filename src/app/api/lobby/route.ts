@@ -27,6 +27,7 @@ function bad(msg: string, code = 400) {
  * Body: { name: string, gradeLevel: GradeLevel, gameMode: GameMode }
  * Joins the lobby, returns { ok, player: { id, name }, ttl }
  */
+// might want to check if existing already exists 
 export async function POST(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
