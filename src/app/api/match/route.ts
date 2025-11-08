@@ -29,6 +29,23 @@ export async function POST(req: NextRequest) {
   const { requesterId, targetId, gradeLevel } = await req.json();
 
   const matchId = `${requesterId}_${targetId}`;
+  
+  // ✅ Check if match already exists
+  const existingMatch = await redis.hgetall(MATCH_KEY(matchId));
+  
+  // ✅ If match exists and is not rejected, return error (can't overwrite pending/accepted)
+  if (existingMatch && existingMatch.status && existingMatch.status !== "rejected") {
+    return NextResponse.json(
+      { ok: false, error: "Match request already exists" },
+      { status: 409 }
+    );
+  }
+  
+  // ✅ Delete existing rejected match (if any) before creating new one
+  if (existingMatch && existingMatch.status === "rejected") {
+    await redis.del(MATCH_KEY(matchId));
+  }
+
   const match: MatchRequest = {
     requesterId,
     targetId,

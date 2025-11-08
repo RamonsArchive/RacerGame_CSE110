@@ -26,9 +26,6 @@ const MultiplayerSetup = ({
 }) => {
   if (!isVisible) return null;
 
-  console.log("Players:", players);
-  console.log("Incoming request:", incomingRequest);
-
   return (
     // Backdrop - darkened and blurred background
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-6">

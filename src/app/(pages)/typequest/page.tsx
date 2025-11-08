@@ -114,7 +114,6 @@ const TypeQuestPage = () => {
 
           // ✅ Check if opponent left the game
           if (opponentProgress.isActive === false && !opponentLeftGame) {
-            console.log("⚠️ Opponent left the game!");
             setOpponentLeftGame(true);
             // Opponent left - mark their current state as final
             setGameState((prevState) => {
@@ -150,8 +149,6 @@ const TypeQuestPage = () => {
 
             const bothFinished =
               opponentProgress.isFinished && prevState.currentPlayer.isFinished;
-
-            console.log("🔍 Opponent progress:", opponentProgress);
             return {
               ...prevState,
               opponent: {
@@ -176,7 +173,6 @@ const TypeQuestPage = () => {
             gameState.currentPlayer.isFinished &&
             gameStatus !== "finished"
           ) {
-            console.log("🏁 Both players finished! Game over.");
             setGameStatus("finished");
           }
         }
@@ -209,7 +205,6 @@ const TypeQuestPage = () => {
 
       // ✅ If player finished, snapshot opponent and stop
       if (currentGameState.currentPlayer.isFinished) {
-        console.log("⏹️ Player finished - snapshotting CPU progress");
         return {
           ...currentGameState,
           opponent: {
@@ -361,17 +356,11 @@ const TypeQuestPage = () => {
 
             // ✅ ADD THIS CHECK: Don't update if game was reset
             if (!currentState || currentState.status !== "active") {
-              console.log(
-                "⏹️ CPU timer fired but game is not active - ignoring"
-              );
               return currentState;
             }
 
             // ✅ Check if we're resetting
             if (hasResetRef.current) {
-              console.log(
-                "⏹️ CPU timer fired but game is resetting - ignoring"
-              );
               return null;
             }
 
@@ -430,7 +419,6 @@ const TypeQuestPage = () => {
     ) {
       try {
         const result = createGameResult(gameState); // this saves game result as well
-        console.log("Game result created:", result);
       } catch (error) {
         console.error("Error creating game result:", error);
       }
@@ -446,7 +434,6 @@ const TypeQuestPage = () => {
       gameState?.gameId &&
       gameState?.currentPlayer.playerId
     ) {
-      console.log("🚪 Leaving multiplayer game, notifying opponent...");
       fetch("/api/game/progress", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -492,14 +479,6 @@ const TypeQuestPage = () => {
 
   const handleGameStart = useCallback(
     (gameMode: GameMode, gradeLevel: GradeLevel, playerName: string) => {
-      console.log(
-        "Starting game with mode:",
-        gameMode,
-        "gradeLevel:",
-        gradeLevel,
-        "playerName:",
-        playerName
-      );
       const newGameState = initializeGame(gameMode, gradeLevel, playerName);
       newGameState.status = "active";
       newGameState.startTime = Date.now();
@@ -586,8 +565,6 @@ const TypeQuestPage = () => {
           gameState.mode === "solo" &&
           gameState.opponent
         ) {
-          console.log("📸 Player finished - snapshotting opponent state");
-
           // Clear CPU timer immediately
           if (cpuTimerRef.current) {
             clearTimeout(cpuTimerRef.current);
@@ -652,7 +629,6 @@ const TypeQuestPage = () => {
           }
         } else if (isPlayerFinished && gameState.mode === "multiplayer") {
           // Show finished screen but keep status "active" until both done
-          console.log("🏁 You finished! Waiting for opponent...");
           setGameStatus("finished"); // Show finished UI
           // Polling will continue until opponent finishes
         }
@@ -726,7 +702,6 @@ const TypeQuestPage = () => {
       if (newGameState) {
         setGameState(newGameState);
         setGameStatus("active");
-        console.log("🎮 Rematch started!");
       } else {
         console.error("❌ Failed to start rematch");
         alert("Failed to start rematch");
@@ -735,8 +710,6 @@ const TypeQuestPage = () => {
     },
     [myPlayerId, handleGameReset]
   );
-
-  console.log("Rendering - gameStatus:", gameStatus, "gameState:", gameState);
 
   /* ****************************************************** */
   /* MULTIPLAYER */
@@ -749,8 +722,6 @@ const TypeQuestPage = () => {
     gameMode: GameMode
   ) => {
     try {
-      console.log("Joining lobby with:", { playerName, gradeLevel, gameMode });
-
       // Store setup values in ref for later use (when initializing multiplayer game)
       setupValuesRef.current = { playerName, gradeLevel, gameMode };
 
@@ -763,9 +734,7 @@ const TypeQuestPage = () => {
           gameMode,
         }),
       });
-      console.log("Response:", res);
       const data = await res.json();
-      console.log("Data:", data);
       if (data.ok) {
         setMyPlayerId(data.player.id);
         setMultiplayerView(true);
@@ -784,10 +753,8 @@ const TypeQuestPage = () => {
     const pollPlayers = async () => {
       try {
         // Fetch available players
-        console.log("Polling players");
         const res = await fetch(`/api/lobby?exclude=${myId}`);
         const data = await res.json();
-        console.log("Data:", data);
         if (data.ok) {
           setMultiplayerPlayers(data.players);
         }
@@ -798,10 +765,8 @@ const TypeQuestPage = () => {
           const matchId = `${player.id}_${myId}`;
           const matchRes = await fetch(`/api/match?matchId=${matchId}`);
           const matchData = await matchRes.json();
-          console.log("getting match data:", matchData);
 
           if (matchData.ok && matchData.match?.status === "pending") {
-            console.log("Incoming request:", matchData.match);
             setIncomingRequest({
               matchId,
               from: player.name,
@@ -824,7 +789,6 @@ const TypeQuestPage = () => {
 
   // Stop polling and leave lobby
   const leaveLobby = async () => {
-    console.log("Leaving lobby");
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = null;
@@ -838,7 +802,6 @@ const TypeQuestPage = () => {
           body: JSON.stringify({ id: myPlayerId }),
         });
         const leaveData = await res.json();
-        console.log("Leaving body:", leaveData);
       } catch (err) {
         console.error("Failed to leave lobby:", err);
       }
@@ -875,12 +838,6 @@ const TypeQuestPage = () => {
     opponentId: string,
     opponentName: string
   ) => {
-    console.log("⏳ Waiting for match acceptance:", {
-      matchId,
-      opponentId,
-      opponentName,
-    });
-
     let hasCompleted = false;
 
     const checkInterval = setInterval(async () => {
@@ -889,13 +846,10 @@ const TypeQuestPage = () => {
         const data = await res.json();
 
         if (data.ok && data.match) {
-          console.log("📊 Match status:", data.match.status);
-
           if (data.match.status === "completed") {
             if (hasCompleted) return;
             hasCompleted = true;
             clearInterval(checkInterval);
-            console.log("❌ Match completed");
             alert("Match request timed out");
 
             // ✅ Clean up completed match
@@ -912,7 +866,6 @@ const TypeQuestPage = () => {
             if (hasCompleted) return;
             hasCompleted = true;
             clearInterval(checkInterval);
-            console.log("✅ Match accepted! Starting game...");
 
             // START GAME!
             await leaveLobby();
@@ -931,15 +884,14 @@ const TypeQuestPage = () => {
             if (newGameState) {
               setGameState(newGameState);
               setGameStatus("active");
-              console.log("🎮 Multiplayer game started!");
 
               // ✅ Wait a moment before cleanup (let both players sync)
               setTimeout(() => {
-                fetch(`/api/match?matchId=${matchId}`, { method: "DELETE" })
-                  .then(() => console.log("🧹 Cleaned up match request"))
-                  .catch((err) =>
-                    console.error("Failed to clean up match:", err)
-                  );
+                fetch(`/api/match?matchId=${matchId}`, {
+                  method: "DELETE",
+                }).catch((err) =>
+                  console.error("Failed to clean up match:", err)
+                );
               }, 500);
             } else {
               console.error("❌ Failed to initialize multiplayer game");
@@ -949,7 +901,6 @@ const TypeQuestPage = () => {
             if (hasCompleted) return;
             hasCompleted = true;
             clearInterval(checkInterval);
-            console.log("❌ Match rejected");
             alert("Match request declined");
 
             // ✅ Clean up rejected match
@@ -959,15 +910,10 @@ const TypeQuestPage = () => {
           }
         } else if (!data.ok && res.status === 404) {
           // ✅ Match was deleted (opponent accepted on their end)
-          console.log("🎮 Match deleted - opponent accepted, starting game...");
           if (hasCompleted) return;
           hasCompleted = true;
           clearInterval(checkInterval);
-          console.log(
-            "⏳ Opponent accepted and started game, waiting for sync..."
-          );
         } else {
-          console.log("⏳ Still waiting for match response...");
         }
       } catch (err) {
         console.error("Failed to check match status:", err);
@@ -990,7 +936,6 @@ const TypeQuestPage = () => {
       });
 
       const acceptData = await res.json();
-      console.log("✅ Accepted match request:", acceptData);
 
       if (!acceptData.ok) {
         alert("Failed to accept match");
@@ -999,13 +944,6 @@ const TypeQuestPage = () => {
 
       // Extract opponent ID from matchId (format: "requesterId_targetId")
       const [opponentId] = incomingRequest.matchId.split("_");
-
-      console.log("🎮 Starting game after acceptance:", {
-        matchId: incomingRequest.matchId,
-        myPlayerId,
-        opponentId,
-        opponentName: incomingRequest.from,
-      });
 
       // Start game!
       await leaveLobby();
@@ -1024,15 +962,12 @@ const TypeQuestPage = () => {
       if (newGameState) {
         setGameState(newGameState);
         setGameStatus("active");
-        console.log("🎮 Multiplayer game started!");
 
         // ✅ Wait for other player to see "accepted" status before deleting
         setTimeout(() => {
           fetch(`/api/match?matchId=${incomingRequest.matchId}`, {
             method: "DELETE",
-          })
-            .then(() => console.log("🧹 Cleaned up match request"))
-            .catch((err) => console.error("Failed to clean up match:", err));
+          }).catch((err) => console.error("Failed to clean up match:", err));
         }, 500);
       } else {
         console.error("❌ Failed to initialize multiplayer game");
@@ -1045,6 +980,7 @@ const TypeQuestPage = () => {
 
   // Reject incoming match request
   const handleRejectMatch = async () => {
+    console.log("Rejecting match:", incomingRequest);
     if (!incomingRequest) return;
 
     try {
@@ -1056,15 +992,14 @@ const TypeQuestPage = () => {
           status: "rejected",
         }),
       });
-      console.log("Incoming request set to null");
-      console.log("Response:", res);
+
+      const rejectData = await res.json();
+      console.log("Rejected match:", rejectData);
 
       // ✅ Clean up rejected match request
       await fetch(`/api/match?matchId=${incomingRequest.matchId}`, {
         method: "DELETE",
-      })
-        .then(() => console.log("🧹 Cleaned up rejected match"))
-        .catch((err) => console.error("Failed to clean up:", err));
+      }).catch((err) => console.error("Failed to clean up:", err));
 
       setIncomingRequest(null);
     } catch (err) {
@@ -1080,6 +1015,31 @@ const TypeQuestPage = () => {
       }
     };
   }, []);
+
+  const handleRejectRematch = async (matchId: string) => {
+    try {
+      // ✅ Step 1: Set status to rejected
+      const res = await fetch("/api/match", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          matchId: matchId,
+          status: "rejected",
+        }),
+      });
+      const rejectData = await res.json();
+      console.log("Rejected rematch:", rejectData);
+
+      // ✅ Step 2: Wait a moment for the requester to see the rejection
+      // Wait 2 seconds to ensure the requester's polling (every 1 second) sees the "rejected" status
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // ✅ Step 3: Delete the match to clean up
+      await fetch(`/api/match?matchId=${matchId}`, { method: "DELETE" });
+    } catch (err) {
+      console.error("Failed to reject rematch:", err);
+    }
+  };
 
   return (
     <div className="w-full h-dvh bg-linear-to-br from-primary-800 via-secondary-800 to-tertiary-700">
@@ -1111,11 +1071,12 @@ const TypeQuestPage = () => {
         <TQ_FinishedScreen
           gameState={gameState}
           onPlayAgain={handleGameReset}
-          onBackHome={handleBackHome}
+          handleGameReset={handleGameReset}
           shouldPollOpponent={shouldPollOpponent as boolean}
           opponentLeftGame={opponentLeftGame}
           myPlayerId={myPlayerId}
           onRematchAccepted={handleRematchAccepted}
+          handleRejectRematch={handleRejectRematch}
         />
       )}
       {!gameStatus ||
