@@ -127,7 +127,7 @@ export const GAME_CONFIG = {
   // Points system
   BASE_POINTS: 100,
   SPEED_BONUS_MULTIPLIER: 20,
-  MISTAKE_PENALTY: 10,
+  MISTAKE_PENALTY: 20,
   PERFECT_BONUS: 50,
 
   // Target times by grade band (seconds per question)
