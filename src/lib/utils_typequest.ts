@@ -253,14 +253,6 @@ export const initializeGame = (
     questionCount: number = GAME_CONFIG.DEFAULT_QUESTIONS
   ): GameState => {
     const questions = getGameQuestions(gradeLevel, questionCount);
-
-      // const questionsWithChoices = questions.map((question) => {
-      //   return {
-      //     ...question,
-      //     choices: getChoices(question, gradeLevel, 4),
-      //   };
-      // });
-
     
     return {
       gameId: generateGameId(),

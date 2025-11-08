@@ -10,7 +10,7 @@ import TQ_RematchAcceptToast from "./TQ_RematchAcceptToast";
 
 interface TQ_FinishedScreenProps {
   gameState: GameState | null;
-  onPlayAgain: () => void;
+  handlePlayAgainWithCPU: (gameState: GameState) => void;
   shouldPollOpponent: boolean;
   opponentLeftGame?: boolean;
   handleGameReset: () => void;
@@ -26,7 +26,7 @@ interface TQ_FinishedScreenProps {
 
 const TQ_FinishedScreen = ({
   gameState,
-  onPlayAgain,
+  handlePlayAgainWithCPU,
   shouldPollOpponent,
   opponentLeftGame = false,
   myPlayerId,
@@ -183,7 +183,7 @@ const TQ_FinishedScreen = ({
   return (
     <>
       <div
-        className="flex items-start justify-end w-full h-dvh p-4 relative"
+        className="flex items-start justify-center w-full h-dvh p-4 relative "
         style={{
           backgroundImage: "url(/Assets/TypeQuest/finish.png)",
           backgroundSize: "cover",
@@ -252,7 +252,7 @@ const TQ_FinishedScreen = ({
                 ) : (
                   /* Solo: Show Play Again button */
                   <button
-                    onClick={onPlayAgain}
+                    onClick={() => handlePlayAgainWithCPU(gameState)}
                     className="flex-1 bg-green-600/90 hover:bg-green-700/90 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
                   >
                     Play Again

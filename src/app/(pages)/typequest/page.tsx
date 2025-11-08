@@ -477,6 +477,15 @@ const TypeQuestPage = () => {
     }, 100);
   }, [gameState]);
 
+  const handlePlayAgainWithCPU = useCallback((gameState: GameState) => {
+    handleGameReset();
+    handleGameStart(
+      gameState.mode,
+      gameState.gradeLevel,
+      gameState.currentPlayer.playerName
+    );
+  }, []);
+
   const handleGameStart = useCallback(
     (gameMode: GameMode, gradeLevel: GradeLevel, playerName: string) => {
       const newGameState = initializeGame(gameMode, gradeLevel, playerName);
@@ -1070,7 +1079,7 @@ const TypeQuestPage = () => {
       {gameStatus === "finished" && gameState && (
         <TQ_FinishedScreen
           gameState={gameState}
-          onPlayAgain={handleGameReset}
+          handlePlayAgainWithCPU={handlePlayAgainWithCPU}
           handleGameReset={handleGameReset}
           shouldPollOpponent={shouldPollOpponent as boolean}
           opponentLeftGame={opponentLeftGame}
