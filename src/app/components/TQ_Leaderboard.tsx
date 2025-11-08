@@ -238,9 +238,23 @@ const TQ_Leaderboard = ({
             leaderboardData.map((entry, index) => {
               const isCurrentGame = entry.gameId === currentGameId;
 
+              // Debug logging for multiplayer gameId matching (only log matches or first entry)
+              if (
+                mode === "multiplayer" &&
+                currentGameId &&
+                (isCurrentGame || index === 0)
+              ) {
+                console.log("🔍 Leaderboard gameId comparison:", {
+                  entryGameId: entry.gameId,
+                  currentGameId,
+                  matches: isCurrentGame,
+                  playerName: entry.playerName,
+                });
+              }
+
               return (
                 <div
-                  key={entry.gameId} // ✅ Should now be unique
+                  key={`${entry.gameId}_${entry.date}`} // ✅ Unique key: gameId + timestamp ensures uniqueness even for rematches
                   className={`grid grid-cols-[auto_2fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-3 rounded-lg transition-all duration-300 ${
                     isCurrentGame
                       ? "bg-green-500/20 border-2 border-green-400 shadow-lg shadow-green-500/20"

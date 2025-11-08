@@ -276,7 +276,13 @@ const TQ_FinishedScreen = ({
         onClose={() => setOpenLeaderboard(false)}
         gradeLevel={gameState?.gradeLevel}
         mode={gameState?.mode}
-        currentGameId={gameState?.gameId}
+        currentGameId={
+          // ✅ Match the format used in createGameResult for multiplayer
+          gameState?.mode === "multiplayer" &&
+          gameState?.currentPlayer?.playerId
+            ? `${gameState.gameId}_${gameState.currentPlayer.playerId}`
+            : gameState?.gameId
+        }
       />
 
       <TQ_RematchAcceptToast
