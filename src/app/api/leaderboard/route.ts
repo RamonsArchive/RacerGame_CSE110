@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Parse JSON results
-    const leaderboard = results.map((entry: any) => {
+    const leaderboard = results.map((entry: string | unknown) => {
       try {
         return typeof entry === "string" ? JSON.parse(entry) : entry;
       } catch (err) {
@@ -58,10 +58,10 @@ export async function GET(req: NextRequest) {
       leaderboard,
       count: leaderboard.length,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Failed to get leaderboard:", error);
     return NextResponse.json(
-      { ok: false, error: error?.message || "Failed to get leaderboard" },
+      { ok: false, error: error instanceof Error ? error.message : "Failed to get leaderboard" },
       { status: 500 }
     );
   }
@@ -116,10 +116,10 @@ export async function POST(req: NextRequest) {
       ok: true,
       message: "Game result saved to leaderboard",
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Failed to save to leaderboard:", error);
     return NextResponse.json(
-      { ok: false, error: error?.message || "Failed to save to leaderboard" },
+      { ok: false, error: error instanceof Error ? error.message : "Failed to save to leaderboard" },
       { status: 500 }
     );
   }
@@ -168,10 +168,10 @@ export async function DELETE(req: NextRequest) {
         deletedCount: keys.length,
       });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Failed to delete leaderboard:", error);
     return NextResponse.json(
-      { ok: false, error: error?.message || "Failed to delete leaderboard" },
+      { ok: false, error: error instanceof Error ? error.message : "Failed to delete leaderboard" },
       { status: 500 }
     );
   }

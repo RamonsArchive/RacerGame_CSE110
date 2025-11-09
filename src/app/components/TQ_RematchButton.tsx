@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { GradeLevel, GameMode } from "@/app/constants/index_typequest";
 
 interface RematchButtonProps {
@@ -20,13 +20,13 @@ const TQ_RematchButton = ({
   opponentId,
   opponentName,
   gradeLevel,
-  gameMode,
+  gameMode: _gameMode,
   onRematchAccepted,
 }: RematchButtonProps) => {
   const [rematchStatus, setRematchStatus] = useState<
-    "idle" | "waiting" | "ready"
+    "idle" | "waiting" | "ready" | "rejected"
   >("idle");
-  const [matchId, setMatchId] = useState<string>("");
+  const [_matchId, setMatchId] = useState<string>("");
 
   // Request rematch
   const handleRematchRequest = async () => {
@@ -49,6 +49,10 @@ const TQ_RematchButton = ({
 
         // Start polling for acceptance
         pollForRematchAcceptance(data.matchId);
+      } else {
+        // Handle error (e.g., match already exists)
+        console.error("Failed to create rematch request:", data.error);
+        alert("Failed to send rematch request");
       }
     } catch (err) {
       console.error("Failed to request rematch:", err);
@@ -59,6 +63,7 @@ const TQ_RematchButton = ({
   // Poll for rematch acceptance
   const pollForRematchAcceptance = (matchId: string) => {
     let hasCompleted = false;
+    let lastSeenStatus: "pending" | "accepted" | "rejected" | null = null;
 
     const checkInterval = setInterval(async () => {
       try {
@@ -66,6 +71,12 @@ const TQ_RematchButton = ({
         const data = await res.json();
 
         if (data.ok && data.match) {
+          // Track the status we see
+          lastSeenStatus = data.match.status as
+            | "pending"
+            | "accepted"
+            | "rejected";
+
           if (data.match.status === "accepted") {
             if (hasCompleted) return; // Prevent double-triggering
             hasCompleted = true;
@@ -82,21 +93,46 @@ const TQ_RematchButton = ({
             hasCompleted = true;
             clearInterval(checkInterval);
             console.log("❌ Rematch rejected");
-            setRematchStatus("idle");
-            alert("Opponent declined rematch");
+            setRematchStatus("rejected");
 
             // Clean up rejected match
             await fetch(`/api/match?matchId=${matchId}`, { method: "DELETE" });
+
+            // Reset to idle after 5 seconds
+            setTimeout(() => {
+              setRematchStatus("idle");
+            }, 5000);
           }
         } else if (!data.ok && res.status === 404) {
-          // ✅ Match was deleted (opponent accepted on their end and started the game)
-          console.log("🎮 Match deleted - opponent accepted, starting game...");
+          // ✅ Match was deleted
           if (hasCompleted) return;
-          hasCompleted = true;
-          clearInterval(checkInterval);
 
-          // ✅ IMPORTANT: Opponent accepted and deleted the match, so we need to start our game too!
-          onRematchAccepted(matchId, opponentId, opponentName);
+          if (lastSeenStatus === "accepted") {
+            // We saw "accepted" before deletion, so opponent accepted and started game
+            hasCompleted = true;
+            clearInterval(checkInterval);
+            console.log("🎮 Match deleted after acceptance - starting game...");
+            onRematchAccepted(matchId, opponentId, opponentName);
+          } else if (lastSeenStatus === "rejected") {
+            // We saw "rejected" before deletion, so opponent rejected it
+            hasCompleted = true;
+            clearInterval(checkInterval);
+            console.log("❌ Match deleted after rejection");
+            setRematchStatus("rejected");
+            setTimeout(() => {
+              setRematchStatus("idle");
+            }, 5000);
+          } else {
+            // Match was deleted but we never saw accepted/rejected
+            // Since Player B no longer deletes the match (only Player A does after seeing "accepted"),
+            // this shouldn't happen unless there's a timeout or manual deletion
+            // If we're still waiting, continue polling in case the match was just slow to update
+            console.log(
+              "⚠️ Match deleted without seeing status - continuing to poll..."
+            );
+            // Don't stop polling yet - the match might have been deleted by timeout
+            // Continue polling for a bit more to see if status appears
+          }
         }
       } catch (err) {
         console.error("Failed to check rematch status:", err);
@@ -113,97 +149,28 @@ const TQ_RematchButton = ({
     }, 30000);
   };
 
-  // Check for incoming rematch requests (only when idle)
-  useEffect(() => {
-    // ✅ Only poll for incoming requests if we're not waiting for our own request
-    if (rematchStatus !== "idle") {
-      return;
-    }
-
-    const checkForIncomingRematch = async () => {
-      try {
-        const incomingMatchId = `${opponentId}_${myPlayerId}`;
-        const res = await fetch(`/api/match?matchId=${incomingMatchId}`);
-        const data = await res.json();
-
-        if (data.ok && data.match && data.match.status === "pending") {
-          console.log("📥 Incoming rematch request detected");
-          setMatchId(incomingMatchId);
-          setRematchStatus("ready");
-        }
-      } catch (err) {
-        // No incoming request (404 is expected if no request exists)
-        console.log("⏳ No incoming rematch yet");
-      }
-    };
-
-    // Initial check
-    checkForIncomingRematch();
-
-    // Poll for incoming requests every 2 seconds
-    const interval = setInterval(checkForIncomingRematch, 2000);
-
-    return () => clearInterval(interval);
-  }, [myPlayerId, opponentId, rematchStatus]);
-
-  // Accept incoming rematch
-  const handleAcceptRematch = async () => {
-    try {
-      // ✅ Step 1: Accept the match (set status to "accepted")
-      await fetch("/api/match", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          matchId,
-          status: "accepted",
-        }),
-      });
-
-      console.log("✅ Accepted rematch request");
-
-      // ✅ Step 2: Wait a moment for the other player to see the "accepted" status
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      // ✅ Step 3: Clean up match request
-      await fetch(`/api/match?matchId=${matchId}`, { method: "DELETE" });
-
-      // ✅ Step 4: Trigger rematch
-      onRematchAccepted(matchId, opponentId, opponentName);
-    } catch (err) {
-      console.error("Failed to accept rematch:", err);
-      alert("Failed to accept rematch");
-    }
-  };
-
   return (
-    <div className="flex flex-col flex-1 items-center justify-center">
-      {rematchStatus === "idle" && (
-        <button
-          onClick={handleRematchRequest}
-          className="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white font-bold text-lg py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
-        >
-          <span>🔄</span>
-          Request Rematch
-        </button>
-      )}
-
-      {rematchStatus === "waiting" && (
-        <div className="flex items-center justify-center gap-3 w-full bg-yellow-500/20 border border-yellow-400/40 text-yellow-200 font-semibold text-lg py-4 rounded-lg backdrop-blur-sm wrap-break-words">
+    <div className="flex flex-col flex-1">
+      {rematchStatus === "waiting" ? (
+        <div className="flex items-center justify-center gap-3 w-full bg-yellow-500/20 border border-yellow-400/40 text-yellow-200 font-semibold text-lg px-6 py-4 rounded-lg backdrop-blur-sm">
           <span className="relative flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-500"></span>
           </span>
           <span>⏳ Waiting for {opponentName}...</span>
         </div>
-      )}
-
-      {rematchStatus === "ready" && (
+      ) : rematchStatus === "rejected" ? (
+        <div className="flex items-center justify-center gap-3 w-full bg-red-500/20 border border-red-400/40 text-red-200 font-semibold text-lg px-6 py-4 rounded-lg backdrop-blur-sm">
+          <span>❌</span>
+          <span>{opponentName} declined rematch</span>
+        </div>
+      ) : (
         <button
-          onClick={handleAcceptRematch}
-          className="flex flex-row items-center justify-center gap-2 w-full bg-linear-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-bold text-lg py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg animate-pulse wrap-break-words"
+          onClick={handleRematchRequest}
+          className="flex items-center justify-center gap-2 w-full bg-green-600/90 hover:bg-green-700/90 text-white font-bold text-lg px-6 py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
         >
-          <span>🎮</span>
-          <span>{opponentName} wants a rematch!</span>
+          <span>🔄</span>
+          Request Rematch
         </button>
       )}
     </div>

@@ -1,18 +1,19 @@
 // components/TQ_FinishedScreen.tsx DONT FORGET TO KEEP THE REMATCH BUTTON
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { GameState } from "../constants/index_typequest";
 import TQ_Summary from "./TQ_Summary";
 import TQ_Leaderboard from "./TQ_Leaderboard";
 import TQ_RematchButton from "./TQ_RematchButton";
 import { calculateGameScore } from "@/lib/utils_typequest";
+import TQ_RematchAcceptToast from "./TQ_RematchAcceptToast";
 
 interface TQ_FinishedScreenProps {
   gameState: GameState | null;
-  onPlayAgain: () => void;
-  onBackHome: () => void;
+  handlePlayAgainWithCPU: (gameState: GameState) => void;
   shouldPollOpponent: boolean;
   opponentLeftGame?: boolean;
+  handleGameReset: () => void;
   // Multiplayer rematch props
   myPlayerId?: string | null;
   onRematchAccepted?: (
@@ -20,16 +21,18 @@ interface TQ_FinishedScreenProps {
     opponentId: string,
     opponentName: string
   ) => void;
+  handleRejectRematch: (matchId: string) => void;
 }
 
 const TQ_FinishedScreen = ({
   gameState,
-  onPlayAgain,
-  onBackHome,
+  handlePlayAgainWithCPU,
   shouldPollOpponent,
   opponentLeftGame = false,
   myPlayerId,
   onRematchAccepted,
+  handleGameReset,
+  handleRejectRematch,
 }: TQ_FinishedScreenProps) => {
   const [openLeaderboard, setOpenLeaderboard] = useState(false);
 
@@ -37,13 +40,8 @@ const TQ_FinishedScreen = ({
   const [opponentTotalPoints, setOpponentTotalPoints] = useState(0);
   const [winner, setWinner] = useState<"win" | "loss" | "tie" | null>(null);
 
-  // Add this early return
-  if (!gameState) {
-    return null;
-  }
-
   // ✅ Calculate points - MUST match createGameResult logic exactly!
-  const calculateCurrentPlayerTotalPoints = () => {
+  const calculateCurrentPlayerTotalPoints = useCallback(() => {
     if (!gameState || !gameState.startTime) return 0;
 
     // ✅ Use player's individual finishTime (same as createGameResult)
@@ -59,9 +57,9 @@ const TQ_FinishedScreen = ({
       gameState.targetTimePerQuestion,
       gameState.totalQuestions
     );
-  };
+  }, [gameState]);
 
-  const calculateOpponentTotalPoints = () => {
+  const calculateOpponentTotalPoints = useCallback(() => {
     if (!gameState || !gameState.startTime || !gameState.opponent) return 0;
 
     // ✅ Use opponent's individual finishTime (same as createGameResult)
@@ -77,7 +75,7 @@ const TQ_FinishedScreen = ({
       gameState.targetTimePerQuestion,
       gameState.totalQuestions
     );
-  };
+  }, [gameState]);
 
   useEffect(() => {
     // ✅ Calculate points first
@@ -105,18 +103,28 @@ const TQ_FinishedScreen = ({
       oppPoints,
       winner: calculatedWinner,
     });
-  }, [gameState]);
+  }, [
+    gameState,
+    calculateCurrentPlayerTotalPoints,
+    calculateOpponentTotalPoints,
+  ]);
 
-  console.log("🎮 Finished Screen State:", {
-    winner,
-    currentPlayerTotalPoints,
-    opponentTotalPoints,
-    shouldPollOpponent,
-    myPlayerId,
-  });
+  const getWinnerMessage = useCallback(() => {
+    if (!gameState || !winner) return null;
 
-  const getWinnerMessage = () => {
-    if (!winner) return null;
+    if (gameState.mode === "multiplayer" && !gameState.opponent?.isFinished) {
+      return (
+        <div className="flex flex-col items-start gap-2">
+          <p className="text-5xl">⏳</p>
+          <p className="text-3xl font-bold text-yellow-400">
+            Waiting for opponent...
+          </p>
+          <p className="text-lg text-slate-300">
+            Waiting for opponent to finish...
+          </p>
+        </div>
+      );
+    }
 
     switch (winner) {
       case "win":
@@ -148,38 +156,46 @@ const TQ_FinishedScreen = ({
         return (
           <div className="flex flex-col items-start gap-2">
             <p className="text-5xl">🤝</p>
-            <p className="text-3xl font-bold text-yellow-400">It's a Tie!</p>
+            <p className="text-3xl font-bold text-yellow-400">
+              It&apos;s a Tie!
+            </p>
             <p className="text-lg text-slate-300">
               Both scored {currentPlayerTotalPoints} points
             </p>
           </div>
         );
     }
-  };
+  }, [winner, currentPlayerTotalPoints, opponentTotalPoints, gameState]);
 
   return (
     <>
-      <div 
-        className="flex items-start justify-end w-full h-dvh p-4 relative"
+      <div
+        className="flex items-start justify-center w-full h-dvh p-4 relative "
         style={{
-          backgroundImage: 'url(/Assets/TypeQuest/finish.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
+          backgroundImage: "url(/Assets/TypeQuest/finish.png)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
         }}
       >
-        <div className="flex flex-row items-start gap-8 w-full max-w-5xl p-10 bg-transparent rounded-2xl mt-8 mr-8">
+        <div className="flex flex-row items-start gap-10 w-full max-w-5xl p-10 bg-transparent rounded-2xl mt-8 mr-8">
           {/* Left side: Title and Winner Announcement */}
-          <div className="flex flex-col gap-6 flex-shrink-0">
+          <div className="flex flex-col gap-6 shrink-0">
             {/* Title */}
             <div className="flex items-start">
-              <h1 className="text-5xl font-bold text-white drop-shadow-2xl">
-                Race Completed! 
-              </h1>
+              <div className="px-6 py-4 bg-linear-to-br from-slate-800/90 via-slate-700/80 to-slate-900/90 rounded-lg shadow-md border border-white/10">
+                <h1 className="text-5xl font-bold text-white">
+                  Race Completed!
+                </h1>
+              </div>
             </div>
 
             {/* Winner Announcement */}
-            <div className="flex items-start">{getWinnerMessage()}</div>
+            <div className="flex items-start">
+              <div className="px-6 py-4 bg-linear-to-br from-slate-800/90 via-slate-700/80 to-slate-900/90 rounded-lg shadow-md border border-white/10">
+                {getWinnerMessage()}
+              </div>
+            </div>
           </div>
 
           {/* Right side: Summary and Action Buttons */}
@@ -199,7 +215,7 @@ const TQ_FinishedScreen = ({
             <div className="flex flex-col w-full gap-3">
               <button
                 onClick={() => setOpenLeaderboard(true)}
-                className="flex items-center justify-center gap-2 w-full bg-slate-200/80 hover:bg-slate-100/80 text-slate-900 font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+                className="flex items-center justify-center gap-2 w-full bg-slate-200/90 hover:bg-slate-100/90 text-slate-900 font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
               >
                 <span>🏆</span>
                 View Leaderboard
@@ -223,17 +239,19 @@ const TQ_FinishedScreen = ({
                 ) : (
                   /* Solo: Show Play Again button */
                   <button
-                    onClick={onPlayAgain}
-                    className="flex-1 bg-green-600/80 hover:bg-green-700/80 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+                    onClick={() =>
+                      gameState && handlePlayAgainWithCPU(gameState)
+                    }
+                    className="flex-1 bg-green-600/90 hover:bg-green-700/90 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
                   >
                     Play Again
                   </button>
                 )}
                 <button
-                  onClick={onBackHome}
-                  className="flex-1 bg-primary-600/80 hover:bg-primary-700/80 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+                  onClick={handleGameReset}
+                  className="flex-1 bg-primary-600/90 hover:bg-primary-700/90 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
                 >
-                  Home
+                  Back to Menu
                 </button>
               </div>
             </div>
@@ -247,8 +265,27 @@ const TQ_FinishedScreen = ({
         onClose={() => setOpenLeaderboard(false)}
         gradeLevel={gameState?.gradeLevel}
         mode={gameState?.mode}
-        currentGameId={gameState?.gameId}
+        currentGameId={
+          // ✅ Match the format used in createGameResult for multiplayer
+          gameState?.mode === "multiplayer" &&
+          gameState?.currentPlayer?.playerId
+            ? `${gameState.gameId}_${gameState.currentPlayer.playerId}`
+            : gameState?.gameId
+        }
       />
+
+      {gameState && (
+        <TQ_RematchAcceptToast
+          myPlayerId={myPlayerId}
+          opponentId={gameState.opponent?.playerId}
+          opponentName={gameState.opponent?.playerName}
+          matchId={gameState.gameId}
+          gradeLevel={gameState.gradeLevel}
+          gameMode={gameState.mode}
+          onRematchAccepted={onRematchAccepted!}
+          handleRejectRematch={handleRejectRematch!}
+        />
+      )}
     </>
   );
 };

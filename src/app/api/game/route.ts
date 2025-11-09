@@ -12,7 +12,7 @@ type GameRoom = {
   player2Id: string;
   player2Name: string;
   gradeLevel: string;
-  questions: any[]; // Shared questions for both players
+  questions: unknown[]; // Shared questions for both players
   createdAt: number;
   status: "waiting" | "active" | "finished";
 };
@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
         ok: true,
         roomId,
         questions: existing.questions,
+        createdAt: existing.createdAt, // ✅ Return createdAt as startTime
         message: "Game room already exists",
       });
     }
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
     };
 
     // Store game room in Redis
-    await redis.hset(GAME_ROOM_KEY(roomId), gameRoom as any);
+    await redis.hset(GAME_ROOM_KEY(roomId), gameRoom as Record<string, string | number | unknown[]>);
     await redis.expire(GAME_ROOM_KEY(roomId), GAME_TTL);
 
     console.log("✅ Game room created:", roomId);
@@ -91,12 +92,13 @@ export async function POST(req: NextRequest) {
       ok: true,
       roomId,
       questions,
+      createdAt: gameRoom.createdAt, // ✅ Return createdAt as startTime
       message: "Game room created",
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("❌ Failed to create game room: in match route", err);
     return NextResponse.json(
-      { ok: false, error: err?.message || "Failed to create game room" },
+      { ok: false, error: err instanceof Error ? err.message : "Failed to create game room" },
       { status: 500 }
     );
   }
@@ -140,9 +142,9 @@ export async function GET(req: NextRequest) {
       ok: true,
       gameRoom,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { ok: false, error: err?.message || "Failed to fetch game room" },
+      { ok: false, error: err instanceof Error ? err.message : "Failed to fetch game room" },
       { status: 500 }
     );
   }
@@ -176,9 +178,9 @@ export async function DELETE(req: NextRequest) {
     await redis.del(GAME_ROOM_KEY(roomId));
 
     return NextResponse.json({ ok: true, message: "Game room deleted" });
-  } catch (err: any) {
+  } catch (err: unknown) {
     return NextResponse.json(
-      { ok: false, error: err?.message || "Failed to delete game room" },
+      { ok: false, error: err instanceof Error ? err.message : "Failed to delete game room" },
       { status: 500 }
     );
   }

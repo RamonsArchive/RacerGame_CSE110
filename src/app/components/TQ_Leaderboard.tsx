@@ -1,6 +1,6 @@
 // components/TQ_Leaderboard.tsx
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { X, Trophy, Medal, Award, Trash2 } from "lucide-react";
 import { GameResult, GradeLevel, GameMode } from "../constants/index_typequest";
 import {
@@ -29,22 +29,30 @@ const TQ_Leaderboard = ({
   const [leaderboardData, setLeaderboardData] = useState<GameResult[]>([]);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentMode, setCurrentMode] = useState<GameMode>(mode || "solo");
+  const [currentGradeLevel, setCurrentGradeLevel] = useState<GradeLevel>(
+    gradeLevel || "K"
+  );
 
   /**
    * ✅ Fetch leaderboard data
    * - Multiplayer: Fetch from Redis API
    * - Solo: Fetch from localStorage
    */
-  const loadLeaderboard = async () => {
+  const loadLeaderboard = useCallback(async () => {
     setIsLoading(true);
     try {
-      if (mode === "multiplayer" && gradeLevel) {
+      if (currentMode === "multiplayer" && currentGradeLevel) {
         // Fetch from Redis API
-        const data = await getLeaderboardMultiplayer(mode, gradeLevel, 10);
+        const data = await getLeaderboardMultiplayer(
+          currentMode,
+          currentGradeLevel,
+          10
+        );
         setLeaderboardData(data);
       } else {
         // Fetch from localStorage (solo)
-        const data = getLeaderboard(gradeLevel, mode, 10);
+        const data = getLeaderboard(currentGradeLevel, currentMode, 10);
         setLeaderboardData(data);
       }
     } catch (error) {
@@ -53,7 +61,31 @@ const TQ_Leaderboard = ({
     } finally {
       setIsLoading(false);
     }
+  }, [currentMode, currentGradeLevel]);
+
+  /**
+   * ✅ Handle mode change
+   */
+  const handleModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newMode = e.target.value as GameMode;
+    setCurrentMode(newMode);
   };
+
+  /**
+   * ✅ Handle grade level change
+   */
+  const handleGradeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newGrade = e.target.value as GradeLevel;
+    setCurrentGradeLevel(newGrade);
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      // Initialize from props if provided
+      if (mode) setCurrentMode(mode);
+      if (gradeLevel) setCurrentGradeLevel(gradeLevel);
+    }
+  }, [isOpen, gradeLevel, mode]);
 
   useEffect(() => {
     if (isOpen) {
@@ -67,7 +99,7 @@ const TQ_Leaderboard = ({
       setShouldAnimate(false);
       setShowConfirmClear(false);
     }
-  }, [isOpen, gradeLevel, mode]);
+  }, [isOpen, currentMode, currentGradeLevel, loadLeaderboard]);
 
   /**
    * ✅ Clear leaderboard
@@ -76,9 +108,12 @@ const TQ_Leaderboard = ({
    */
   const handleClearLeaderboard = async () => {
     try {
-      if (mode === "multiplayer" && gradeLevel) {
+      if (currentMode === "multiplayer" && currentGradeLevel) {
         // Clear from Redis
-        const success = await clearLeaderboardMultiplayer(mode, gradeLevel);
+        const success = await clearLeaderboardMultiplayer(
+          currentMode,
+          currentGradeLevel
+        );
         if (success) {
           setLeaderboardData([]);
         }
@@ -156,17 +191,17 @@ const TQ_Leaderboard = ({
             <div className="flex items-center gap-2">
               <Trash2 className="w-5 h-5 text-red-400" />
               <p className="text-white font-semibold">
-                Clear {mode === "multiplayer" ? "this" : "all"} leaderboard
-                data?
+                Clear {currentMode === "multiplayer" ? "this" : "all"}{" "}
+                leaderboard data?
               </p>
             </div>
             <p className="text-sm text-slate-300">
-              {mode === "multiplayer" ? (
+              {currentMode === "multiplayer" ? (
                 <>
                   This will permanently delete {leaderboardData.length} recorded
                   games for{" "}
                   <strong>
-                    {mode} - {gradeLevel}
+                    {currentMode} - {currentGradeLevel}
                   </strong>{" "}
                   from the server. This action cannot be undone.
                 </>
@@ -183,7 +218,8 @@ const TQ_Leaderboard = ({
                 onClick={handleClearLeaderboard}
                 className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
               >
-                Yes, Clear {mode === "multiplayer" ? "Server Data" : "All"}
+                Yes, Clear{" "}
+                {currentMode === "multiplayer" ? "Server Data" : "All"}
               </button>
               <button
                 onClick={() => setShowConfirmClear(false)}
@@ -195,21 +231,90 @@ const TQ_Leaderboard = ({
           </div>
         )}
 
-        {/* Filters Info */}
-        {(gradeLevel || mode) && (
-          <div className="flex gap-2 text-sm text-slate-300">
-            {gradeLevel && (
-              <span className="px-3 py-1 bg-white/10 rounded-full">
-                Grade: {gradeLevel}
-              </span>
-            )}
-            {mode && (
-              <span className="px-3 py-1 bg-white/10 rounded-full capitalize">
-                Mode: {mode}
-              </span>
-            )}
+        {/* Filters - Dropdowns */}
+        <div className="flex gap-4 w-full max-w-md">
+          <div className="flex flex-col gap-2 flex-1">
+            <p className="text-sm text-white font-semibold">Grade:</p>
+            <div className="relative">
+              <select
+                value={currentGradeLevel}
+                onChange={handleGradeChange}
+                className="appearance-none bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-base p-2.5 pr-10 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all cursor-pointer"
+                style={{
+                  WebkitAppearance: "none",
+                  MozAppearance: "none",
+                }}
+              >
+                <option value="K" className="bg-slate-900 text-white">
+                  K
+                </option>
+                <option value="1-2" className="bg-slate-900 text-white">
+                  1-2
+                </option>
+                <option value="3-4" className="bg-slate-900 text-white">
+                  3-4
+                </option>
+                <option value="5-6" className="bg-slate-900 text-white">
+                  5-6
+                </option>
+              </select>
+              {/* Custom dropdown arrow */}
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg
+                  className="w-5 h-5 text-white/70"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
           </div>
-        )}
+
+          <div className="flex flex-col gap-2 flex-1">
+            <p className="text-sm text-white font-semibold">Mode:</p>
+            <div className="relative">
+              <select
+                value={currentMode}
+                onChange={handleModeChange}
+                className="appearance-none bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-base p-2.5 pr-10 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all cursor-pointer"
+                style={{
+                  WebkitAppearance: "none",
+                  MozAppearance: "none",
+                }}
+              >
+                <option value="solo" className="bg-slate-900 text-white">
+                  Solo
+                </option>
+                <option value="multiplayer" className="bg-slate-900 text-white">
+                  Multiplayer
+                </option>
+              </select>
+              {/* Custom dropdown arrow */}
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <svg
+                  className="w-5 h-5 text-white/70"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Table Header */}
         <div className="grid grid-cols-[auto_2fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-2 bg-white/5 rounded-lg border border-white/10 text-xs font-semibold text-slate-300 uppercase tracking-wider">
@@ -238,9 +343,23 @@ const TQ_Leaderboard = ({
             leaderboardData.map((entry, index) => {
               const isCurrentGame = entry.gameId === currentGameId;
 
+              // Debug logging for multiplayer gameId matching (only log matches or first entry)
+              if (
+                currentMode === "multiplayer" &&
+                currentGameId &&
+                (isCurrentGame || index === 0)
+              ) {
+                console.log("🔍 Leaderboard gameId comparison:", {
+                  entryGameId: entry.gameId,
+                  currentGameId,
+                  matches: isCurrentGame,
+                  playerName: entry.playerName,
+                });
+              }
+
               return (
                 <div
-                  key={entry.gameId} // ✅ Should now be unique
+                  key={`${entry.gameId}_${entry.date}`} // ✅ Unique key: gameId + timestamp ensures uniqueness even for rematches
                   className={`grid grid-cols-[auto_2fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-3 rounded-lg transition-all duration-300 ${
                     isCurrentGame
                       ? "bg-green-500/20 border-2 border-green-400 shadow-lg shadow-green-500/20"

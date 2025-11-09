@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+    branches: [main, master, develop]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint
+
+      - name: Run type check
+        run: npx tsc --noEmit
+
+      - name: Run tests
+        run: npm run test:run
+        # ✅ Tests don't use Redis - no env vars needed
+
+      - name: Build project
+        run: npm run build
+        env:
+          # Build needs dummy Redis values to compile (Redis initialized at module level)
+          # These are only used during build-time compilation, not at runtime
+          UPSTASH_REDIS_REST_URL: "https://dummy-build.upstash.io"
+          UPSTASH_REDIS_REST_TOKEN: "dummy-build-token"
+          PROJECT_PREFIX: "test"

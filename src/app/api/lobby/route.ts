@@ -14,7 +14,7 @@ const PLAYER_TTL = 90;
 
 type Player = { id: string; name: string; joinedAt: number; gradeLevel: GradeLevel; gameMode: GameMode };
 
-function json(data: any, init?: ResponseInit) {
+function json(data: unknown, init?: ResponseInit) {
   return NextResponse.json(data, init);
 }
 
@@ -27,6 +27,7 @@ function bad(msg: string, code = 400) {
  * Body: { name: string, gradeLevel: GradeLevel, gameMode: GameMode }
  * Joins the lobby, returns { ok, player: { id, name }, ttl }
  */
+// might want to check if existing already exists 
 export async function POST(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
@@ -55,14 +56,14 @@ export async function POST(req: NextRequest) {
 
     // Store player, add to lobby set, set TTL
     await Promise.all([
-      redis.hset(PLAYER_KEY(id), player as any),
+      redis.hset(PLAYER_KEY(id), player as Record<string, string | number>),
       redis.sadd(LOBBY_SET, id),
       redis.expire(PLAYER_KEY(id), PLAYER_TTL),
     ]);
 
     return json({ ok: true, player: { id, name }, ttl: PLAYER_TTL });
-  } catch (err: any) {
-    return bad(err?.message ?? "Failed to join lobby.", 500);
+  } catch (err: unknown) {
+    return bad(err instanceof Error ? err.message : "Failed to join lobby.", 500);
   }
 }
 
@@ -97,7 +98,7 @@ export async function GET(req: NextRequest) {
     const players: Player[] = [];
     const toRemoveFromSet: string[] = [];
 
-    playersRaw.forEach((data: any, idx: number) => {
+    playersRaw.forEach((data: Record<string, string> | null, idx: number) => {
       const id = ids[idx];
       if (!data || !data.id || !data.name || !data.joinedAt || !data.gradeLevel || !data.gameMode) {
         // player hash missing — probably expired; clean from set
@@ -125,8 +126,8 @@ export async function GET(req: NextRequest) {
     filtered.sort((a, b) => b.joinedAt - a.joinedAt);
 
     return json({ ok: true, players: filtered, now });
-  } catch (err: any) {
-    return bad(err?.message ?? "Failed to list lobby.", 500);
+  } catch (err: unknown) {
+    return bad(err instanceof Error ? err.message : "Failed to list lobby.", 500);
   }
 }
 
@@ -161,8 +162,8 @@ export async function PATCH(req: NextRequest) {
       redis.expire(key, PLAYER_TTL),
     ]);
     return json({ ok: true, ttl: PLAYER_TTL });
-  } catch (err: any) {
-    return bad(err?.message ?? "Failed to heartbeat.", 500);
+  } catch (err: unknown) {
+    return bad(err instanceof Error ? err.message : "Failed to heartbeat.", 500);
   }
 }
 
@@ -189,7 +190,7 @@ export async function DELETE(req: NextRequest) {
 
     await Promise.all([redis.del(PLAYER_KEY(id)), redis.srem(LOBBY_SET, id)]);
     return json({ ok: true });
-  } catch (err: any) {
-    return bad(err?.message ?? "Failed to leave lobby.", 500);
+  } catch (err: unknown) {
+    return bad(err instanceof Error ? err.message : "Failed to leave lobby.", 500);
   }
 }

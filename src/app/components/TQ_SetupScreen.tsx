@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   GameMode,
   GameState,
@@ -55,7 +55,7 @@ const TQ_SetupScreen = ({
   // Local state for smooth typing (no parent re-renders)
   const [gradeLevel, setGradeLevel] = useState<GradeLevel>("K");
   const [gameMode, setGameMode] = useState<GameMode>("solo");
-  const [playerName, setPlayerName] = useState<string>("Player");
+  const [playerName, setPlayerName] = useState<string>("");
   const [leaderboardView, setLeaderboardView] = useState<boolean>(false);
   const handleStartGame = (
     gameMode: GameMode,
@@ -76,6 +76,37 @@ const TQ_SetupScreen = ({
       return;
     }
     handleGameStart(gameMode, gradeLevel, playerName);
+  };
+
+  // set player name from local stoarge
+  useEffect(() => {
+    const playerName = localStorage.getItem("playerName");
+    const gradeLevel = localStorage.getItem("gradeLevel");
+    const gameMode = localStorage.getItem("gameMode");
+    if (playerName) {
+      setPlayerName(playerName);
+    }
+    if (gradeLevel) {
+      setGradeLevel(gradeLevel as GradeLevel);
+    }
+    if (gameMode) {
+      setGameMode(gameMode as GameMode);
+    }
+  }, []);
+
+  const handlePlayerNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPlayerName(e.target.value);
+    localStorage.setItem("playerName", e.target.value);
+  };
+
+  const handleGradeLevelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setGradeLevel(e.target.value as GradeLevel);
+    localStorage.setItem("gradeLevel", e.target.value);
+  };
+
+  const handleGameModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setGameMode(e.target.value as GameMode);
+    localStorage.setItem("gameMode", e.target.value);
   };
 
   return (
@@ -167,7 +198,7 @@ const TQ_SetupScreen = ({
             <p className="text-lg text-white font-semibold">Player Name:</p>
             <input
               value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
+              onChange={(e) => handlePlayerNameChange(e)}
               className="bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-lg p-3 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all placeholder:text-slate-400"
               placeholder="Enter your name"
             />
@@ -180,7 +211,7 @@ const TQ_SetupScreen = ({
               <div className="relative">
                 <select
                   value={gradeLevel}
-                  onChange={(e) => setGradeLevel(e.target.value as GradeLevel)}
+                  onChange={(e) => handleGradeLevelChange(e)}
                   className="appearance-none bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-lg p-3 pr-10 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all cursor-pointer"
                   style={{
                     WebkitAppearance: "none",
@@ -224,7 +255,7 @@ const TQ_SetupScreen = ({
               <div className="relative">
                 <select
                   value={gameMode}
-                  onChange={(e) => setGameMode(e.target.value as GameMode)}
+                  onChange={(e) => handleGameModeChange(e)}
                   className="appearance-none bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-lg p-3 pr-10 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all cursor-pointer"
                   style={{
                     WebkitAppearance: "none",

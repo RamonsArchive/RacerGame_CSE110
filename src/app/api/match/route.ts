@@ -29,6 +29,23 @@ export async function POST(req: NextRequest) {
   const { requesterId, targetId, gradeLevel } = await req.json();
 
   const matchId = `${requesterId}_${targetId}`;
+  
+  // ✅ Check if match already exists
+  const existingMatch = await redis.hgetall(MATCH_KEY(matchId));
+  
+  // ✅ If match exists and is not rejected, return error (can't overwrite pending/accepted)
+  if (existingMatch && existingMatch.status && existingMatch.status !== "rejected") {
+    return NextResponse.json(
+      { ok: false, error: "Match request already exists" },
+      { status: 409 }
+    );
+  }
+  
+  // ✅ Delete existing rejected match (if any) before creating new one
+  if (existingMatch && existingMatch.status === "rejected") {
+    await redis.del(MATCH_KEY(matchId));
+  }
+
   const match: MatchRequest = {
     requesterId,
     targetId,
@@ -37,7 +54,7 @@ export async function POST(req: NextRequest) {
     createdAt: Date.now(),
   };
 
-  await redis.hset(MATCH_KEY(matchId), match as any);
+  await redis.hset(MATCH_KEY(matchId), match as Record<string, string | number>);
   await redis.expire(MATCH_KEY(matchId), MATCH_TTL);
 
   return NextResponse.json({ ok: true, matchId });
@@ -70,8 +87,8 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({ ok: true, match });
-  } catch (err: any) {
-    return NextResponse.json({ ok: false, error: err?.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : "Failed to process match request" }, { status: 500 });
   }
 }
 
@@ -116,7 +133,7 @@ export async function DELETE(req: NextRequest) {
     await redis.del(MATCH_KEY(matchId));
 
     return NextResponse.json({ ok: true, message: "Match request deleted" });
-  } catch (err: any) {
-    return NextResponse.json({ ok: false, error: err?.message }, { status: 500 });
+  } catch (err: unknown) {
+    return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : "Failed to process match request" }, { status: 500 });
   }
 }

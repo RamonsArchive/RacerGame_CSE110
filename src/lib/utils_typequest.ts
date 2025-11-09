@@ -62,52 +62,42 @@ export const initializeGameMultiplayer = async (
   questionCount: number = GAME_CONFIG.DEFAULT_QUESTIONS
 ): Promise<GameState | null> => {
   try {
-    console.log("🎮 Initializing multiplayer game:", {
-      matchId,
-      myPlayerId,
-      myPlayerName,
-      opponentPlayerId,
-      opponentPlayerName,
-      gradeLevel,
-    });
-
     // Try to fetch existing game room first
     const fetchRes = await fetch(`/api/game?roomId=${matchId}`);
     const fetchData = await fetchRes.json();
 
-    console.log("🎮 Fetch data of game room:", fetchData);
-
     let questions: Question[];
     let roomId = matchId;
+    let gameStartTime: number = Date.now(); // Default, will be overridden by game room createdAt
 
     if (fetchData.ok && fetchData.gameRoom) {
       // Game room already exists, use those questions
-      console.log("✅ Fetched existing game room:", matchId);
+      
+      // ✅ Use createdAt from game room as startTime (single source of truth)
+      if (fetchData.gameRoom.createdAt) {
+        gameStartTime = Number(fetchData.gameRoom.createdAt);
+        console.log("game start from game room", gameStartTime);
+        console.log("✅ Using startTime from existing game room:", gameStartTime);
+      }
       
       // ✅ Safe parsing: check if questions is string or already parsed
       const rawQuestions = fetchData.gameRoom.questions;
       if (typeof rawQuestions === 'string') {
         try {
           questions = JSON.parse(rawQuestions);
-          console.log("✅ Parsed questions from string");
         } catch (err) {
           console.error("❌ Failed to parse questions string:", err);
           questions = getGameQuestions(gradeLevel, questionCount);
         }
       } else if (Array.isArray(rawQuestions)) {
         questions = rawQuestions;
-        console.log("✅ Questions already an array");
       } else {
         console.warn("⚠️ Unexpected questions format, generating new ones");
         questions = getGameQuestions(gradeLevel, questionCount);
       }
     } else {
       // Create new game room with shared questions
-      console.log("🎮 Creating new game room:", matchId);
       questions = getGameQuestions(gradeLevel, questionCount);
-      console.log("🎮 Questions:", questions);
-
-      console.log("📤 Sending POST request to create game room...");
       const createRes = await fetch("/api/game", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -122,8 +112,6 @@ export const initializeGameMultiplayer = async (
         }),
       });
 
-      console.log("📥 POST response status:", createRes.status, createRes.statusText);
-
       if (!createRes.ok) {
         const errorText = await createRes.text();
         console.error("❌ POST request failed:", {
@@ -136,35 +124,35 @@ export const initializeGameMultiplayer = async (
 
       const createData = await createRes.json();
 
-      console.log("✅ Create data:", createData);
       if (!createData.ok) {
         console.error("❌ Failed to create game room:", createData.error);
         return null;
       }
       roomId = createData.roomId;
       
+      // ✅ Use createdAt from game room as startTime (single source of truth)
+      if (createData.createdAt) {
+        gameStartTime = Number(createData.createdAt);
+        console.log("✅ Using startTime from newly created game room:", gameStartTime);
+      }
+      
       // Use the questions from the response if room already existed
       if (createData.message === "Game room already exists" && createData.questions) {
-        console.log("📝 Using existing room's questions");
         
         // ✅ Safe parsing: check if questions is string or already parsed
         const rawQuestions = createData.questions;
         if (typeof rawQuestions === 'string') {
           try {
             questions = JSON.parse(rawQuestions);
-            console.log("✅ Parsed questions from POST response string");
           } catch (err) {
             console.error("❌ Failed to parse questions from POST response:", err);
             // Keep the questions we already generated
           }
         } else if (Array.isArray(rawQuestions)) {
           questions = rawQuestions;
-          console.log("✅ Questions from POST response already an array");
         }
       }
     }
-
-    console.log("🎯 Game state built with", questions.length, "questions");
 
     // ✅ Push initial player state to Redis (so opponent sees 0s immediately)
     // This also OVERWRITES any old progress from previous games with the same matchId
@@ -188,7 +176,6 @@ export const initializeGameMultiplayer = async (
           },
         }),
       });
-      console.log("✅ Pushed initial player state to Redis");
     } catch (err) {
       console.error("⚠️ Failed to push initial state:", err);
       // Don't fail the game initialization if this fails
@@ -216,7 +203,6 @@ export const initializeGameMultiplayer = async (
           },
         }),
       });
-      console.log("✅ Pre-initialized opponent state in Redis");
     } catch (err) {
       console.error("⚠️ Failed to pre-initialize opponent state:", err);
     }
@@ -229,7 +215,7 @@ export const initializeGameMultiplayer = async (
       status: "active",
       questions,
       totalQuestions: questionCount,
-      startTime: Date.now(),
+      startTime: gameStartTime, // ✅ Use createdAt from game room (single source of truth)
       endTime: null,
       targetTimePerQuestion: GAME_CONFIG.TARGET_TIMES[gradeLevel],
       currentPlayer: {
@@ -260,11 +246,11 @@ export const initializeGameMultiplayer = async (
       },
       allowSkip: false,
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("❌ Failed to initialize multiplayer game:", {
       error: err,
-      message: err?.message,
-      stack: err?.stack
+      message: err instanceof Error ? err.message : "Unknown error",
+      stack: err instanceof Error ? err.stack : undefined
     });
     return null;
   }
@@ -281,14 +267,6 @@ export const initializeGame = (
     questionCount: number = GAME_CONFIG.DEFAULT_QUESTIONS
   ): GameState => {
     const questions = getGameQuestions(gradeLevel, questionCount);
-
-      // const questionsWithChoices = questions.map((question) => {
-      //   return {
-      //     ...question,
-      //     choices: getChoices(question, gradeLevel, 4),
-      //   };
-      // });
-
     
     return {
       gameId: generateGameId(),
@@ -346,19 +324,15 @@ export const initializeGame = (
   };
 
   export const getGameQuestions = (gradeLevel: GradeLevel, questionCount: number = GAME_CONFIG.DEFAULT_QUESTIONS): Question[] => {
-    console.log("🎲 Getting questions for grade level:", gradeLevel);
     const pool = WORD_BANK[gradeLevel];
     
     if (!pool || pool.length === 0) {
       console.error("❌ No questions available for grade", gradeLevel);
-      console.log("📚 Available grades in WORD_BANK:", Object.keys(WORD_BANK));
       return [];
     }
     
-    console.log("✅ Found", pool.length, "questions in pool");
     const shuffled = [...pool].sort(() => Math.random() - 0.5);
     const selected = shuffled.slice(0, Math.min(questionCount, pool.length));
-    console.log("🎯 Selected", selected.length, "questions");
     return selected;
   }
   
@@ -476,13 +450,141 @@ export const createGameResult = (gameState: GameState): GameResult => {
     saveGameResultMultiplayer(result);
   } else {
     saveGameResult(result);
-  }
-  console.log('Game result saved to leaderboard:', result);
+  } 
   
   return result;
 };
 
-  export const getGameResults = (gameId: string): GameResult | null => {
+/**
+ * ✅ Async version for multiplayer that fetches latest opponent data from Redis
+ * Ensures both players use the same source of truth when saving
+ */
+export const createGameResultMultiplayer = async (gameState: GameState): Promise<GameResult> => {
+  const { currentPlayer, startTime, gradeLevel, mode, totalQuestions, targetTimePerQuestion, gameId } = gameState;
+  
+  // ✅ For multiplayer, fetch latest opponent data AND game room startTime from Redis to ensure consistency
+  let finalStartTime = startTime;
+  
+  if (mode === "multiplayer" && gameId && currentPlayer.playerId) {
+    try {
+      // ✅ Step 1: Fetch game room to get consistent startTime (createdAt)
+      const gameRoomRes = await fetch(`/api/game?roomId=${gameId}`);
+      const gameRoomData = await gameRoomRes.json();
+      
+      if (gameRoomData.ok && gameRoomData.gameRoom) {
+        const roomCreatedAt = gameRoomData.gameRoom.createdAt 
+          ? Number(gameRoomData.gameRoom.createdAt) 
+          : null;
+        
+        if (roomCreatedAt) {
+          // ✅ Use createdAt from game room as the single source of truth for startTime
+          finalStartTime = roomCreatedAt;
+          console.log("✅ Using startTime from game room (createdAt):", finalStartTime, {
+            localStartTime: startTime,
+            difference: startTime ? finalStartTime - startTime : 0,
+          });
+        } else {
+          console.warn("⚠️ Game room createdAt not found, using local startTime");
+        }
+      }
+      
+      // ✅ Step 2: Fetch opponent's latest progress from Redis
+      const progressRes = await fetch(`/api/game/progress?roomId=${gameId}&playerId=${currentPlayer.playerId}`);
+      const progressData = await progressRes.json();
+      
+      if (progressData.ok && progressData.opponentProgress) {
+        // Parse questionResults if it's a string
+        let questionResults = progressData.opponentProgress.questionResults;
+        if (typeof questionResults === 'string') {
+          try {
+            questionResults = JSON.parse(questionResults);
+          } catch (e) {
+            console.error("Failed to parse opponent questionResults:", e);
+            questionResults = [];
+          }
+        }
+        
+        // ✅ Log fresh opponent data from Redis (data is used in createGameResultMultiplayer via gameState)
+        console.log("✅ Fetched fresh opponent data from Redis for leaderboard:", {
+          opponentPoints: progressData.opponentProgress.totalPoints,
+          opponentFinished: progressData.opponentProgress.isFinished,
+          opponentQuestionResults: questionResults.length,
+        });
+      }
+    } catch (err) {
+      console.error("⚠️ Failed to fetch game room or opponent data, using local state:", err);
+      // Fall back to local data if fetch fails
+    }
+  }
+  
+  // ✅ Use player's individual finish time for accurate speed bonus calculation
+  const playerEndTime = currentPlayer.finishTime || Date.now();
+  const totalTime = finalStartTime ? (playerEndTime - finalStartTime) / 1000 : 0;
+  const correctAnswers = currentPlayer.questionResults.filter(q => q.correct).length;
+  const totalCharacters = currentPlayer.questionResults.reduce(
+    (sum, q) => sum + q.correctAnswer.length, 0
+  );
+  
+  const hadPerfectGame = currentPlayer.totalMistakes === 0;
+  const finalPoints = calculateGameScore(
+    currentPlayer.questionResults, 
+    hadPerfectGame, 
+    finalStartTime!, 
+    playerEndTime, 
+    targetTimePerQuestion, 
+    totalQuestions
+  );
+  
+  console.log("🎯 Calculating player score:", {
+    playerName: currentPlayer.playerName,
+    startTime: finalStartTime,
+    finishTime: playerEndTime,
+    totalTime: totalTime,
+    questionResultsCount: currentPlayer.questionResults.length,
+    correctAnswers,
+    totalMistakes: currentPlayer.totalMistakes,
+    calculatedPoints: finalPoints,
+  });
+  
+  // ✅ For multiplayer, append playerId to gameId to ensure uniqueness in leaderboard
+  const uniqueGameId = mode === "multiplayer" && currentPlayer.playerId
+    ? `${gameId}_${currentPlayer.playerId}`
+    : gameId;
+  
+  const result: GameResult = {
+    gameId: uniqueGameId,
+    date: Date.now(),
+    gradeLevel,
+    mode,
+    playerName: currentPlayer.playerName,
+    startTime: finalStartTime!,
+    endTime: playerEndTime,
+    totalPoints: finalPoints,
+    totalQuestions,
+    correctAnswers,
+    totalMistakes: currentPlayer.totalMistakes,
+    totalTime,
+    accuracy: calculateAccuracy(correctAnswers, correctAnswers + currentPlayer.totalMistakes),
+    averageTimePerQuestion: calculateAverageTime(totalTime, currentPlayer.questionsAnswered),
+    charactersPerSecond: calculateCharactersPerSecond(totalCharacters, totalTime),
+  };
+  
+  // ✅ Save to Redis leaderboard
+  if (mode === "multiplayer") {
+    await saveGameResultMultiplayer(result);
+    console.log("💾 Saved multiplayer result to leaderboard:", {
+      gameId: uniqueGameId,
+      playerName: currentPlayer.playerName,
+      totalPoints: finalPoints,
+    });
+  } else {
+    saveGameResult(result);
+  }
+  
+  return result;
+};
+
+  export const getGameResults = (_gameId: string): GameResult | null => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(GAME_CONFIG.LEADERBOARD_KEY);
       return saved ? JSON.parse(saved) : null;
@@ -570,7 +672,6 @@ export const createGameResult = (gameState: GameState): GameResult => {
         const data = await res.json();
         
         if (data.ok) {
-          console.log("✅ Game result saved to Redis leaderboard");
           return true;
         } else {
           console.error("❌ Failed to save to leaderboard:", data.error);
@@ -600,7 +701,6 @@ export const createGameResult = (gameState: GameState): GameResult => {
       const data = await res.json();
       
       if (data.ok) {
-        console.log("✅ Fetched leaderboard from Redis:", data.count, "entries");
         return data.leaderboard || [];
       } else {
         console.error("❌ Failed to fetch leaderboard:", data.error);
@@ -631,7 +731,6 @@ export const createGameResult = (gameState: GameState): GameResult => {
       const data = await res.json();
       
       if (data.ok) {
-        console.log("✅ Cleared leaderboard:", data.message);
         return true;
       } else {
         console.error("❌ Failed to clear leaderboard:", data.error);
@@ -650,7 +749,6 @@ export const createGameResult = (gameState: GameState): GameResult => {
   ): GameResult[] => {
     if (typeof window !== 'undefined') {
       try {
-        console.log("Getting leaderboard...");
         let results: GameResult[] = JSON.parse(
           localStorage.getItem(GAME_CONFIG.LEADERBOARD_KEY) || '[]'
         );
@@ -677,7 +775,6 @@ export const createGameResult = (gameState: GameState): GameResult => {
   export const clearLeaderboard = (): void => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(GAME_CONFIG.LEADERBOARD_KEY);
-      console.log('Leaderboard cleared');
     }
   };
   
@@ -688,7 +785,7 @@ export const createGameResult = (gameState: GameState): GameResult => {
     difficulty: 'easy' | 'medium' | 'hard' = 'medium'
   ): { timeSpent: number; mistakes: number; correct: boolean } => {
     const config = GAME_CONFIG.CPU_DIFFICULTY[difficulty];
-    const baseTimePerChar = 0.3;
+    // const baseTimePerChar = 0.3; // Not used currently
     const timeSpent = (Date.now() - opponent.questionStartTime!) / 1000;
     const willMakeMistake = Math.random() < config.mistakeRate;
     const mistakes = willMakeMistake ? Math.floor(Math.random() * 2) + 1 : 0;

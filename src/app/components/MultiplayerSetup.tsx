@@ -6,7 +6,7 @@ const MultiplayerSetup = ({
   isVisible,
   onClose,
   onConnect,
-  playerName,
+  playerName: _playerName,
   incomingRequest,
   onAcceptRequest,
   onRejectRequest,
@@ -25,9 +25,6 @@ const MultiplayerSetup = ({
   onRejectRequest?: () => void;
 }) => {
   if (!isVisible) return null;
-
-  console.log("Players:", players);
-  console.log("Incoming request:", incomingRequest);
 
   return (
     // Backdrop - darkened and blurred background

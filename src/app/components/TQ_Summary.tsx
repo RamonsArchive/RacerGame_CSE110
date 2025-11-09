@@ -20,17 +20,22 @@ const TQ_Summary = ({
   opponentTotalPoints: number;
   opponentLeftGame?: boolean;
 }) => {
+  const currentName = gameState.currentPlayer.playerName;
+  const opponentName = gameState.opponent?.playerName;
   return (
-    <div className="flex flex-row w-full p-4 gap-4 bg-linear-to-br from-slate-800/70 via-slate-700/60 to-slate-900/70 rounded-lg shadow-md border border-white/10">
-      {/* You */}
+    <div className="flex flex-row w-full p-4 gap-4 bg-linear-to-br from-slate-800/90 via-slate-700/80 to-slate-900/90 rounded-lg shadow-md border border-white/10">
+      {/* Current Player Column */}
       <div className="flex w-[50%] flex-col gap-3">
-        <SummaryRow label="Your points" value={`${currentPlayerTotalPoints}`} />
+        <div className="pb-1 border-b border-white/20">
+          <h3 className="text-base font-bold text-white">{currentName}</h3>
+        </div>
+        <SummaryRow label="Points" value={`${currentPlayerTotalPoints}`} />
         <SummaryRow
-          label="Your progress"
+          label="Progress"
           value={`${gameState.currentPlayer.questionsAnswered} / ${gameState.totalQuestions}`}
         />
         <SummaryRow
-          label="Your accuracy"
+          label="Accuracy"
           value={`${calculateAccuracy(
             gameState.currentPlayer.questionResults.filter((q) => q.correct)
               .length,
@@ -62,7 +67,7 @@ const TQ_Summary = ({
         />
       </div>
 
-      {/* Opponent */}
+      {/* Opponent Column */}
       <div className="flex flex-1 flex-col gap-3 relative">
         {/* Live updating indicator OR Final indicator if opponent left */}
         {opponentLeftGame ? (
@@ -82,13 +87,20 @@ const TQ_Summary = ({
             </span>
           </div>
         ) : null}
-        <SummaryRow label="Opponent points" value={`${opponentTotalPoints}`} />
+        <div className="pb-1 border-b border-white/20">
+          <h3 className="text-base font-bold text-white">
+            {opponentName || "Opponent"}
+          </h3>
+        </div>
+        <SummaryRow label="Points" value={`${opponentTotalPoints}`} />
         <SummaryRow
-          label="Opponent progress"
-          value={`${gameState.opponent?.questionsAnswered} / ${gameState.totalQuestions}`}
+          label="Progress"
+          value={`${gameState.opponent?.questionsAnswered || 0} / ${
+            gameState.totalQuestions
+          }`}
         />
         <SummaryRow
-          label="Opponent accuracy"
+          label="Accuracy"
           value={`${calculateAccuracy(
             gameState.opponent?.questionResults.filter((q) => q.correct)
               .length || 0,
@@ -125,11 +137,11 @@ const TQ_Summary = ({
 
 // small compact info row component
 const SummaryRow = ({ label, value }: { label: string; value: string }) => (
-  <div className="flex flex-col gap-1">
-    <p className="text-xs font-semibold text-slate-400 tracking-wide">
+  <div className="flex flex-col gap-1.5">
+    <p className="text-sm font-semibold text-slate-300 tracking-wide">
       {label}
     </p>
-    <span className="inline-block w-fit px-2 py-[2px] rounded-md bg-white/10 text-white font-semibold text-sm leading-tight shadow-sm">
+    <span className="inline-block w-fit px-3 py-1 rounded-md bg-white/10 text-white font-bold text-base leading-tight shadow-sm">
       {value}
     </span>
   </div>
