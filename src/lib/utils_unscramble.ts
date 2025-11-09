@@ -296,7 +296,7 @@ export const createGameResult = (
 
   const accuracy =
     gameState.totalQuestions > 0
-      ? (gameState.score / gameState.totalQuestions) * 100
+      ? ((gameState.score - gameState.mistakes) / gameState.totalQuestions) * 100
       : 0;
 
   return {
