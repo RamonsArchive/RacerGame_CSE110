@@ -2,15 +2,217 @@ import {
   TreasureHuntGameState,
   GradeLevel,
   GameResult,
+  GameMode,
   GAME_CONFIG,
   GRAMMAR_QUESTIONS_BANK,
   getRandomGrammarQuestions,
   QuestionProgress,
+  GrammarQuestion,
+  PlayerProgress,
+  QuestionResult,
 } from "@/app/constants/index_treasurehunt";
 
 // Generate unique game ID
 const generateGameId = (): string => {
   return `th_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+};
+
+// Generate unique player ID
+const generatePlayerId = (): string => {
+  const timestamp = Date.now();
+  const random1 = Math.random().toString(36).substring(2, 15);
+  const random2 = Math.random().toString(36).substring(2, 15);
+  
+  if (typeof window !== 'undefined' && window.crypto?.randomUUID) {
+    return `player_${timestamp}_${window.crypto.randomUUID()}`;
+  }
+  
+  return `player_${timestamp}_${random1}${random2}`;
+};
+
+// Points calculation
+export const calculateQuestionPoints = (
+  timeInSeconds: number,
+  mistakes: number,
+  targetTime: number,
+  basePoints: number = GAME_CONFIG.BASE_POINTS,
+): number => {
+  // Speed bonus: earn points for being faster than target
+  const timeDiff = targetTime - timeInSeconds;
+  const speedBonus = timeDiff > 0 
+    ? Math.round(timeDiff * GAME_CONFIG.SPEED_BONUS_MULTIPLIER) 
+    : 0;
+  
+  // Mistake penalty
+  const mistakePenalty = mistakes * GAME_CONFIG.MISTAKE_PENALTY;
+  
+  // Calculate total (minimum 0)
+  const totalPoints = Math.max(0, basePoints + speedBonus - mistakePenalty);
+  
+  return totalPoints;
+};
+
+export const calculateGameScore = (
+  questionResults: QuestionResult[],
+  hadPerfectGame: boolean,
+  startTime: number,
+  endTime: number,
+  targetTimePerQuestion: number,
+  totalQuestions: number
+): number => {
+  const baseScore = questionResults.reduce((total, q) => total + q.points, 0);
+  const perfectBonus = hadPerfectGame ? GAME_CONFIG.PERFECT_BONUS : 0;
+  
+  // Speed bonus: reward finishing FASTER than target time
+  const actualTime = (endTime - startTime) / 1000; // in seconds
+  const expectedTime = targetTimePerQuestion * totalQuestions;
+  const timeSaved = expectedTime - actualTime;
+  
+  // Only give bonus if finished faster than expected (timeSaved > 0)
+  const speedBonus = timeSaved > 0 
+    ? Math.round(timeSaved * GAME_CONFIG.SPEED_BONUS_MULTIPLIER)
+    : 0;
+  
+  return baseScore + perfectBonus + speedBonus;
+};
+
+// CPU opponent simulation (for solo mode)
+export const simulateCPUAnswer = (
+  question: GrammarQuestion,
+  opponent: PlayerProgress,
+  difficulty: 'easy' | 'medium' | 'hard' = 'medium'
+): { timeSpent: number; mistakes: number; correct: boolean } => {
+  const config = GAME_CONFIG.CPU_DIFFICULTY[difficulty];
+  const timeSpent = opponent.questionStartTime 
+    ? (Date.now() - opponent.questionStartTime) / 1000 
+    : GAME_CONFIG.TARGET_TIMES[question.gradeLevel] * config.speedMultiplier;
+  const willMakeMistake = Math.random() < config.mistakeRate;
+  const mistakes = willMakeMistake ? Math.floor(Math.random() * 2) + 1 : 0;
+  
+  return {
+    timeSpent: Math.round(timeSpent * 10) / 10,
+    mistakes,
+    correct: true, // CPU always gets it eventually
+  };
+};
+
+// Update CPU progress (similar to TypeQuest)
+export const updateCPUProgress = (
+  currentGameState: TreasureHuntGameState,
+  difficulty: 'easy' | 'medium' | 'hard' = 'medium'
+): TreasureHuntGameState => {
+  if (!currentGameState.opponent || currentGameState.opponent.isFinished) {
+    return currentGameState;
+  }
+
+  // If player finished, snapshot opponent and stop
+  if (currentGameState.currentPlayer.isFinished) {
+    return {
+      ...currentGameState,
+      opponent: {
+        ...currentGameState.opponent,
+        isFinished: true,
+      },
+    };
+  }
+
+  const currentQuestion =
+    currentGameState.questions[
+      currentGameState.opponent.currentQuestionIndex
+    ];
+
+  if (!currentQuestion) {
+    return currentGameState;
+  }
+
+  // Calculate time spent based on when CPU started this question
+  const questionStartTime = currentGameState.opponent.questionStartTime || Date.now();
+  const timeSpent = (Date.now() - questionStartTime) / 1000;
+
+  const cpuResult = simulateCPUAnswer(
+    currentQuestion,
+    currentGameState.opponent,
+    difficulty
+  );
+  
+  // Use the actual time spent, not the simulated one
+  const actualTimeSpent = Math.max(timeSpent, cpuResult.timeSpent);
+  
+  const cpuPoints = calculateQuestionPoints(
+    actualTimeSpent,
+    cpuResult.mistakes,
+    currentGameState.targetTimePerQuestion,
+    GAME_CONFIG.BASE_POINTS
+  );
+
+  // Simulate answer mistakes
+  const answerMistakes: QuestionResult[] = [];
+  for (let i = 0; i < cpuResult.mistakes; i++) {
+    const answerMistake: QuestionResult = {
+      questionId: currentQuestion.id,
+      prompt: currentQuestion.incorrectSentence,
+      userAnswer: Array.isArray(currentQuestion.correctSentence)
+        ? currentQuestion.correctSentence[0]
+        : currentQuestion.correctSentence,
+      correctAnswer: currentQuestion.correctSentence,
+      correct: false,
+      timeSpent: actualTimeSpent + i * 0.1,
+      mistakes: 1,
+      points: 0,
+      timestamp: Date.now(),
+    };
+    answerMistakes.push(answerMistake);
+  }
+
+  const cpuQuestionResult: QuestionResult = {
+    questionId: currentQuestion.id,
+    prompt: currentQuestion.incorrectSentence,
+    userAnswer: Array.isArray(currentQuestion.correctSentence)
+      ? currentQuestion.correctSentence[0]
+      : currentQuestion.correctSentence,
+    correctAnswer: currentQuestion.correctSentence,
+    correct: true,
+    timeSpent: actualTimeSpent,
+    mistakes: cpuResult.mistakes,
+    points: cpuPoints,
+    timestamp: Date.now(),
+  };
+
+  const allQuestionResults: QuestionResult[] = [
+    ...currentGameState.opponent.questionResults,
+    ...answerMistakes,
+    cpuQuestionResult,
+  ];
+
+  const newQuestionIndex =
+    currentGameState.opponent.currentQuestionIndex + 1;
+  const newQuestionsAnswered =
+    currentGameState.opponent.questionsAnswered + 1;
+  const isOpponentFinished =
+    newQuestionsAnswered >= currentGameState.totalQuestions;
+
+  const updatedOpponent: PlayerProgress = {
+    ...currentGameState.opponent,
+    currentQuestionIndex: newQuestionIndex,
+    questionsAnswered: newQuestionsAnswered,
+    totalPoints: currentGameState.opponent.totalPoints + cpuPoints,
+    totalMistakes:
+      currentGameState.opponent.totalMistakes + cpuResult.mistakes,
+    questionResults: allQuestionResults,
+    isFinished: isOpponentFinished,
+    finishTime: isOpponentFinished ? Date.now() : null,
+    questionStartTime: Date.now(), // Start timer for next question
+  };
+
+  const shouldEndGame =
+    currentGameState.currentPlayer.isFinished && updatedOpponent.isFinished;
+
+  return {
+    ...currentGameState,
+    opponent: updatedOpponent,
+    status: shouldEndGame ? "finished" : "active",
+    endTime: shouldEndGame ? Date.now() : null,
+  };
 };
 
 // Get sentence parts with underline information
@@ -92,7 +294,9 @@ export const validateGrammarSentence = (
 
 // Initialize game state
 export const initializeGame = (
+  mode: GameMode,
   gradeLevel: GradeLevel,
+  playerName: string,
   questionCount: number = GAME_CONFIG.DEFAULT_QUESTIONS
 ): TreasureHuntGameState => {
   const questions = getRandomGrammarQuestions(
@@ -108,18 +312,49 @@ export const initializeGame = (
     gaveUp: false,
   }));
 
+  const targetTimePerQuestion = GAME_CONFIG.TARGET_TIMES[gradeLevel];
+
   return {
     gameId: generateGameId(),
+    mode,
     gradeLevel,
-    status: "active",
-    currentQuestionIndex: 0,
+    status: "setup",
     questions,
     totalQuestions: questions.length,
+    startTime: null,
+    endTime: null,
+    targetTimePerQuestion,
+    currentPlayer: {
+      playerId: generatePlayerId(),
+      playerName,
+      currentQuestionIndex: 0,
+      questionsAnswered: 0,
+      totalPoints: 0,
+      totalMistakes: 0,
+      questionResults: [],
+      isFinished: false,
+      finishTime: null,
+      questionStartTime: null,
+      currentQuestionMistakes: 0,
+    },
+    opponent: mode === 'solo' ? {
+      playerId: 'cpu',
+      playerName: 'CPU',
+      currentQuestionIndex: 0,
+      questionsAnswered: 0,
+      totalPoints: 0,
+      totalMistakes: 0,
+      questionResults: [],
+      isFinished: false,
+      finishTime: null,
+      questionStartTime: null,
+      currentQuestionMistakes: 0,
+    } : undefined,
+    // Legacy fields for backward compatibility
+    currentQuestionIndex: 0,
     score: 0,
     mistakes: 0,
     isGameFinished: false,
-    startTime: Date.now(),
-    endTime: null,
     questionProgress,
     answerLog: [],
   };
@@ -128,8 +363,10 @@ export const initializeGame = (
 // Check if game is finished
 export const isGameFinished = (gameState: TreasureHuntGameState): boolean => {
   return (
-    gameState.currentQuestionIndex >= gameState.totalQuestions ||
-    gameState.isGameFinished
+    gameState.currentPlayer.isFinished ||
+    (gameState.currentQuestionIndex !== undefined && 
+     gameState.currentQuestionIndex >= gameState.totalQuestions) ||
+    (gameState.isGameFinished === true)
   );
 };
 
@@ -137,11 +374,19 @@ export const isGameFinished = (gameState: TreasureHuntGameState): boolean => {
 export const advanceToNextQuestion = (
   gameState: TreasureHuntGameState
 ): TreasureHuntGameState => {
-  const nextIndex = gameState.currentQuestionIndex + 1;
+  const currentIndex = gameState.currentPlayer.currentQuestionIndex;
+  const nextIndex = currentIndex + 1;
   const isFinished = nextIndex >= gameState.totalQuestions;
 
   return {
     ...gameState,
+    currentPlayer: {
+      ...gameState.currentPlayer,
+      currentQuestionIndex: nextIndex,
+      isFinished: isFinished,
+      finishTime: isFinished ? Date.now() : null,
+    },
+    // Legacy fields for backward compatibility
     currentQuestionIndex: nextIndex,
     isGameFinished: isFinished,
     endTime: isFinished ? Date.now() : null,
@@ -150,11 +395,39 @@ export const advanceToNextQuestion = (
 
 // Handle correct answer
 export const handleCorrectAnswer = (
-  gameState: TreasureHuntGameState
+  gameState: TreasureHuntGameState,
+  timeSpent?: number
 ): TreasureHuntGameState => {
+  const currentIndex = gameState.currentPlayer.currentQuestionIndex;
+  const currentQuestion = gameState.questions[currentIndex];
+  const questionStartTime = gameState.currentPlayer.questionStartTime || Date.now();
+  const actualTimeSpent = timeSpent || (Date.now() - questionStartTime) / 1000;
+  
+  // Calculate points for this question
+  const points = calculateQuestionPoints(
+    actualTimeSpent,
+    gameState.currentPlayer.currentQuestionMistakes,
+    gameState.targetTimePerQuestion,
+    GAME_CONFIG.BASE_POINTS
+  );
+
+  // Create question result
+  const questionResult: QuestionResult = {
+    questionId: currentQuestion.id,
+    prompt: currentQuestion.incorrectSentence,
+    userAnswer: Array.isArray(currentQuestion.correctSentence) 
+      ? currentQuestion.correctSentence[0] 
+      : currentQuestion.correctSentence,
+    correctAnswer: currentQuestion.correctSentence,
+    correct: true,
+    timeSpent: actualTimeSpent,
+    mistakes: gameState.currentPlayer.currentQuestionMistakes,
+    points: points,
+    timestamp: Date.now(),
+  };
+
   // Reset question progress for current question when answered correctly
-  const currentQuestion = gameState.questions[gameState.currentQuestionIndex];
-  const updatedProgress = gameState.questionProgress.map((p) =>
+  const updatedProgress = (gameState.questionProgress || []).map((p) =>
     p.questionId === currentQuestion.id
       ? { ...p, mistakes: 0, hintShown: false, gaveUp: false }
       : p
@@ -162,7 +435,16 @@ export const handleCorrectAnswer = (
 
   const updated = advanceToNextQuestion({
     ...gameState,
-    score: gameState.score + 1,
+    currentPlayer: {
+      ...gameState.currentPlayer,
+      questionsAnswered: gameState.currentPlayer.questionsAnswered + 1,
+      totalPoints: gameState.currentPlayer.totalPoints + points,
+      questionResults: [...gameState.currentPlayer.questionResults, questionResult],
+      currentQuestionMistakes: 0,
+      questionStartTime: Date.now(),
+    },
+    // Legacy fields for backward compatibility
+    score: (gameState.score || 0) + 1,
     questionProgress: updatedProgress,
   });
 
@@ -184,7 +466,8 @@ export const handleIncorrectAnswer = (
     }));
   }
 
-  const currentQuestion = gameState.questions[gameState.currentQuestionIndex];
+  const currentIndex = gameState.currentPlayer.currentQuestionIndex;
+  const currentQuestion = gameState.questions[currentIndex];
   const progressIndex = gameState.questionProgress.findIndex(
     (p) => p.questionId === currentQuestion.id
   );
@@ -224,7 +507,13 @@ export const handleIncorrectAnswer = (
 
   return {
     ...gameState,
-    mistakes: gameState.mistakes + 1,
+    currentPlayer: {
+      ...gameState.currentPlayer,
+      currentQuestionMistakes: gameState.currentPlayer.currentQuestionMistakes + 1,
+      totalMistakes: gameState.currentPlayer.totalMistakes + 1,
+    },
+    // Legacy fields for backward compatibility
+    mistakes: (gameState.mistakes || 0) + 1,
     questionProgress: updatedProgress,
     answerLog: newAnswerLog,
   };
@@ -244,7 +533,8 @@ export const showHint = (
     }));
   }
 
-  const currentQuestion = gameState.questions[gameState.currentQuestionIndex];
+  const currentIndex = gameState.currentPlayer.currentQuestionIndex;
+  const currentQuestion = gameState.questions[currentIndex];
   const progressIndex = gameState.questionProgress.findIndex(
     (p) => p.questionId === currentQuestion.id
   );
@@ -285,7 +575,8 @@ export const handleGiveUp = (
     }));
   }
 
-  const currentQuestion = gameState.questions[gameState.currentQuestionIndex];
+  const currentIndex = gameState.currentPlayer.currentQuestionIndex;
+  const currentQuestion = gameState.questions[currentIndex];
   const progressIndex = gameState.questionProgress.findIndex(
     (p) => p.questionId === currentQuestion.id
   );
@@ -318,13 +609,36 @@ export const handleGiveUp = (
     },
   ];
 
+  // Create question result for give up (0 points)
+  const questionResult: QuestionResult = {
+    questionId: currentQuestion.id,
+    prompt: currentQuestion.incorrectSentence,
+    userAnswer: "",
+    correctAnswer: currentQuestion.correctSentence,
+    correct: false,
+    timeSpent: gameState.currentPlayer.questionStartTime 
+      ? (Date.now() - gameState.currentPlayer.questionStartTime) / 1000 
+      : 0,
+    mistakes: gameState.currentPlayer.currentQuestionMistakes,
+    points: 0,
+    timestamp: Date.now(),
+  };
+
   // Advance without scoring
-  const updated = advanceToNextQuestion(gameState);
-  return {
-    ...updated,
+  const updated = advanceToNextQuestion({
+    ...gameState,
+    currentPlayer: {
+      ...gameState.currentPlayer,
+      questionsAnswered: gameState.currentPlayer.questionsAnswered + 1,
+      questionResults: [...gameState.currentPlayer.questionResults, questionResult],
+      currentQuestionMistakes: 0,
+      questionStartTime: Date.now(),
+    },
     questionProgress: updatedProgress,
     answerLog: newAnswerLog,
-  };
+  });
+  
+  return updated;
 };
 
 // Get current question progress
@@ -336,7 +650,9 @@ export const getCurrentQuestionProgress = (
     return null;
   }
 
-  const currentQuestion = gameState.questions[gameState.currentQuestionIndex];
+  const currentIndex = gameState.currentPlayer?.currentQuestionIndex ?? 
+    gameState.currentQuestionIndex ?? 0;
+  const currentQuestion = gameState.questions?.[currentIndex];
   if (!currentQuestion) {
     return null;
   }
@@ -352,26 +668,66 @@ export const getCurrentQuestionProgress = (
 export const createGameResult = (
   gameState: TreasureHuntGameState
 ): GameResult => {
-  const totalTime =
-    gameState.endTime && gameState.startTime
-      ? (gameState.endTime - gameState.startTime) / 1000 // Convert to seconds
-      : 0;
+  const { currentPlayer, opponent, startTime, endTime, gradeLevel, mode, totalQuestions, targetTimePerQuestion } = gameState;
+  
+  // Use player's individual finish time for accurate speed bonus calculation
+  const playerEndTime = currentPlayer.finishTime || endTime || Date.now();
+  const totalTime = startTime ? (playerEndTime - startTime) / 1000 : 0;
+  const correctAnswers = currentPlayer.questionResults.filter(q => q.correct).length;
+  
+  const hadPerfectGame = currentPlayer.totalMistakes === 0;
+  const finalPoints = calculateGameScore(
+    currentPlayer.questionResults, 
+    hadPerfectGame, 
+    startTime!, 
+    playerEndTime, 
+    targetTimePerQuestion, 
+    totalQuestions
+  );
 
-  const accuracy =
-    gameState.totalQuestions > 0
-      ? (gameState.score / gameState.totalQuestions) * 100
-      : 0;
+  const averageTimePerQuestion = currentPlayer.questionsAnswered > 0
+    ? currentPlayer.questionResults.reduce((sum, q) => sum + q.timeSpent, 0) / currentPlayer.questionsAnswered
+    : 0;
 
-  return {
+  const result: GameResult = {
     gameId: gameState.gameId,
-    date: gameState.endTime || Date.now(),
-    gradeLevel: gameState.gradeLevel,
-    totalQuestions: gameState.totalQuestions,
-    score: gameState.score,
-    mistakes: gameState.mistakes,
+    date: Date.now(),
+    gradeLevel,
+    mode,
+    playerName: currentPlayer.playerName,
+    startTime: startTime!,
+    endTime: playerEndTime,
+    totalPoints: finalPoints,
+    totalQuestions,
+    correctAnswers,
+    totalMistakes: currentPlayer.totalMistakes,
     totalTime,
-    accuracy: Math.round(accuracy * 100) / 100, // Round to 2 decimal places
+    accuracy: totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0,
+    averageTimePerQuestion: Math.round(averageTimePerQuestion * 10) / 10,
   };
+  
+  // Add opponent data for solo mode
+  if (opponent && mode === 'solo') {
+    const opponentPerfect = opponent.totalMistakes === 0;
+    const opponentEndTime = opponent.finishTime || endTime || Date.now();
+    const opponentPoints = calculateGameScore(
+      opponent.questionResults, 
+      opponentPerfect, 
+      startTime!, 
+      opponentEndTime, 
+      targetTimePerQuestion, 
+      totalQuestions
+    );
+    
+    result.opponent = {
+      name: opponent.playerName,
+      points: opponentPoints,
+    };
+    result.won = finalPoints > opponentPoints;
+    result.pointMargin = finalPoints - opponentPoints;
+  }
+  
+  return result;
 };
 
 // Local storage helpers
@@ -395,6 +751,24 @@ export const loadGameState = (): TreasureHuntGameState | null => {
       if (saved) {
         const gameState = JSON.parse(saved) as TreasureHuntGameState;
 
+        // Migrate old game state structure to new structure
+        if (!gameState.currentPlayer) {
+          // Create currentPlayer from legacy fields
+          gameState.currentPlayer = {
+            playerId: generatePlayerId(),
+            playerName: "Player", // Default name for old games
+            currentQuestionIndex: gameState.currentQuestionIndex ?? 0,
+            questionsAnswered: gameState.score ?? 0,
+            totalPoints: 0, // Old games didn't have points
+            totalMistakes: gameState.mistakes ?? 0,
+            questionResults: [],
+            isFinished: gameState.isGameFinished ?? false,
+            finishTime: gameState.endTime ?? null,
+            questionStartTime: null,
+            currentQuestionMistakes: 0,
+          };
+        }
+
         // Initialize questionProgress if it doesn't exist (backward compatibility)
         if (!gameState.questionProgress && gameState.questions) {
           gameState.questionProgress = gameState.questions.map((q) => ({
@@ -406,6 +780,16 @@ export const loadGameState = (): TreasureHuntGameState | null => {
         }
         if (!gameState.answerLog) {
           gameState.answerLog = [];
+        }
+
+        // Ensure mode exists (default to solo for old games)
+        if (!gameState.mode) {
+          gameState.mode = "solo";
+        }
+
+        // Ensure targetTimePerQuestion exists
+        if (!gameState.targetTimePerQuestion) {
+          gameState.targetTimePerQuestion = GAME_CONFIG.TARGET_TIMES[gameState.gradeLevel];
         }
 
         return gameState;
@@ -425,4 +809,21 @@ export const clearGameState = (): void => {
       console.error("Error clearing game state:", error);
     }
   }
+};
+
+// Metrics calculations
+export const calculateAccuracy = (
+  correctAnswers: number,
+  totalAttempts: number
+): number => {
+  if (totalAttempts === 0) return 100;
+  return Math.round((correctAnswers / totalAttempts) * 100);
+};
+
+export const calculateAverageTime = (
+  totalTime: number,
+  questionCount: number
+): number => {
+  if (questionCount === 0) return 0;
+  return Math.round((totalTime / questionCount) * 10) / 10;
 };
