@@ -43,6 +43,12 @@ const TH_ActiveScreen = ({
   const cpuScheduledRef = React.useRef(false);
 
   // Check if gameState is valid after hooks
+  useEffect(() => {
+    if (currentGameState.status === "active") {
+      saveGameState(currentGameState);
+    }
+  }, [currentGameState]);
+
   if (!gameState || !gameState.currentPlayer) {
     return <div>Data loading...</div>;
   }
@@ -109,112 +115,134 @@ const TH_ActiveScreen = ({
     }
   }, [currentGameState]);
 
-  // CPU scheduling logic (similar to TypeQuest)
   const scheduleCPUAnswer = useCallback(
-    (difficulty: "easy" | "medium" | "hard") => {
-      // Clear any existing timer
+    (difficulty: "easy" | "medium") => {
+      console.log("Scheduling CPU answer...");
+      
       if (cpuTimerRef.current) {
+        console.log("Clearing existing CPU timer");
         clearTimeout(cpuTimerRef.current);
         cpuTimerRef.current = null;
       }
 
-      // Use functional update to get latest state
-      setCurrentGameState((prevState) => {
-        if (!prevState || !prevState.opponent || prevState.opponent.isFinished) {
-          return prevState;
-        }
-
-        if (prevState.currentPlayer.isFinished) {
-          return prevState;
-        }
-
-        const currentQuestion = prevState.questions[prevState.opponent.currentQuestionIndex];
-        if (!currentQuestion) {
-          return prevState;
-        }
-
-        // Simulate thinking time (3-5 seconds)
-        const thinkingTime = 3000 + Math.random() * 2000;
-        // Simulate typing time based on sentence length
-        const sentenceLength = Array.isArray(currentQuestion.correctSentence)
-          ? currentQuestion.correctSentence[0].length
-          : currentQuestion.correctSentence.length;
-        const typingTime = (sentenceLength * 500) + Math.random() * 500; // ~50ms per character
-        const totalDelay = thinkingTime + typingTime;
-
-        // Schedule timer
-        cpuTimerRef.current = setTimeout(() => {
-          setCurrentGameState((state) => {
-            // Get fresh state
-            if (!state || state.status !== "active") {
-              cpuTimerRef.current = null;
-              return state;
-            }
-
-            if (hasResetRef.current) {
-              cpuTimerRef.current = null;
-              return state;
-            }
-
-            // Check again if opponent is finished
-            if (!state.opponent || state.opponent.isFinished) {
-              cpuTimerRef.current = null;
-              return state;
-            }
-
-            // Check if player finished
-            if (state.currentPlayer.isFinished) {
-              cpuTimerRef.current = null;
-              return {
-                ...state,
-                opponent: {
-                  ...state.opponent,
-                  isFinished: true,
-                },
-              };
-            }
-
-            const updatedState = updateCPUProgress(state, difficulty);
-
-            // Check if CPU finished first
-            if (updatedState.opponent?.isFinished && !updatedState.currentPlayer.isFinished) {
-              // CPU beat the player - end the game
-              updatedState.status = "finished";
-              updatedState.endTime = Date.now();
-              cpuTimerRef.current = null;
-              setGameStatus("finished");
-              onGameFinished(updatedState);
-            } else if (updatedState.status === "finished") {
-              // Both finished
-              cpuTimerRef.current = null;
-              setGameStatus("finished");
-              onGameFinished(updatedState);
-            } else if (
-              updatedState.opponent &&
-              !updatedState.opponent.isFinished &&
-              !updatedState.currentPlayer.isFinished
-            ) {
-              // Schedule next CPU answer - use a small delay to avoid stack overflow
-              // Clear the ref so it can be scheduled again
-              cpuTimerRef.current = null;
-              setTimeout(() => scheduleCPUAnswer(difficulty), 100);
-            } else {
-              // Clear timer ref if CPU is done
-              cpuTimerRef.current = null;
-            }
-
-            return updatedState;
-          });
-        }, totalDelay);
-
-        return prevState; // Don't modify state here
+      // random delay based on difficulty and current question
+      const baseThinkTime = 4000; // Base thinking time of 2 seconds
+      const randomThinkTime = Math.random() * 2000;
+      const difficultyMultiplier = difficulty === "easy" ? 1.5 : 1; // Easy mode is slower
+      
+      // Add some randomness based on question length
+      const questionLength = currentQuestion?.incorrectSentence.length || 20;
+      const lengthFactor = Math.min(questionLength / 20, 2); // Cap at 2x for very long sentences
+      
+      const totalDelay = (baseThinkTime + randomThinkTime) * difficultyMultiplier * lengthFactor;
+      
+      console.log("Setting timer for", {
+        baseThinkTime,
+        randomThinkTime,
+        difficultyMultiplier,
+        questionLength,
+        lengthFactor,
+        totalDelay: Math.round(totalDelay)
       });
+
+      cpuTimerRef.current = setTimeout(() => {
+        console.log("CPU timer triggered, updating state");
+        setCurrentGameState((prevState) => {
+          if (!prevState?.opponent || prevState.opponent.isFinished || prevState.status !== "active") {
+            console.log("CPU skipping move - game not active or opponent finished", {
+              hasOpponent: !!prevState?.opponent,
+              opponentFinished: prevState?.opponent?.isFinished,
+              gameStatus: prevState?.status
+            });
+            return prevState;
+          }
+
+          console.log("CPU making move", {
+            currentQuestion: prevState.opponent.currentQuestionIndex,
+            questionsAnswered: prevState.opponent.questionsAnswered
+          });
+
+          const updatedState = updateCPUProgress(prevState, difficulty);
+          
+          console.log("CPU move complete", {
+            newQuestion: updatedState.opponent?.currentQuestionIndex,
+            totalAnswered: updatedState.opponent?.questionsAnswered
+          });
+
+          return updatedState;
+        });
+
+        // Schedule next move after state update
+        setTimeout(() => {
+          setCurrentGameState(prevState => {
+            if (prevState?.status === "active" && prevState.opponent && !prevState.opponent.isFinished) {
+              console.log("Scheduling next CPU move");
+              scheduleCPUAnswer(difficulty);
+            } else {
+              console.log("CPU finished or game ended", {
+                gameStatus: prevState?.status,
+                opponentFinished: prevState?.opponent?.isFinished
+              });
+            }
+            return prevState;
+          });
+        }, 0);
+      }, totalDelay);
     },
-    [setGameStatus, onGameFinished]
+    []
   );
+
+  // Separate effect to handle game status updates to avoid setState during render
+  useEffect(() => {
+    // Only check for game end conditions if the game is active
+    if (currentGameState.status === "active") {
+      const isGameFinished = 
+        currentGameState.opponent?.isFinished || 
+        currentGameState.currentPlayer.isFinished;
+
+      if (isGameFinished) {
+          const finalState: TreasureHuntGameState = {
+            ...currentGameState,
+            status: "finished" as GameStatus,
+            endTime: Date.now(),
+            opponent: currentGameState.opponent ? {
+              ...currentGameState.opponent,
+              isFinished: true,
+            } : undefined,
+          };        // Update the state one final time
+        setCurrentGameState(finalState);
+        
+        // Schedule status updates in next tick to avoid setState during render
+        setTimeout(() => {
+          setGameStatus("finished");
+          onGameFinished(finalState);
+        }, 0);
+      } else if (
+        currentGameState.opponent && 
+        !currentGameState.opponent.isFinished &&
+        !currentGameState.currentPlayer.isFinished
+      ) {
+        // Schedule next CPU move if game is still active
+        scheduleCPUAnswer("medium");
+      }
+    }
+  }, [
+    currentGameState.status,
+    currentGameState.opponent?.isFinished,
+    currentGameState.currentPlayer.isFinished,
+    setGameStatus,
+    onGameFinished,
+  ]);
 
   // Start CPU when game becomes active - only trigger once when game starts
   useEffect(() => {
+    console.log("🎮 Game status changed", {
+      status: currentGameState?.status,
+      mode: currentGameState?.mode,
+      hasTimer: !!cpuTimerRef.current,
+      isScheduled: cpuScheduledRef.current
+    });
+
     if (
       currentGameState?.status === "active" &&
       currentGameState.mode === "solo" &&
@@ -224,6 +252,7 @@ const TH_ActiveScreen = ({
       !cpuTimerRef.current &&
       !cpuScheduledRef.current
     ) {
+      console.log("🎮 Starting initial CPU scheduling");
       cpuScheduledRef.current = true;
       scheduleCPUAnswer("medium");
     }
@@ -231,6 +260,7 @@ const TH_ActiveScreen = ({
     // Cleanup on unmount
     return () => {
       if (cpuTimerRef.current) {
+        console.log("🎮 Cleaning up CPU timer on unmount");
         clearTimeout(cpuTimerRef.current);
         cpuTimerRef.current = null;
       }
@@ -239,6 +269,8 @@ const TH_ActiveScreen = ({
   }, [
     currentGameState?.status,
     currentGameState?.mode,
+    currentGameState?.opponent?.isFinished,
+    currentGameState?.currentPlayer?.isFinished,
     scheduleCPUAnswer,
   ]);
 
@@ -289,21 +321,12 @@ const TH_ActiveScreen = ({
               onGameFinished(updatedState);
             }
           } else {
-            // Player answered correctly but not finished - restart CPU timer for next question
-            // Only restart if CPU is still active
-            if (updatedState.opponent && !updatedState.opponent.isFinished) {
-              // Small delay to ensure state is updated before scheduling next CPU answer
-              setTimeout(() => {
-                if (!cpuTimerRef.current) {
-                  scheduleCPUAnswer("medium");
-                }
-              }, 100);
-            }
+            // CPU scheduling is now handled by the game status effect
           }
           return updatedState;
         });
         setUserInput("");
-      }, 1500);
+      }, 750);
     } else {
       setCurrentGameState((prevState) => {
         return handleIncorrectAnswer(prevState, userInput.trim());

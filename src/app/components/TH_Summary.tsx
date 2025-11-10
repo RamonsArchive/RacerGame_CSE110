@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { TreasureHuntGameState } from "../constants/index_treasurehunt";
 import {
   calculateAccuracy,
@@ -15,11 +15,13 @@ const TH_Summary = ({
   currentPlayerTotalPoints: number;
   opponentTotalPoints: number;
 }) => {
+  const [showMissed, setShowMissed] = useState(false);
   const currentName = gameState.currentPlayer.playerName;
   const opponentName = gameState.opponent?.playerName || "CPU";
   
   return (
-    <div className="flex flex-row w-full p-4 gap-4 bg-linear-to-br from-slate-800/90 via-slate-700/80 to-slate-900/90 rounded-lg shadow-md border border-white/10">
+    <div className="flex flex-col items-center gap-6">
+      <div className="flex flex-row w-full p-4 gap-4 bg-linear-to-br from-slate-800/90 via-slate-700/80 to-slate-900/90 rounded-lg shadow-md border border-white/10">
       {/* Current Player Column */}
       <div className="flex w-[50%] flex-col gap-3">
         <div className="pb-1 border-b border-white/20">
@@ -92,10 +94,58 @@ const TH_Summary = ({
         />
       </div>
     </div>
+
+    {/* Missed Sentences Button */}
+    {gameState.answerLog && gameState.answerLog.length > 0 && (
+      <button
+        onClick={() => setShowMissed(true)}
+        className="mt-2 px-6 py-3 text-lg font-bold text-white bg-slate-800/90 hover:bg-slate-700/90 rounded-lg transition-all shadow-md border border-white/10"
+      >
+        🎯 See sentences you missed
+      </button>
+    )}
+
+    {/* Missed Sentences Modal */}
+    {showMissed && gameState.answerLog && (
+      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm">
+        <div className="relative max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto bg-slate-800/95 rounded-lg p-6 shadow-xl border border-white/10">
+          <button
+            onClick={() => setShowMissed(false)}
+            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-white/60 hover:text-white bg-white/10 hover:bg-white/20 rounded-lg transition-all"
+          >
+            ✕
+          </button>
+          <h2 className="text-xl font-bold text-white mb-6">Sentences You Missed</h2>
+          <div className="space-y-4">
+            {gameState.answerLog?.map((entry) => (
+              <div key={entry.questionId} className="p-4 bg-slate-700/50 rounded-lg border border-white/10">
+                <p className="text-white font-medium mb-2">{entry.prompt}</p>
+                {entry.userAnswer && (
+                  <p className="text-rose-400 text-sm mb-1">
+                    Your answer: {entry.userAnswer}
+                  </p>
+                )}
+                <p className="text-emerald-400 text-sm">
+                  Correct answer{Array.isArray(entry.correctAnswer) ? "s" : ""}:{" "}
+                  {Array.isArray(entry.correctAnswer)
+                    ? entry.correctAnswer.join(" | ")
+                    : entry.correctAnswer}
+                </p>
+                {entry.gaveUp && (
+                  <p className="text-slate-400 text-xs italic mt-1">
+                    You chose to give up on this one
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )}
+    </div>
   );
 };
 
-// small compact info row component
 const SummaryRow = ({ label, value }: { label: string; value: string }) => (
   <div className="flex flex-col gap-1.5">
     <p className="text-sm font-semibold text-slate-300 tracking-wide">
@@ -108,4 +158,3 @@ const SummaryRow = ({ label, value }: { label: string; value: string }) => (
 );
 
 export default TH_Summary;
-
