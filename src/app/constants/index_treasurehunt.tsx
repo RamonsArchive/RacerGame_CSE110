@@ -157,12 +157,6 @@ export const GAME_CONFIG = {
       pointsMultiplier: 1.2,
       timeBonusMultiplier: 1,
     },
-    hard: {
-      mistakeRate: 0.1,
-      speedMultiplier: 1.3,
-      pointsMultiplier: 1.3,
-      timeBonusMultiplier: 1.3,
-    },
   },
 } as const;
 
