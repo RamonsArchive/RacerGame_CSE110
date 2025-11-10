@@ -36,6 +36,7 @@ export interface UnscrambleQuestion {
   scrambledAnswer: string;
   unscrambledAnswer: string;
   gradeLevel: GradeLevel;
+  correctAnswer?: string | string[]; 
   hint?: string;
 }
 
