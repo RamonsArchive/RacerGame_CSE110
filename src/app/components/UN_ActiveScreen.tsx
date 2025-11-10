@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link";
 import Image from "next/image";
 import { ChevronLeft, Settings, Lightbulb, HelpCircle, Undo2, Shuffle, X } from "lucide-react";
-
+//new addition
 import {
   UnscrambleGameState,
   GameStatus,
