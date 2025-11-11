@@ -107,7 +107,6 @@ const TH_FinishedScreen = ({
       case "loss":
         return (
           <div className="flex flex-col items-start gap-2">
-            <p className="text-5xl">💪</p>
             <p className="text-3xl font-bold text-red-400">
               Better Luck Next Time!
             </p>
@@ -120,7 +119,6 @@ const TH_FinishedScreen = ({
       case "tie":
         return (
           <div className="flex flex-col items-start gap-2">
-            <p className="text-5xl">🤝</p>
             <p className="text-3xl font-bold text-yellow-400">
               It&apos;s a Tie!
             </p>
@@ -136,7 +134,7 @@ const TH_FinishedScreen = ({
     <div
       className="flex items-start justify-center w-full h-dvh p-4 relative"
       style={{
-        backgroundImage: "url(/Assets/TypeQuest/finish.png)",
+        backgroundImage: "url(/Assets/TreasureHunt/TH_summary_bg.png)",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -146,10 +144,10 @@ const TH_FinishedScreen = ({
         {/* Left side: Title and Winner Announcement */}
         <div className="flex flex-col gap-6 shrink-0">
           {/* Title */}
-          <div className="flex items-start">
-            <div className="px-6 py-4 bg-linear-to-br from-slate-800/90 via-slate-700/80 to-slate-900/90 rounded-lg shadow-md border border-white/10">
+          <div className="flex items-start max-w-lg">
+            <div className="px-6 py-4 bg-linear-to-br from-slate-800/90 via-slate-700/80 to-slate-900/90 rounded-lg shadow-md border border-white/10 max-w-md">
               <h1 className="text-5xl font-bold text-white">
-                🏴‍☠️ Treasure Hunt Complete! 🏴‍☠️
+                Treasure Hunt Complete! 
               </h1>
             </div>
           </div>

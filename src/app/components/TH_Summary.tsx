@@ -6,6 +6,14 @@ import {
   calculateAverageTime,
 } from "@/lib/utils_treasurehunt";
 
+// Small helper to display sentences with proper capitalization
+const capitalizeSentence = (s?: string | null) => {
+  if (!s) return s || "";
+  const trimmed = s.trim();
+  if (trimmed.length === 0) return trimmed;
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+};
+
 const TH_Summary = ({
   gameState,
   currentPlayerTotalPoints,
@@ -119,17 +127,17 @@ const TH_Summary = ({
           <div className="space-y-4">
             {gameState.answerLog?.map((entry) => (
               <div key={entry.questionId} className="p-4 bg-slate-700/50 rounded-lg border border-white/10">
-                <p className="text-white font-medium mb-2">{entry.prompt}</p>
+                <p className="text-white font-medium mb-2">{capitalizeSentence(entry.prompt)}</p>
                 {entry.userAnswer && (
                   <p className="text-rose-400 text-sm mb-1">
-                    Your answer: {entry.userAnswer}
+                    Your answer: {capitalizeSentence(entry.userAnswer)}
                   </p>
                 )}
                 <p className="text-emerald-400 text-sm">
-                  Correct answer{Array.isArray(entry.correctAnswer) ? "s" : ""}:{" "}
+                  Correct answer{Array.isArray(entry.correctAnswer) ? "s" : ""}: {" "}
                   {Array.isArray(entry.correctAnswer)
-                    ? entry.correctAnswer.join(" | ")
-                    : entry.correctAnswer}
+                    ? entry.correctAnswer.map((a) => capitalizeSentence(a)).join(" | ")
+                    : capitalizeSentence(String(entry.correctAnswer))}
                 </p>
                 {entry.gaveUp && (
                   <p className="text-slate-400 text-xs italic mt-1">

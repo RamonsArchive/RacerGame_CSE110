@@ -505,12 +505,31 @@ export const handleIncorrectAnswer = (
         },
       ];
 
+  // Create a QuestionResult entry for this incorrect attempt so accuracy
+  // counts attempts (correct / total submissions) rather than only scored answers.
+  const questionStartTime = gameState.currentPlayer.questionStartTime || Date.now();
+  const attemptTime = (Date.now() - questionStartTime) / 1000;
+
+  const incorrectResult = {
+    questionId: currentQuestion.id,
+    prompt: currentQuestion.incorrectSentence,
+    userAnswer: userAnswer || "",
+    correctAnswer: currentQuestion.correctSentence,
+    correct: false,
+    timeSpent: Math.round(attemptTime * 10) / 10,
+    mistakes: 1,
+    points: 0,
+    timestamp: Date.now(),
+  } as QuestionResult;
+
   return {
     ...gameState,
     currentPlayer: {
       ...gameState.currentPlayer,
       currentQuestionMistakes: gameState.currentPlayer.currentQuestionMistakes + 1,
       totalMistakes: gameState.currentPlayer.totalMistakes + 1,
+      // append the incorrect attempt to questionResults so totalAttempts increases
+      questionResults: [...gameState.currentPlayer.questionResults, incorrectResult],
     },
     // Legacy fields for backward compatibility
     mistakes: (gameState.mistakes || 0) + 1,
@@ -688,6 +707,8 @@ export const createGameResult = (
   const averageTimePerQuestion = currentPlayer.questionsAnswered > 0
     ? currentPlayer.questionResults.reduce((sum, q) => sum + q.timeSpent, 0) / currentPlayer.questionsAnswered
     : 0;
+  // Total attempts should count every submission (correct + incorrect attempts)
+  const totalAttempts = currentPlayer.questionResults.length;
 
   const result: GameResult = {
     gameId: gameState.gameId,
@@ -702,7 +723,8 @@ export const createGameResult = (
     correctAnswers,
     totalMistakes: currentPlayer.totalMistakes,
     totalTime,
-    accuracy: totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0,
+    // Use calculateAccuracy to compute correct submissions / total submissions
+    accuracy: calculateAccuracy(correctAnswers, totalAttempts),
     averageTimePerQuestion: Math.round(averageTimePerQuestion * 10) / 10,
   };
   
