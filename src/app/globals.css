@@ -229,7 +229,7 @@ body {
 }
 
 .animate-road-line {
-  animation: road-line 1s linear infinite;
+  animation: road-line 1s linear infinite reverse;
 }
 
 /* Shiny border animation for leaderboard button */

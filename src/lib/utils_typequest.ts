@@ -32,6 +32,14 @@ export const calculateQuestionPoints = (
     totalQuestions: number
   ): number => {
     const baseScore = questionResults.reduce((total, q) => total + q.points, 0);
+    console.log("Base score calcualteGameSCore", baseScore);
+    
+    // ✅ If no questions were answered (baseScore is 0), return 0 immediately
+    // No speed bonus or perfect bonus should be awarded for zero questions
+    if (baseScore === 0 || questionResults.length === 0) {
+      return 0;
+    }
+    
     const perfectBonus = hadPerfectGame ? GAME_CONFIG.PERFECT_BONUS : 0;
     
     // ✅ Speed bonus: reward finishing FASTER than target time
@@ -385,11 +393,12 @@ export const createGameResult = (gameState: GameState): GameResult => {
   const playerEndTime = currentPlayer.finishTime || endTime || Date.now();
   const totalTime = startTime ? (playerEndTime - startTime) / 1000 : 0;
   const correctAnswers = currentPlayer.questionResults.filter(q => q.correct).length;
+  console.log("correctAnswers", correctAnswers);
   const totalCharacters = currentPlayer.questionResults.reduce(
     (sum, q) => sum + q.correctAnswer.length, 0
   );
   
-  const hadPerfectGame = currentPlayer.totalMistakes === 0;
+  const hadPerfectGame = currentPlayer.totalMistakes === 0 && correctAnswers === totalQuestions;
   const finalPoints = calculateGameScore(
     currentPlayer.questionResults, 
     hadPerfectGame, 
@@ -423,9 +432,12 @@ export const createGameResult = (gameState: GameState): GameResult => {
     charactersPerSecond: calculateCharactersPerSecond(totalCharacters, totalTime),
   };
   
-  // Add opponent data for solo mode
+  // Add opponent data for solo modecalculateGameScore
   if (opponent && mode === 'solo') {
-    const opponentPerfect = opponent.totalMistakes === 0;
+    const opponentCorrectAnswers = opponent.questionResults.filter(q => q.correct).length;
+    console.log("opponentCorrectAnswers", opponentCorrectAnswers);
+    const opponentPerfect = opponent.totalMistakes === 0 && opponentCorrectAnswers === totalQuestions;
+    console.log("opponentPerfect", opponentPerfect);
     const opponentEndTime = opponent.finishTime || endTime || Date.now();
     const opponentPoints = calculateGameScore(
       opponent.questionResults, 
@@ -435,6 +447,8 @@ export const createGameResult = (gameState: GameState): GameResult => {
       targetTimePerQuestion, 
       totalQuestions
     );
+
+    console.log("opponentPoints", opponentPoints);
     
     result.opponent = {
       name: opponent.playerName,

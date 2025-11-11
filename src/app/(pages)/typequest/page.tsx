@@ -262,6 +262,8 @@ const TypeQuestPage = () => {
         ...answerMistakes,
       ];
 
+      console.log("allQuestionResults", allQuestionResults);
+
       const newQuestionIndex =
         currentGameState.opponent.currentQuestionIndex + 1;
       const newQuestionsAnswered =
