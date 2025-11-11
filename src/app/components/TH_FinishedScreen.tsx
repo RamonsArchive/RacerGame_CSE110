@@ -1,9 +1,8 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
 import { TreasureHuntGameState } from "@/app/constants/index_treasurehunt";
-import { createGameResult, calculateGameScore } from "@/lib/utils_treasurehunt";
+import { calculateGameScore } from "@/lib/utils_treasurehunt";
 import TH_Summary from "./TH_Summary";
-import BackTo from "./BackTo";
 
 const TH_FinishedScreen = ({
   gameState,
