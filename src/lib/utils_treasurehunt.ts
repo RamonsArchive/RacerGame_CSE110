@@ -80,7 +80,7 @@ export const calculateGameScore = (
 export const simulateCPUAnswer = (
   question: GrammarQuestion,
   opponent: PlayerProgress,
-  difficulty: 'easy' | 'medium' | 'hard' = 'medium'
+  difficulty: keyof typeof GAME_CONFIG.CPU_DIFFICULTY = 'medium'
 ): { timeSpent: number; mistakes: number; correct: boolean } => {
   const config = GAME_CONFIG.CPU_DIFFICULTY[difficulty];
   const timeSpent = opponent.questionStartTime 
@@ -99,7 +99,7 @@ export const simulateCPUAnswer = (
 // Update CPU progress (similar to TypeQuest)
 export const updateCPUProgress = (
   currentGameState: TreasureHuntGameState,
-  difficulty: 'easy' | 'medium' | 'hard' = 'medium'
+  difficulty: keyof typeof GAME_CONFIG.CPU_DIFFICULTY = 'medium'
 ): TreasureHuntGameState => {
   if (!currentGameState.opponent || currentGameState.opponent.isFinished) {
     return currentGameState;
