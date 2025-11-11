@@ -33,7 +33,6 @@ const TH_ActiveScreen = ({
 }) => {
   const [userInput, setUserInput] = useState<string>("");
   const [showIncorrectPopup, setShowIncorrectPopup] = useState<boolean>(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
   const [showHintPopup, setShowHintPopup] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
   const [currentGameState, setCurrentGameState] =
@@ -291,42 +290,38 @@ const TH_ActiveScreen = ({
     );
 
     if (isCorrect) {
-      setShowSuccessMessage(true);
-      setTimeout(() => {
-        setShowSuccessMessage(false);
-        setCurrentGameState((prevState) => {
-          // Clear CPU timer when player answers to prevent stale updates
-          if (cpuTimerRef.current) {
-            clearTimeout(cpuTimerRef.current);
-            cpuTimerRef.current = null;
-          }
+      setCurrentGameState((prevState) => {
+        // Clear CPU timer when player answers to prevent stale updates
+        if (cpuTimerRef.current) {
+          clearTimeout(cpuTimerRef.current);
+          cpuTimerRef.current = null;
+        }
 
-          const updatedState = handleCorrectAnswer(prevState);
+        const updatedState = handleCorrectAnswer(prevState);
 
-          if (updatedState.currentPlayer.isFinished) {
-            // Player finished - check if CPU is also finished
-            if (updatedState.opponent?.isFinished) {
-              updatedState.status = "finished";
-              updatedState.endTime = Date.now();
-              setGameStatus("finished");
-              onGameFinished(updatedState);
-            } else {
-              // Player finished first - mark CPU as finished
-              updatedState.status = "finished";
-              updatedState.endTime = Date.now();
-              if (updatedState.opponent) {
-                updatedState.opponent.isFinished = true;
-              }
-              setGameStatus("finished");
-              onGameFinished(updatedState);
-            }
+        if (updatedState.currentPlayer.isFinished) {
+          // Player finished - check if CPU is also finished
+          if (updatedState.opponent?.isFinished) {
+            updatedState.status = "finished";
+            updatedState.endTime = Date.now();
+            setGameStatus("finished");
+            onGameFinished(updatedState);
           } else {
-            // CPU scheduling is now handled by the game status effect
+            // Player finished first - mark CPU as finished
+            updatedState.status = "finished";
+            updatedState.endTime = Date.now();
+            if (updatedState.opponent) {
+              updatedState.opponent.isFinished = true;
+            }
+            setGameStatus("finished");
+            onGameFinished(updatedState);
           }
-          return updatedState;
-        });
-        setUserInput("");
-      }, 750);
+        } else {
+          // CPU scheduling is now handled by the game status effect
+        }
+        return updatedState;
+      });
+      setUserInput("");
     } else {
       setCurrentGameState((prevState) => {
         return handleIncorrectAnswer(prevState, userInput.trim());
@@ -543,7 +538,7 @@ const TH_ActiveScreen = ({
               disabled={!userInput.trim()}
               className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold text-xl px-8 py-5 rounded-xl transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
             >
-              ✅ Submit Answer
+              Submit Answer
             </button>
 
             {canShowHint && (
@@ -614,15 +609,7 @@ const TH_ActiveScreen = ({
         </div>
       )}
 
-      {/* Success Message */}
-      {showSuccessMessage && (
-        <div className="fixed inset-0 bg-black/60 flex-center z-50">
-          <div className="bg-linear-to-br from-green-400 to-green-600 text-white p-10 rounded-3xl text-center shadow-2xl border-4 border-white animate-bounce">
-            <p className="text-5xl font-bold mb-4">🎉 Awesome! 🎉</p>
-            <p className="text-2xl">Correct! Moving to next treasure...</p>
-          </div>
-        </div>
-      )}
+      {/* Success Message removed: immediate transition on correct answer */}
 
       {/* Incorrect Answer Popup */}
       {showIncorrectPopup && (
