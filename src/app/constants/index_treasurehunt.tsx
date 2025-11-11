@@ -1,6 +1,7 @@
 // constants/index_treasurehunt.tsx
 
 export type GradeLevel = "K" | "1-2" | "3-4" | "5-6";
+export type GameMode = "solo" | "multiplayer";
 export type GameStatus = "setup" | "active" | "finished";
 
 export const GRADE_LEVEL_LABELS: Record<GradeLevel, string> = {
@@ -34,20 +35,54 @@ export interface QuestionProgress {
   gaveUp: boolean;
 }
 
+export interface QuestionResult {
+  questionId: string;
+  prompt: string;
+  userAnswer: string;
+  correctAnswer: string | string[];
+  correct: boolean;
+  timeSpent: number;
+  mistakes: number;
+  points: number;
+  timestamp: number;
+}
+
+export interface PlayerProgress {
+  playerId: string;
+  playerName: string;
+  currentQuestionIndex: number;
+  questionStartTime: number | null;
+  questionsAnswered: number;
+  currentQuestionMistakes: number;
+  totalPoints: number;
+  totalMistakes: number;
+  questionResults: QuestionResult[];
+  isFinished: boolean;
+  finishTime: number | null;
+}
+
 export interface TreasureHuntGameState {
   gameId: string;
+  mode: GameMode;
   gradeLevel: GradeLevel;
   status: GameStatus;
-  currentQuestionIndex: number;
   questions: GrammarQuestion[];
   totalQuestions: number;
-  score: number;
-  mistakes: number;
-  isGameFinished: boolean;
   startTime: number | null;
   endTime: number | null;
-  questionProgress: QuestionProgress[]; // Track hints/give ups per question
-  answerLog: AnswerLogEntry[]; // Track incorrect attempts for results
+  targetTimePerQuestion: number; // Used for speed bonus calculation
+  
+  // Player data
+  currentPlayer: PlayerProgress;
+  opponent?: PlayerProgress; // CPU or other player
+  
+  // Legacy fields for backward compatibility (deprecated, use currentPlayer instead)
+  currentQuestionIndex?: number;
+  score?: number;
+  mistakes?: number;
+  isGameFinished?: boolean;
+  questionProgress?: QuestionProgress[]; // Track hints/give ups per question
+  answerLog?: AnswerLogEntry[]; // Track incorrect attempts for results
 }
 
 export interface AnswerLogEntry {
@@ -62,11 +97,25 @@ export interface GameResult {
   gameId: string;
   date: number;
   gradeLevel: GradeLevel;
+  mode: GameMode;
+  playerName: string;
   totalQuestions: number;
-  score: number;
-  mistakes: number;
-  totalTime: number;
+  totalPoints: number;
+  correctAnswers: number;
+  totalMistakes: number;
+  totalTime: number; // seconds
   accuracy: number; // percentage
+  averageTimePerQuestion: number; // seconds
+  startTime: number;
+  endTime: number;
+  
+  // Multiplayer/solo specific
+  opponent?: {
+    name: string;
+    points: number;
+  };
+  won?: boolean; // for solo/multiplayer
+  pointMargin?: number; // how much you won/lost by
 }
 
 // Game configuration
@@ -75,8 +124,40 @@ export const GAME_CONFIG = {
   MIN_QUESTIONS: 5,
   MAX_QUESTIONS: 15,
   SESSION_STORAGE_KEY: "treasurehunt_game_state",
+  LEADERBOARD_KEY: "treasurehunt_leaderboard",
+  MAX_LEADERBOARD_ENTRIES: 50,
   HINT_MISTAKE_THRESHOLD: 1, // Show hint after first mistake
   GIVE_UP_MISTAKE_THRESHOLD: 3, // Show give up after 3 mistakes
+  
+  // Points system
+  BASE_POINTS: 100,
+  SPEED_BONUS_MULTIPLIER: 20,
+  MISTAKE_PENALTY: 20,
+  PERFECT_BONUS: 50,
+  
+  // Target times by grade band (seconds per question)
+  TARGET_TIMES: {
+    K: 15,
+    "1-2": 18,
+    "3-4": 20,
+    "5-6": 22,
+  } as Record<GradeLevel, number>,
+  
+  // CPU difficulty settings
+  CPU_DIFFICULTY: {
+    easy: {
+      mistakeRate: 0.4,
+      speedMultiplier: 0.5,
+      pointsMultiplier: 0.7,
+      timeBonusMultiplier: 0.5,
+    },
+    medium: {
+      mistakeRate: 0.2,
+      speedMultiplier: 1,
+      pointsMultiplier: 1.2,
+      timeBonusMultiplier: 1,
+    },
+  },
 } as const;
 
 // Grammar questions bank organized by grade level
