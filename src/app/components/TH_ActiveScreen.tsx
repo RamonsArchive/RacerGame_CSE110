@@ -40,19 +40,11 @@ const TH_ActiveScreen = ({
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
   const [currentGameState, setCurrentGameState] =
     useState<TreasureHuntGameState>(gameState);
-  const [backgroundImage, setBackgroundImage] = useState<number>(1);
   
   // Refs for CPU timer management
   const cpuTimerRef = useRef<NodeJS.Timeout | null>(null);
   const cpuScheduledRef = useRef<boolean>(false);
   const hasResetRef = useRef<boolean>(false);
-
-  // Rotate background images
-  useEffect(() => {
-    const bgImages = [1, 2, 3];
-    const randomBg = bgImages[Math.floor(Math.random() * bgImages.length)];
-    setBackgroundImage(randomBg);
-  }, [currentGameState.currentPlayer?.currentQuestionIndex ?? currentGameState.currentQuestionIndex]);
 
   // Get player references
   const currentPlayer = currentGameState.currentPlayer;
@@ -396,23 +388,44 @@ const TH_ActiveScreen = ({
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
-          src={`/Assets/TreasureHunt/bg_${backgroundImage}.png`}
+          src="/Assets/TreasureHunt/TH.png"
           alt="Treasure Hunt Background"
           fill
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-linear-to-b from-yellow-200/20 via-orange-300/30 to-blue-400/20" />
+      </div>
+
+      {/* Seagulls in top right corner */}
+      <div className="absolute top-56 right-36 z-20 flex items-start gap-4">
+        <div className="animate-seagull-fly-1">
+          <Image
+            src="/Assets/TreasureHunt/seagull.png"
+            alt="Seagull"
+            width={160}
+            height={160}
+            className="drop-shadow-lg"
+          />
+        </div>
+        <div className="animate-seagull-fly-2 mt-4">
+          <Image
+            src="/Assets/TreasureHunt/seagull.png"
+            alt="Seagull"
+            width={70}
+            height={70}
+            className="drop-shadow-lg"
+          />
+        </div>
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 flex-center w-full h-dvh p-4">
-        <div className="flex flex-col w-full max-w-4xl gap-6 bg-white/95 backdrop-blur-sm p-8 rounded-3xl shadow-2xl border-4 border-yellow-400">
+      <div className="relative z-14 flex items-center justify-start w-full h-dvh p-8">
+        <div className="flex flex-col w-full max-w-2xl gap-6 bg-white/40 backdrop-blur-sm p-8 rounded-3xl shadow-2xl ml-6">
           {/* Header */}
           <div className="flex items-center justify-between">
             <Link
               href="/"
-              className="group flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-bold transition-all hover:scale-105"
+              className="group flex items-center gap-2 px-4 py-2 bg-blue-500/60 backdrop-blur-sm hover:bg-blue-600/70 text-white rounded-xl font-bold transition-all hover:scale-105"
             >
               <ChevronLeft className="w-5 h-5" />
               <span>Home</span>
@@ -420,19 +433,17 @@ const TH_ActiveScreen = ({
 
             <button
               onClick={() => setShowSettingsModal(true)}
-              className="p-3 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition-all hover:scale-110"
+              className="p-3 bg-blue-500/60 backdrop-blur-sm hover:bg-blue-600/70 text-white rounded-full transition-all hover:scale-110"
               aria-label="Settings"
             >
               <Settings className="w-6 h-6" />
             </button>
           </div>
 
-          {/* Title with animation */}
+          {/* Title */}
           <h1 className="text-5xl md:text-6xl font-black text-center text-orange-600 drop-shadow-[0_2px_2px_rgba(0,0,0,0.2)]">
-            <span className="inline-block align-middle animate-bounce">🏴‍☠️</span>{" "}
-            <span className="text-yellow-600 animate-pulse">Treasure</span>{" "}
-            <span className="text-yellow-600 animate-pulse">Hunt</span>{" "}
-            <span className="inline-block align-middle animate-bounce">🏴‍☠️</span>
+            <span className="text-yellow-400">Treasure</span>{" "}
+            <span className="text-yellow-400">Hunt</span>{" "}
           </h1>
 
           {/* Progress Bar - Kid Friendly */}
@@ -442,16 +453,16 @@ const TH_ActiveScreen = ({
                 Question {currentQuestionIndex + 1} of{" "}
                 {currentGameState.totalQuestions}
               </p>
-              <div className="flex items-center gap-2 px-4 py-2 bg-green-400 rounded-full animate-pulse">
-                <span className="text-2xl animate-spin">⭐</span>
+              <div className="flex items-center gap-2 px-4 py-2 bg-green-400/60 backdrop-blur-sm rounded-full">
+                <span className="text-2xl">⭐</span>
                 <p className="text-xl font-bold text-white">
                   Points: {currentPlayer?.totalPoints ?? 0}
                 </p>
               </div>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-8 overflow-hidden shadow-inner relative">
+            <div className="w-full bg-gray-200/50 backdrop-blur-sm rounded-full h-8 overflow-visible shadow-inner relative">
               <div
-                className="bg-linear-to-r from-yellow-400 via-orange-500 to-red-500 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2 relative overflow-hidden"
+                className="bg-linear-to-r from-blue-400 via-blue-500 to-blue-600 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2 relative overflow-visible"
                 style={{ width: `${Math.max((currentQuestionIndex / currentGameState.totalQuestions) * 100, 5)}%` }}
               >
                 {/* Wave animation overlay */}
@@ -474,6 +485,22 @@ const TH_ActiveScreen = ({
                   </span>
                 )}
               </div>
+              {/* Floating boat on progress bar */}
+              <div
+                className="absolute top-1/2 -translate-y-1/2 animate-boat-float z-20"
+                style={{
+                  left: `calc(${Math.max((currentQuestionIndex / currentGameState.totalQuestions) * 100, 5)}% - 30px)`,
+                  transition: 'left 0.5s ease-out',
+                }}
+              >
+                <Image
+                  src="/Assets/TreasureHunt/Boat.png"
+                  alt="Boat"
+                  width={60}
+                  height={60}
+                  className="drop-shadow-lg"
+                />
+              </div>
             </div>
           </div>
 
@@ -482,7 +509,7 @@ const TH_ActiveScreen = ({
             <p className="text-xl font-bold text-gray-700 mb-4">
               ✏️ Fix this sentence:
             </p>
-            <div className="bg-red-100 border-4 border-red-500 p-6 rounded-2xl shadow-lg animate-pulse">
+            <div className="bg-red-100/50 backdrop-blur-sm p-6 rounded-2xl shadow-lg">
               <p className="text-2xl md:text-3xl font-bold text-red-700 leading-relaxed">
                 {getSentencePartsWithUnderline(
                   currentQuestion.incorrectSentence,
@@ -506,7 +533,7 @@ const TH_ActiveScreen = ({
           {/* Input Area */}
           <div className="flex flex-col gap-4">
             <textarea
-              className="w-full text-xl px-6 py-5 rounded-2xl border-4 border-blue-400 bg-white text-gray-900 outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-200 transition-all min-h-[120px] resize-y font-nunito shadow-lg"
+              className="w-full text-xl px-6 py-5 rounded-2xl bg-white/50 backdrop-blur-sm text-gray-900 outline-none focus:ring-4 focus:ring-blue-200 transition-all min-h-[120px] resize-y font-nunito shadow-lg"
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               onKeyDown={handleKeyPress}
