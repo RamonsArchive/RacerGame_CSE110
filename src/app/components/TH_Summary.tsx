@@ -103,16 +103,6 @@ const TH_Summary = ({
       </div>
     </div>
 
-    {/* Missed Sentences Button */}
-    {gameState.answerLog && gameState.answerLog.length > 0 && (
-      <button
-        onClick={() => setShowMissed(true)}
-        className="mt-2 px-6 py-3 text-lg font-bold text-white bg-slate-800/90 hover:bg-slate-700/90 rounded-lg transition-all shadow-md border border-white/10"
-      >
-        🎯 See sentences you missed
-      </button>
-    )}
-
     {/* Missed Sentences Modal */}
     {showMissed && gameState.answerLog && (
       <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm">
