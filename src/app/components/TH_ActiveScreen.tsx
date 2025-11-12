@@ -56,10 +56,6 @@ const TH_ActiveScreen = ({
 
   const currentQuestion = currentGameState.questions?.[currentQuestionIndex];
   
-  if (!currentQuestion) {
-    return <div>Loading question...</div>;
-  }
-  
   const questionProgress = getCurrentQuestionProgress(currentGameState);
 
   // Calculate progress for display
@@ -305,8 +301,6 @@ const TH_ActiveScreen = ({
           if (updatedState.opponent?.isFinished) {
             updatedState.status = "finished";
             updatedState.endTime = Date.now();
-            setGameStatus("finished");
-            onGameFinished(updatedState);
           } else {
             // Player finished first - mark CPU as finished
             updatedState.status = "finished";
@@ -314,9 +308,12 @@ const TH_ActiveScreen = ({
             if (updatedState.opponent) {
               updatedState.opponent.isFinished = true;
             }
+          }
+          // Schedule status updates in next tick to avoid setState during render
+          setTimeout(() => {
             setGameStatus("finished");
             onGameFinished(updatedState);
-          }
+          }, 0);
         } else {
           // CPU scheduling is now handled by the game status effect
         }
@@ -361,8 +358,11 @@ const TH_ActiveScreen = ({
       if (updatedState.currentPlayer.isFinished) {
         updatedState.status = "finished";
         setCurrentGameState(updatedState);
-        setGameStatus("finished");
-        onGameFinished(updatedState);
+        // Schedule status updates in next tick to avoid setState during render
+        setTimeout(() => {
+          setGameStatus("finished");
+          onGameFinished(updatedState);
+        }, 0);
       }
     }
   }, [currentGameState, setGameStatus, onGameFinished]);
@@ -382,6 +382,11 @@ const TH_ActiveScreen = ({
     if (total === 0) return 0;
     return Math.round((current / total) * 100);
   };
+
+  // Early return after all hooks - check if question exists
+  if (!currentQuestion) {
+    return <div>Loading question...</div>;
+  }
 
   return (
     <div className="relative w-full h-dvh overflow-hidden">
