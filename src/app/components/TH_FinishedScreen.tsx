@@ -1,7 +1,8 @@
 "use client";
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { TreasureHuntGameState } from "@/app/constants/index_treasurehunt";
-import { createGameResult } from "@/lib/utils_treasurehunt";
+import { calculateGameScore, calculateAccuracy, calculateAverageTime } from "@/lib/utils_treasurehunt";
+import TH_Summary from "./TH_Summary";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -15,23 +16,129 @@ const TH_FinishedScreen = ({
   onPlayAgain: () => void;
   onBackHome: () => void;
 }) => {
-  const result = createGameResult(gameState);
-  const accuracy = result.accuracy;
+  const [currentPlayerTotalPoints, setCurrentPlayerTotalPoints] = useState(0);
+  const [opponentTotalPoints, setOpponentTotalPoints] = useState(0);
+  const [winner, setWinner] = useState<"win" | "loss" | "tie" | null>(null);
 
-  // Determine message based on performance
-  const getPerformanceMessage = () => {
-    if (accuracy >= 90) {
-      return { emoji: "🌟", text: "Outstanding!", color: "from-yellow-400 to-orange-500" };
-    } else if (accuracy >= 75) {
-      return { emoji: "👏", text: "Great job!", color: "from-green-400 to-blue-500" };
-    } else if (accuracy >= 60) {
-      return { emoji: "👍", text: "Good work!", color: "from-blue-400 to-purple-500" };
-    } else {
-      return { emoji: "💪", text: "Keep practicing!", color: "from-orange-400 to-red-500" };
+  // Calculate points - MUST match createGameResult logic exactly!
+  const calculateCurrentPlayerTotalPoints = useCallback(() => {
+    if (!gameState || !gameState.startTime) return 0;
+
+    // Use player's individual finishTime (same as createGameResult)
+    const playerEndTime =
+      gameState.currentPlayer.finishTime || gameState.endTime || Date.now();
+    const currentPlayerPerfect = gameState?.currentPlayer?.totalMistakes === 0;
+
+    return calculateGameScore(
+      gameState?.currentPlayer?.questionResults || [],
+      currentPlayerPerfect,
+      gameState.startTime,
+      playerEndTime,
+      gameState.targetTimePerQuestion,
+      gameState.totalQuestions
+    );
+  }, [gameState]);
+
+  const calculateOpponentTotalPoints = useCallback(() => {
+    if (!gameState || !gameState.startTime || !gameState.opponent) return 0;
+
+    // Use opponent's individual finishTime (same as createGameResult)
+    const opponentEndTime =
+      gameState.opponent.finishTime || gameState.endTime || Date.now();
+    const opponentPerfect = gameState?.opponent?.totalMistakes === 0;
+
+    return calculateGameScore(
+      gameState?.opponent?.questionResults || [],
+      opponentPerfect,
+      gameState.startTime,
+      opponentEndTime,
+      gameState.targetTimePerQuestion,
+      gameState.totalQuestions
+    );
+  }, [gameState]);
+
+  useEffect(() => {
+    // Calculate points first
+    const playerPoints = calculateCurrentPlayerTotalPoints();
+    const oppPoints = calculateOpponentTotalPoints();
+
+    // Update points state
+    setCurrentPlayerTotalPoints(playerPoints);
+    setOpponentTotalPoints(oppPoints);
+
+    // Calculate winner using the JUST-CALCULATED values (not state)
+    const calculatedWinner =
+      playerPoints > 0 || oppPoints > 0
+        ? playerPoints > oppPoints
+          ? "win"
+          : playerPoints < oppPoints
+          ? "loss"
+          : "tie"
+        : null;
+
+    setWinner(calculatedWinner);
+
+    console.log("🏆 Winner calculation:", {
+      playerPoints,
+      oppPoints,
+      winner: calculatedWinner,
+    });
+  }, [
+    gameState,
+    calculateCurrentPlayerTotalPoints,
+    calculateOpponentTotalPoints,
+  ]);
+
+  const getWinnerMessage = useCallback(() => {
+    if (!gameState || !winner) return null;
+
+    switch (winner) {
+      case "win":
+        return (
+          <div className="flex flex-col items-start gap-2">
+            <p className="text-5xl">🎉</p>
+            <p className="text-5xl font-bold text-green-400 animate-bounce">
+              You Won!
+            </p>
+            <p className="text-lg text-slate-300">
+              Beat {gameState.opponent?.playerName || "CPU"} by{" "}
+              {currentPlayerTotalPoints - opponentTotalPoints} points
+            </p>
+          </div>
+        );
+      case "loss":
+        return (
+          <div className="flex flex-col items-start gap-2">
+            <p className="text-3xl font-bold text-red-400">
+              Better Luck Next Time!
+            </p>
+            <p className="text-lg text-black">
+              Lost to {gameState.opponent?.playerName || "CPU"} by{" "}
+              {opponentTotalPoints - currentPlayerTotalPoints} points
+            </p>
+          </div>
+        );
+      case "tie":
+        return (
+          <div className="flex flex-col items-start gap-2">
+            <p className="text-3xl font-bold text-yellow-400">
+              It&apos;s a Tie!
+            </p>
+            <p className="text-lg text-slate-300">
+              Both scored {currentPlayerTotalPoints} points
+            </p>
+          </div>
+        );
     }
-  };
+  }, [winner, currentPlayerTotalPoints, opponentTotalPoints, gameState]);
 
-  const performance = getPerformanceMessage();
+  // Calculate stats for display
+  const correctAnswers = gameState.currentPlayer.questionResults.filter((q) => q.correct).length;
+  const totalAnswered = gameState.currentPlayer.questionResults.length;
+  const accuracy = calculateAccuracy(correctAnswers, totalAnswered);
+  const totalTime = gameState.endTime && gameState.startTime 
+    ? (gameState.endTime - gameState.startTime) / 1000 
+    : 0;
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
@@ -47,7 +154,6 @@ const TH_FinishedScreen = ({
         />
       </div>
 
-
       {/* Main Content */}
       <div className="relative z-10 flex items-center justify-center w-full h-screen p-4 overflow-y-auto">
         <div className="flex flex-col w-full max-w-6xl gap-8 p-10 my-4">
@@ -60,27 +166,27 @@ const TH_FinishedScreen = ({
             <span>Back to Home</span>
           </Link>
 
-          {/* Two Column Layout */}
+          {/* Two Column Layout - Vertical Columns */}
           <div className="flex flex-col md:flex-row gap-8 w-full">
             {/* Left Column */}
-            <div className="flex flex-col gap-10 flex-1">
+            <div className="flex flex-col gap-8 flex-1">
               {/* Title */}
-              <h1 className="text-5xl md:text-6xl font-black text-center text-emerald-700 drop-shadow-[0_2px_2px_rgba(0,0,0,0.2)]">
+              <h1 className="text-5xl md:text-6xl font-black text-center text-emerald-700 drop-shadow-[0_2px_2px_rgba(0,0,0,0.2)] mt-4">
                  Treasure Found! 
               </h1>
 
-              {/* Performance Message */}
-              <div className="text-center p-6 rounded-2xl bg-emerald-100/60 backdrop-blur-sm text-emerald-800 shadow-lg">
-                <p className="text-5xl mb-2">{performance.emoji}</p>
-                <h2 className="text-4xl font-extrabold">{performance.text}</h2>
-                <p className="text-xl mt-2">You completed all {gameState.totalQuestions} grammar challenges!</p>
-              </div>
+              {/* Winner Message */}
+              {getWinnerMessage() && (
+                <div className="text-center p-6 rounded-2xl bg-emerald-100/60 backdrop-blur-sm text-emerald-800 shadow-lg">
+                  {getWinnerMessage()}
+                </div>
+              )}
 
               {/* Stats Grid */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-emerald-50/60 backdrop-blur-sm p-6 rounded-2xl text-emerald-800 shadow">
-                  <p className="text-lg font-bold mb-2">⭐ Score</p>
-                  <p className="text-4xl font-black">{gameState.score}/{gameState.totalQuestions}</p>
+                  <p className="text-lg font-bold mb-2">⭐ Points</p>
+                  <p className="text-4xl font-black">{currentPlayerTotalPoints}</p>
                 </div>
                 <div className="bg-emerald-50/60 backdrop-blur-sm p-6 rounded-2xl text-emerald-800 shadow">
                   <p className="text-lg font-bold mb-2">🎯 Accuracy</p>
@@ -88,23 +194,12 @@ const TH_FinishedScreen = ({
                 </div>
                 <div className="bg-rose-50/60 backdrop-blur-sm p-6 rounded-2xl text-rose-700 shadow">
                   <p className="text-lg font-bold mb-2">😅 Mistakes</p>
-                  <p className="text-4xl font-black">{gameState.mistakes}</p>
+                  <p className="text-4xl font-black">{gameState.currentPlayer.totalMistakes}</p>
                 </div>
                 <div className="bg-sky-50/60 backdrop-blur-sm p-6 rounded-2xl text-sky-700 shadow">
                   <p className="text-lg font-bold mb-2">⏱️ Time</p>
-                  <p className="text-4xl font-black">{Math.round(result.totalTime)}s</p>
+                  <p className="text-4xl font-black">{Math.round(totalTime)}s</p>
                 </div>
-              </div>
-            </div>
-
-            {/* Right Column */}
-            <div className="flex flex-col gap-8 flex-1">
-              {/* Grade Level Badge */}
-              <div className="text-center">
-                <p className="text-lg font-bold text-gray-700 mb-2">Grade Level</p>
-                <span className="inline-block bg-emerald-600/70 backdrop-blur-sm text-white px-6 py-3 rounded-full text-xl font-bold shadow-lg">
-                  {gameState.gradeLevel}
-                </span>
               </div>
 
               {/* Wrong Answers Dropdown */}
@@ -136,21 +231,43 @@ const TH_FinishedScreen = ({
                 </details>
               )}
             </div>
+
+            {/* Right Column - Summary */}
+            <div className="flex flex-col gap-8 flex-1">
+              {/* Grade Level Badge */}
+              <div className="text-center">
+                <p className="text-lg font-bold text-gray-700 mb-2">Grade Level</p>
+                <span className="inline-block bg-emerald-600/70 backdrop-blur-sm text-white px-6 py-3 rounded-full text-xl font-bold shadow-lg">
+                  {gameState.gradeLevel}
+                </span>
+              </div>
+
+              {/* Summary Component */}
+              {gameState && (
+                <div className="bg-white/60 backdrop-blur-sm p-6 rounded-2xl shadow-lg">
+                  <TH_Summary
+                    gameState={gameState}
+                    currentPlayerTotalPoints={currentPlayerTotalPoints}
+                    opponentTotalPoints={opponentTotalPoints}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col md:flex-row w-full gap-3">
             <button
               onClick={onPlayAgain}
               className="flex-1 bg-emerald-600/70 hover:bg-emerald-700/80 text-white font-bold text-2xl px-8 py-5 rounded-2xl transition-all hover:scale-105 shadow-lg backdrop-blur-sm"
             >
-              🎮 Play Again
+              Play Again
             </button>
             <button
               onClick={onBackHome}
               className="flex-1 bg-sky-600/70 hover:bg-sky-700/80 text-white font-bold text-xl px-8 py-5 rounded-2xl transition-all hover:scale-105 shadow-lg backdrop-blur-sm"
             >
-              🏠 Back to Home
+              Back to Menu
             </button>
           </div>
         </div>

@@ -1,9 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   GradeLevel,
   TreasureHuntGameState,
   GameStatus,
+  GameMode,
   GRADE_LEVEL_LABELS,
   GRADE_LEVEL_DESCRIPTIONS,
   GAME_CONFIG,
@@ -19,14 +20,70 @@ const TH_SetupScreen = ({
 }: {
   gameStatus: GameStatus;
   gameState?: TreasureHuntGameState | null;
-  handleGameStart: (gradeLevel: GradeLevel, questionCount: number) => void;
+  handleGameStart: (
+    gameMode: GameMode,
+    gradeLevel: GradeLevel,
+    playerName: string,
+    questionCount: number
+  ) => void;
 }) => {
+  // Local state for smooth typing (no parent re-renders)
   const [gradeLevel, setGradeLevel] = useState<GradeLevel>(
     gameState?.gradeLevel || "K"
   );
+  const [gameMode, setGameMode] = useState<GameMode>("solo");
+  const [playerName, setPlayerName] = useState<string>("");
   const [questionCount, setQuestionCount] = useState<number>(
-    gameState?.totalQuestions || 10
+    gameState?.totalQuestions || GAME_CONFIG.DEFAULT_QUESTIONS
   );
+
+  // Set player name, grade level, and game mode from local storage
+  useEffect(() => {
+    const savedPlayerName = localStorage.getItem("playerName");
+    const savedGradeLevel = localStorage.getItem("gradeLevel");
+    const savedGameMode = localStorage.getItem("gameMode");
+    if (savedPlayerName) {
+      setPlayerName(savedPlayerName);
+    }
+    if (savedGradeLevel) {
+      setGradeLevel(savedGradeLevel as GradeLevel);
+    }
+    if (savedGameMode) {
+      setGameMode(savedGameMode as GameMode);
+    }
+  }, []);
+
+  const handlePlayerNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPlayerName(e.target.value);
+    localStorage.setItem("playerName", e.target.value);
+  };
+
+  const handleGradeLevelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setGradeLevel(e.target.value as GradeLevel);
+    localStorage.setItem("gradeLevel", e.target.value);
+  };
+
+  const handleGameModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setGameMode(e.target.value as GameMode);
+    localStorage.setItem("gameMode", e.target.value);
+  };
+
+  const handleStartGame = (
+    gameMode: GameMode,
+    gradeLevel: GradeLevel,
+    playerName: string,
+    questionCount: number
+  ) => {
+    if (gameMode === "multiplayer") {
+      alert("Coming soon! Please select Solo mode.");
+      return;
+    }
+    if (playerName.length < 1 || playerName.length > 20) {
+      alert("Player name must be between 1 and 20 characters long");
+      return;
+    }
+    handleGameStart(gameMode, gradeLevel, playerName, questionCount);
+  };
 
   return (
     <div className="relative w-full h-dvh overflow-hidden">
@@ -59,23 +116,58 @@ const TH_SetupScreen = ({
         </h1>
 
         <div className="flex flex-col gap-6">
+          {/* Player Name Input */}
           <div className="flex flex-col gap-2">
             <p className="font-nunito text-lg font-semibold text-gray-800">
-              Select Grade Level
+              Player Name
             </p>
-            <select
-              value={gradeLevel}
-              onChange={(e) => setGradeLevel(e.target.value as GradeLevel)}
+            <input
+              value={playerName}
+              onChange={handlePlayerNameChange}
               className="bg-white/60 backdrop-blur-sm text-gray-900 p-3 rounded-lg text-lg font-nunito focus:outline-none focus:ring-2 focus:ring-green-400 transition-all duration-300"
-            >
-              <option value="K">{GRADE_LEVEL_LABELS.K}</option>
-              <option value="1-2">{GRADE_LEVEL_LABELS["1-2"]}</option>
-              <option value="3-4">{GRADE_LEVEL_LABELS["3-4"]}</option>
-              <option value="5-6">{GRADE_LEVEL_LABELS["5-6"]}</option>
-            </select>
-            <p className="font-nunito text-sm text-gray-700 mt-2">
-              {GRADE_LEVEL_DESCRIPTIONS[gradeLevel]}
-            </p>
+              placeholder="Enter your name"
+            />
+          </div>
+
+          {/* Grade & Mode - side by side */}
+          <div className="flex gap-4">
+            <div className="flex flex-col gap-2 flex-1">
+              <p className="font-nunito text-lg font-semibold text-gray-800">
+                Select Grade Level
+              </p>
+              <select
+                value={gradeLevel}
+                onChange={handleGradeLevelChange}
+                className="bg-white/60 backdrop-blur-sm text-gray-900 p-3 rounded-lg text-lg font-nunito focus:outline-none focus:ring-2 focus:ring-green-400 transition-all duration-300"
+              >
+                <option value="K">{GRADE_LEVEL_LABELS.K}</option>
+                <option value="1-2">{GRADE_LEVEL_LABELS["1-2"]}</option>
+                <option value="3-4">{GRADE_LEVEL_LABELS["3-4"]}</option>
+                <option value="5-6">{GRADE_LEVEL_LABELS["5-6"]}</option>
+              </select>
+              <p className="font-nunito text-sm text-gray-700 mt-2">
+                {GRADE_LEVEL_DESCRIPTIONS[gradeLevel]}
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2 flex-1">
+              <p className="font-nunito text-lg font-semibold text-gray-800">
+                Mode
+              </p>
+              <select
+                value={gameMode}
+                onChange={handleGameModeChange}
+                className="bg-white/60 backdrop-blur-sm text-gray-900 p-3 rounded-lg text-lg font-nunito focus:outline-none focus:ring-2 focus:ring-green-400 transition-all duration-300"
+              >
+                <option value="solo">Solo</option>
+                <option value="multiplayer">Multiplayer</option>
+              </select>
+              {gameMode === "multiplayer" && (
+                <p className="font-nunito text-sm text-yellow-600 mt-2">
+                  ⚠️ Multiplayer coming soon! Please select Solo mode.
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -113,13 +205,14 @@ const TH_SetupScreen = ({
           </div>
         </div>
 
+        {/* Start Game Button */}
         <button
-          onClick={() => handleGameStart(gradeLevel, questionCount)}
+          onClick={() =>
+            handleStartGame(gameMode, gradeLevel, playerName, questionCount)
+          }
           className="bg-green-400/70 backdrop-blur-sm text-gray-800 px-5 py-4 rounded-lg hover:cursor-pointer hover:bg-green-500/80 hover:scale-105 transition-all duration-300 ease-in-out"
         >
-          <p className="font-nunito text-2xl font-black text-center">
-            Start Game
-          </p>
+          Start Game
         </button>
         </div>
       </div>

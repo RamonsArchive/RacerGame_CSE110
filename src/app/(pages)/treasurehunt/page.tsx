@@ -4,6 +4,7 @@ import {
   TreasureHuntGameState,
   GameStatus,
   GradeLevel,
+  GameMode,
 } from "@/app/constants/index_treasurehunt";
 import {
   initializeGame,
@@ -40,8 +41,15 @@ const TreasureHuntPage = () => {
   }, [gameState, gameStatus]);
 
   const handleGameStart = useCallback(
-    (gradeLevel: GradeLevel, questionCount: number) => {
-      const newGameState = initializeGame(gradeLevel, questionCount);
+    (gameMode: GameMode, gradeLevel: GradeLevel, playerName: string, questionCount: number) => {
+      const newGameState = initializeGame(gameMode, gradeLevel, playerName, questionCount);
+      // Set start time when game becomes active
+      newGameState.startTime = Date.now();
+      newGameState.status = "active";
+      newGameState.currentPlayer.questionStartTime = Date.now();
+      if (newGameState.opponent) {
+        newGameState.opponent.questionStartTime = Date.now();
+      }
       setGameState(newGameState);
       setGameStatus("active");
       saveGameState(newGameState);
