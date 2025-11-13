@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 "use client";
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   TreasureHuntGameState,
   GameStatus,
@@ -17,7 +17,8 @@ import {
   getSentencePartsWithUnderline,
   updateCPUProgress,
 } from "@/lib/utils_treasurehunt";
-import { Settings, Lightbulb, HelpCircle } from "lucide-react";
+import { Settings, Lightbulb, HelpCircle, ChevronLeft } from "lucide-react";
+import Link from "next/link";
 import BackTo from "./BackTo";
 import Image from "next/image";
 
@@ -36,23 +37,16 @@ const TH_ActiveScreen = ({
   const [showIncorrectPopup, setShowIncorrectPopup] = useState<boolean>(false);
   const [showHintPopup, setShowHintPopup] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
   const [currentGameState, setCurrentGameState] =
     useState<TreasureHuntGameState>(gameState);
-  const cpuTimerRef = React.useRef<NodeJS.Timeout | null>(null);
-  const hasResetRef = React.useRef(false);
-  const cpuScheduledRef = React.useRef(false);
+  
+  // Refs for CPU timer management
+  const cpuTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const cpuScheduledRef = useRef<boolean>(false);
+  const hasResetRef = useRef<boolean>(false);
 
-  // Check if gameState is valid after hooks
-  useEffect(() => {
-    if (currentGameState.status === "active") {
-      saveGameState(currentGameState);
-    }
-  }, [currentGameState]);
-
-  if (!gameState || !gameState.currentPlayer) {
-    return <div>Data loading...</div>;
-  }
-
+  // Get player references
   const currentPlayer = currentGameState.currentPlayer;
   const opponent = currentGameState.opponent;
 
@@ -61,10 +55,6 @@ const TH_ActiveScreen = ({
     currentGameState.currentQuestionIndex ?? 0;
 
   const currentQuestion = currentGameState.questions?.[currentQuestionIndex];
-  
-  if (!currentQuestion) {
-    return <div>Loading question...</div>;
-  }
   
   const questionProgress = getCurrentQuestionProgress(currentGameState);
 
@@ -291,6 +281,12 @@ const TH_ActiveScreen = ({
     );
 
     if (isCorrect) {
+      // Show success animation
+      setShowSuccessMessage(true);
+      setTimeout(() => {
+        setShowSuccessMessage(false);
+      }, 1500);
+
       setCurrentGameState((prevState) => {
         // Clear CPU timer when player answers to prevent stale updates
         if (cpuTimerRef.current) {
@@ -305,8 +301,6 @@ const TH_ActiveScreen = ({
           if (updatedState.opponent?.isFinished) {
             updatedState.status = "finished";
             updatedState.endTime = Date.now();
-            setGameStatus("finished");
-            onGameFinished(updatedState);
           } else {
             // Player finished first - mark CPU as finished
             updatedState.status = "finished";
@@ -314,9 +308,12 @@ const TH_ActiveScreen = ({
             if (updatedState.opponent) {
               updatedState.opponent.isFinished = true;
             }
+          }
+          // Schedule status updates in next tick to avoid setState during render
+          setTimeout(() => {
             setGameStatus("finished");
             onGameFinished(updatedState);
-          }
+          }, 0);
         } else {
           // CPU scheduling is now handled by the game status effect
         }
@@ -361,8 +358,11 @@ const TH_ActiveScreen = ({
       if (updatedState.currentPlayer.isFinished) {
         updatedState.status = "finished";
         setCurrentGameState(updatedState);
-        setGameStatus("finished");
-        onGameFinished(updatedState);
+        // Schedule status updates in next tick to avoid setState during render
+        setTimeout(() => {
+          setGameStatus("finished");
+          onGameFinished(updatedState);
+        }, 0);
       }
     }
   }, [currentGameState, setGameStatus, onGameFinished]);
@@ -383,246 +383,245 @@ const TH_ActiveScreen = ({
     return Math.round((current / total) * 100);
   };
 
+  // Early return after all hooks - check if question exists
+  if (!currentQuestion) {
+    return <div>Loading question...</div>;
+  }
+
   return (
-    <div
-      className="flex w-full h-dvh flex-col gap-5 p-10 relative overflow-hidden"
-      style={{
-        backgroundImage: "url(/Assets/TypeQuest/background_play.png)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      {/* Background gradient overlay - darker on left, transparent on right */}
-      <div className="absolute inset-0 bg-linear-to-r from-black/50 via-black/30 to-transparent pointer-events-none z-0"></div>
-
-      {/* Animated road lines - decorative scrolling effect from bottom-left to top-right */}
-      <div
-        className="absolute pointer-events-none z-1 overflow-hidden"
-        style={{
-          width: "150vw",
-          height: "4px",
-          top: "70%",
-          left: "70%",
-          transformOrigin: "center center",
-          transform: "translate(-50%, -50%) rotate(-35.5deg)",
-        }}
-      >
-        <div
-          className="w-full h-full animate-road-line"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(90deg, transparent 0px, transparent 50px, rgba(255, 255, 255, 0.95) 50px, rgba(255, 255, 255, 0.95) 100px)",
-            backgroundSize: "120px 100%",
-          }}
-        ></div>
+    <div className="relative w-full h-dvh overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/Assets/TreasureHunt/TH.png"
+          alt="Treasure Hunt Background"
+          fill
+          className="object-cover"
+          priority
+        />
       </div>
 
-      <div className="flex justify-between items-center w-full relative z-10">
-        <BackTo title="Back To Home" onClick={onRestartGame} />
-        <div className="flex flex-row items-center gap-4">
-          <div className="flex flex-row items-center gap-2 px-4 py-2 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
-            <p className="text-md font-semibold text-slate-100">Question</p>
-            <p className="text-md font-bold text-slate-100">
-              {currentPlayer?.questionsAnswered || 0} {" / "}{" "}
-              {totalQuestions || 0}
-            </p>
-          </div>
-          <div className="flex flex-row items-center gap-2 px-4 py-2 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
-            <p className="text-md font-semibold text-slate-100">Mistakes</p>
-            <p className="text-md font-bold text-slate-100">
-              {currentPlayer?.currentQuestionMistakes || 0}
-            </p>
-          </div>
-          <div className="flex flex-row items-center gap-2 px-4 py-2 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
-            <p className="text-md font-semibold text-slate-100">Points</p>
-            <p className="text-md font-bold text-slate-100">
-              {currentPlayer?.totalPoints || 0}
-            </p>
-          </div>
-          <button
-            onClick={() => setShowSettingsModal(true)}
-            className="p-3 bg-slate-900/60 backdrop-blur-sm border border-white/20 hover:bg-slate-800/80 rounded-lg transition-all"
-            aria-label="Settings"
-          >
-            <Settings className="w-5 h-5 text-slate-100" />
-          </button>
+      {/* Seagulls in top right corner */}
+      <div className="absolute top-56 right-36 z-20 flex items-start gap-4">
+        <div className="animate-seagull-fly-1">
+          <Image
+            src="/Assets/TreasureHunt/seagull.png"
+            alt="Seagull"
+            width={160}
+            height={160}
+            className="drop-shadow-lg"
+          />
+        </div>
+        <div className="animate-seagull-fly-2 mt-4">
+          <Image
+            src="/Assets/TreasureHunt/seagull.png"
+            alt="Seagull"
+            width={70}
+            height={70}
+            className="drop-shadow-lg"
+          />
         </div>
       </div>
 
-      {/* Progress Bars */}
-      <div className="flex flex-row items-center gap-10 shrink-0 relative z-10">
-        <div className="flex flex-col gap-2 w-[50%] items-start px-4 py-3 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
-          <p className="text-sm font-semibold text-slate-100">Your Progress</p>
-          <div className="relative w-full h-5 bg-slate-100 rounded-full">
-            <div
-              className={`absolute top-0 left-0 h-full bg-green-500 rounded-full transition-all duration-300`}
-              style={{
-                width: `${Math.max(
-                  0,
-                  Math.min(
-                    100,
-                    getProgressPercentage(
-                      currentPlayer?.questionsAnswered || 0,
-                      totalQuestions || 0
-                    )
+      {/* Main Content */}
+      <div className="relative z-14 flex items-center justify-start w-full h-dvh p-8">
+        <div className="flex flex-col w-full max-w-2xl gap-6 bg-white/40 backdrop-blur-sm p-8 rounded-3xl shadow-2xl ml-6">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <Link
+              href="/"
+              className="group flex items-center gap-2 px-4 py-2 bg-blue-500/60 backdrop-blur-sm hover:bg-blue-600/70 text-white rounded-xl font-bold transition-all hover:scale-105"
+            >
+              <ChevronLeft className="w-5 h-5" />
+              <span>Home</span>
+            </Link>
+
+            <button
+              onClick={() => setShowSettingsModal(true)}
+              className="p-3 bg-blue-500/60 backdrop-blur-sm hover:bg-blue-600/70 text-white rounded-full transition-all hover:scale-110"
+              aria-label="Settings"
+            >
+              <Settings className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Title */}
+          <h1 className="text-5xl md:text-6xl font-black text-center text-orange-600 drop-shadow-[0_2px_2px_rgba(0,0,0,0.2)]">
+            <span className="text-yellow-400">Treasure</span>{" "}
+            <span className="text-yellow-400">Hunt</span>{" "}
+          </h1>
+
+          {/* Progress Bar - Kid Friendly */}
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-between items-center">
+              <p className="text-xl font-bold text-blue-700">
+                Question {currentQuestionIndex + 1} of{" "}
+                {currentGameState.totalQuestions}
+              </p>
+              <div className="flex items-center gap-2 px-4 py-2 bg-green-400/60 backdrop-blur-sm rounded-full">
+                <span className="text-2xl">⭐</span>
+                <p className="text-xl font-bold text-white">
+                  Points: {currentPlayer?.totalPoints ?? 0}
+                </p>
+              </div>
+            </div>
+            <div className="w-full bg-gray-200/50 backdrop-blur-sm rounded-full h-8 overflow-visible shadow-inner relative">
+              <div
+                className="bg-linear-to-r from-blue-400 via-blue-500 to-blue-600 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2 relative overflow-visible"
+                style={{ width: `${Math.max((currentQuestionIndex / currentGameState.totalQuestions) * 100, 5)}%` }}
+              >
+                {/* Wave animation overlay */}
+                <div 
+                  className="absolute inset-0 opacity-30 animate-wave"
+                  style={{
+                    backgroundImage: `repeating-linear-gradient(
+                      90deg,
+                      transparent,
+                      transparent 2px,
+                      rgba(255, 255, 255, 0.3) 2px,
+                      rgba(255, 255, 255, 0.3) 4px
+                    )`,
+                    backgroundSize: '200px 100%',
+                  }}
+                />
+                {(currentQuestionIndex / currentGameState.totalQuestions) * 100 > 15 && (
+                  <span className="text-white font-bold text-sm relative z-10">
+                    {Math.round((currentQuestionIndex / currentGameState.totalQuestions) * 100)}%
+                  </span>
+                )}
+              </div>
+              {/* Floating boat on progress bar */}
+              <div
+                className="absolute top-1/2 -translate-y-1/2 animate-boat-float z-20"
+                style={{
+                  left: `calc(${Math.max((currentQuestionIndex / currentGameState.totalQuestions) * 100, 5)}% - 30px)`,
+                  transition: 'left 0.5s ease-out',
+                }}
+              >
+                <Image
+                  src="/Assets/TreasureHunt/Boat.png"
+                  alt="Boat"
+                  width={60}
+                  height={60}
+                  className="drop-shadow-lg"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Incorrect Sentence Display */}
+          <div className="text-center">
+            <p className="text-xl font-bold text-gray-700 mb-4">
+              ✏️ Fix this sentence:
+            </p>
+            <div className="bg-red-100/50 backdrop-blur-sm p-6 rounded-2xl shadow-lg">
+              <p className="text-2xl md:text-3xl font-bold text-red-700 leading-relaxed">
+                {getSentencePartsWithUnderline(
+                  currentQuestion.incorrectSentence,
+                  currentQuestion.wordToUnderline
+                ).map((part, index) =>
+                  part.shouldUnderline ? (
+                    <span
+                      key={index}
+                      className="underline decoration-red-500 decoration-2 underline-offset-2 animate-bounce"
+                    >
+                      {part.text}
+                    </span>
+                  ) : (
+                    <span key={index}>{part.text}</span>
                   )
-                )}%`,
-              }}
-            />
+                )}
+              </p>
+            </div>
           </div>
-        </div>
-        <div className="flex flex-1 flex-col gap-2 items-start px-4 py-3 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
-          <p className="text-sm font-semibold text-slate-100">
-            {opponent?.playerName || "CPU"} Progress
-          </p>
-          <div className="relative w-full h-5 bg-slate-100 rounded-full overflow-hidden">
-            <div
-              className={`absolute top-0 left-0 h-full bg-yellow-500 rounded-full transition-all duration-300`}
-              style={{
-                width: `${Math.max(
-                  0,
-                  Math.min(
-                    100,
-                    getProgressPercentage(
-                      opponent?.questionsAnswered || 0,
-                      totalQuestions || 0
-                    )
-                  )
-                )}%`,
-              }}
-            />
-          </div>
-        </div>
-      </div>
 
-      {/* Question and Answer Section */}
-      <div className="flex flex-col gap-5 w-full max-w-2xl ml-10 pt-10 p-5 relative z-10">
-        <div className="flex-center w-full">
-          <p className="text-2xl font-bold text-slate-100 mb-4">
-            ✏️ Fix this sentence:
-          </p>
-        </div>
-        <div className="bg-red-100 border-4 border-red-500 p-6 rounded-2xl shadow-lg">
-          <p className="text-2xl md:text-3xl font-bold text-red-700 leading-relaxed text-center">
-            {getSentencePartsWithUnderline(
-              currentQuestion.incorrectSentence,
-              currentQuestion.wordToUnderline
-            ).map((part, index) =>
-              part.shouldUnderline ? (
-                <span
-                  key={index}
-                  className="underline decoration-red-500 decoration-2 underline-offset-2"
-                >
-                  {part.text}
-                </span>
-              ) : (
-                <span key={index}>{part.text}</span>
-              )
-            )}
-          </p>
-        </div>
-        <div className="flex flex-col gap-5">
-          <div className="relative flex-row items-center rounded-md border border-white/30 shadow-md bg-slate-900/60 backdrop-blur-sm">
+          {/* Input Area */}
+          <div className="flex flex-col gap-4">
             <textarea
-              className="w-full text-semibold text-lg px-5 py-5 rounded-md border-0 bg-transparent text-slate-100 placeholder:text-slate-400 outline-none focus:outline-none focus:ring-0 min-h-[120px] resize-y"
+              className="w-full text-xl px-6 py-5 rounded-2xl bg-white/50 backdrop-blur-sm text-gray-900 outline-none focus:ring-4 focus:ring-blue-200 transition-all min-h-[120px] resize-y font-nunito shadow-lg"
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               onKeyDown={handleKeyPress}
               placeholder="Type the correct sentence here..."
               rows={3}
             />
-          </div>
-          <div className="flex flex-col md:flex-row gap-3">
-            <button
-              onClick={handleAnswerSubmit}
-              disabled={!userInput.trim()}
-              className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold text-xl px-8 py-5 rounded-xl transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
-            >
-              Submit Answer
-            </button>
 
-            {canShowHint && (
+            {/* Action Buttons */}
+            <div className="flex flex-col md:flex-row gap-3">
               <button
-                onClick={handleShowHint}
-                className="flex items-center justify-center gap-2 bg-yellow-500 hover:bg-yellow-600 text-white font-bold text-lg px-6 py-5 rounded-xl transition-all hover:scale-105 shadow-lg"
+                onClick={handleAnswerSubmit}
+                disabled={!userInput.trim()}
+                className="flex-1 bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-2xl px-8 py-5 rounded-2xl transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
               >
-                <Lightbulb className="w-5 h-5" />
-                💡 See Hint
+                ✅ Submit Answer
               </button>
-            )}
 
-            {canGiveUp && (
-              <button
-                onClick={handleGiveUpClick}
-                className="flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 text-white font-bold text-lg px-6 py-5 rounded-xl transition-all hover:scale-105 shadow-lg"
-              >
-                <HelpCircle className="w-5 h-5" />
-                Give Up
-              </button>
-            )}
+              {canShowHint && (
+                <button
+                  onClick={handleShowHint}
+                  className="flex items-center justify-center gap-2 bg-linear-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold text-lg px-6 py-5 rounded-2xl transition-all hover:scale-105 shadow-lg"
+                >
+                  <Lightbulb className="w-6 h-6" />
+                  💡 See Hint
+                </button>
+              )}
+
+              {canGiveUp && (
+                <button
+                  onClick={handleGiveUpClick}
+                  className="flex items-center justify-center gap-2 bg-linear-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-bold text-lg px-6 py-5 rounded-2xl transition-all hover:scale-105 shadow-lg"
+                >
+                  <HelpCircle className="w-6 h-6" />
+                  Give Up
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Cars positioned on left and right sides of the road line */}
-      {/* Player's car on the left side of the road */}
-      <div
-        className="absolute pointer-events-none z-5 transition-all duration-300 ease-in-out"
-        style={{
-          top: "80%",
-          left: "58%",
-          transformOrigin: "center center",
-          transform: `translate(calc(-50% - 80px + ${playerMoveX.toFixed(
-            2
-          )}vw), calc(-50% + ${playerMoveY.toFixed(2)}vw))`,
-        }}
-      >
-        <Image
-          src="/Assets/TypeQuest/racer car 1.png"
-          alt="Player Car"
-          width={320}
-          height={320}
-          className="object-contain"
-        />
-      </div>
-
-      {/* Opponent's car on the right side of the road */}
-      {opponent && (
-        <div
-          className="absolute pointer-events-none z-5 transition-all duration-300 ease-in-out"
-          style={{
-            top: "90%",
-            left: "63%",
-            transformOrigin: "center center",
-            transform: `translate(calc(-50% + 80px + ${opponentMoveX.toFixed(
-              2
-            )}vw), calc(-50% + ${opponentMoveY.toFixed(2)}vw))`,
-          }}
-        >
-          <Image
-            src="/Assets/TypeQuest/racer car 2.png"
-            alt="Opponent Car"
-            width={320}
-            height={320}
-            className="object-contain"
-          />
+      {/* Success Message with Coin Animation */}
+      {showSuccessMessage && (
+        <div className="fixed inset-0 bg-black/60 flex-center z-50 pointer-events-none">
+          {/* Coin falling animations */}
+          <div className="absolute top-0 left-[10%] w-12 h-12 animate-coin-fall-1">
+            <span className="text-4xl">🪙</span>
+          </div>
+          <div className="absolute top-0 left-[30%] w-12 h-12 animate-coin-fall-2">
+            <span className="text-4xl">🪙</span>
+          </div>
+          <div className="absolute top-0 left-[50%] w-12 h-12 animate-coin-fall-3">
+            <span className="text-4xl">🪙</span>
+          </div>
+          <div className="absolute top-0 left-[70%] w-12 h-12 animate-coin-fall-4">
+            <span className="text-4xl">🪙</span>
+          </div>
+          
+          {/* Success message with chest bounce */}
+          <div className="relative pointer-events-auto">
+            <div className="bg-linear-to-br from-green-400 to-green-600 text-white p-10 rounded-3xl text-center shadow-2xl border-4 border-white">
+              <div className="mb-4">
+                <span className="text-6xl inline-block animate-chest-bounce-1">🎉</span>
+                <span className="text-6xl inline-block animate-chest-bounce-2 ml-2">💎</span>
+              </div>
+              <p className="text-5xl font-bold mb-4 animate-bounce">Awesome!</p>
+              <p className="text-2xl">Correct! Moving to next treasure...</p>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Success Message removed: immediate transition on correct answer */}
-
-      {/* Incorrect Answer Popup */}
+      {/* Incorrect Answer Popup with shake animation */}
       {showIncorrectPopup && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
-          <div className="bg-linear-to-br from-red-400 to-red-600 text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl border-4 border-white">
-            <p className="text-4xl font-bold mb-4">😅 Try Again!</p>
+          <div className="bg-linear-to-br from-red-400/80 to-red-600/80 backdrop-blur-md text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl border-4 border-white/60 animate-bounce">
+            <p className="text-4xl font-bold mb-4 animate-pulse">😅 Try Again!</p>
             <p className="text-xl mb-6">
               Not quite right yet! Take another look and try again.
             </p>
             <button
               onClick={handleTryAgain}
-              className="bg-white text-red-600 px-8 py-4 rounded-xl font-bold text-xl hover:bg-gray-100 transition-all hover:scale-105"
+              className="bg-white/90 text-red-600 px-8 py-4 rounded-xl font-bold text-xl hover:bg-white transition-all hover:scale-105 backdrop-blur-sm animate-pulse"
             >
               Keep Trying! 💪
             </button>
@@ -630,15 +629,15 @@ const TH_ActiveScreen = ({
         </div>
       )}
 
-      {/* Hint Popup */}
+      {/* Hint Popup with glow animation */}
       {showHintPopup && currentQuestion.hint && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
-          <div className="bg-linear-to-br from-yellow-400 to-orange-500 text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl border-4 border-white">
-            <p className="text-4xl mb-4">💡 Hint!</p>
+          <div className="bg-linear-to-br from-yellow-400 to-orange-500 text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl border-4 border-white animate-pulse">
+            <p className="text-4xl mb-4 animate-bounce">💡 Hint!</p>
             <p className="text-xl mb-6">{currentQuestion.hint}</p>
             <button
               onClick={() => setShowHintPopup(false)}
-              className="bg-white text-orange-600 px-8 py-4 rounded-xl font-bold text-xl hover:bg-gray-100 transition-all hover:scale-105"
+              className="bg-white text-orange-600 px-8 py-4 rounded-xl font-bold text-xl hover:bg-gray-100 transition-all hover:scale-105 animate-pulse"
             >
               Got it!
             </button>

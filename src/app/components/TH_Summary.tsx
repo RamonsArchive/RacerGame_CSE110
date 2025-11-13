@@ -29,11 +29,11 @@ const TH_Summary = ({
   
   return (
     <div className="flex flex-col items-center gap-6">
-      <div className="flex flex-row w-full p-4 gap-4 bg-linear-to-br from-slate-800/90 via-slate-700/80 to-slate-900/90 rounded-lg shadow-md border border-white/10">
+      <div className="flex flex-row w-full p-4 gap-4 rounded-lg shadow-md">
       {/* Current Player Column */}
       <div className="flex w-[50%] flex-col gap-3">
-        <div className="pb-1 border-b border-white/20">
-          <h3 className="text-base font-bold text-white">{currentName}</h3>
+        <div className="pb-1 border-b border-gray-300">
+          <h3 className="text-base font-bold text-gray-800">{currentName}</h3>
         </div>
         <SummaryRow label="Points" value={`${currentPlayerTotalPoints}`} />
         <SummaryRow
@@ -66,8 +66,8 @@ const TH_Summary = ({
 
       {/* Opponent Column */}
       <div className="flex flex-1 flex-col gap-3 relative">
-        <div className="pb-1 border-b border-white/20">
-          <h3 className="text-base font-bold text-white">
+        <div className="pb-1 border-b border-gray-300">
+          <h3 className="text-base font-bold text-gray-800">
             {opponentName}
           </h3>
         </div>
@@ -102,16 +102,6 @@ const TH_Summary = ({
         />
       </div>
     </div>
-
-    {/* Missed Sentences Button */}
-    {gameState.answerLog && gameState.answerLog.length > 0 && (
-      <button
-        onClick={() => setShowMissed(true)}
-        className="mt-2 px-6 py-3 text-lg font-bold text-white bg-slate-800/90 hover:bg-slate-700/90 rounded-lg transition-all shadow-md border border-white/10"
-      >
-        🎯 See sentences you missed
-      </button>
-    )}
 
     {/* Missed Sentences Modal */}
     {showMissed && gameState.answerLog && (
@@ -156,10 +146,10 @@ const TH_Summary = ({
 
 const SummaryRow = ({ label, value }: { label: string; value: string }) => (
   <div className="flex flex-col gap-1.5">
-    <p className="text-sm font-semibold text-slate-300 tracking-wide">
+    <p className="text-sm font-semibold text-gray-700 tracking-wide">
       {label}
     </p>
-    <span className="inline-block w-fit px-3 py-1 rounded-md bg-white/10 text-white font-bold text-base leading-tight shadow-sm">
+    <span className="inline-block w-fit px-3 py-1 rounded-md bg-gray-100 text-gray-800 font-bold text-base leading-tight shadow-sm">
       {value}
     </span>
   </div>

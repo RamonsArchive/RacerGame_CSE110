@@ -260,4 +260,292 @@ body {
   animation: shine-border 2s ease-in-out infinite;
 }
 
+/* Wave animation for Treasure Hunt progress bar */
+@keyframes wave {
+  0% {
+    background-position-x: 0;
+  }
+  100% {
+    background-position-x: 200px;
+  }
+}
+
+.animate-wave {
+  animation: wave 3s linear infinite;
+}
+
+/* Boat floating animation for progress bar */
+@keyframes boat-float {
+  0%, 100% {
+    transform: translateY(0px) rotate(-2deg);
+  }
+  25% {
+    transform: translateY(-3px) rotate(1deg);
+  }
+  50% {
+    transform: translateY(-1px) rotate(-1deg);
+  }
+  75% {
+    transform: translateY(-4px) rotate(2deg);
+  }
+}
+
+.animate-boat-float {
+  animation: boat-float 2s ease-in-out infinite;
+}
+
+/* Coin falling animations for success popup */
+@keyframes coin-fall-1 {
+  0% {
+    transform: translateY(-200px) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(calc(100vh + 200px)) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@keyframes coin-fall-2 {
+  0% {
+    transform: translateY(-250px) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(calc(100vh + 250px)) rotate(-720deg);
+    opacity: 0;
+  }
+}
+
+@keyframes coin-fall-3 {
+  0% {
+    transform: translateY(-180px) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(calc(100vh + 180px)) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@keyframes coin-fall-4 {
+  0% {
+    transform: translateY(-220px) rotate(0deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(calc(100vh + 220px)) rotate(-720deg);
+    opacity: 0;
+  }
+}
+
+/* Treasure chest bounce animations */
+@keyframes chest-bounce-1 {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-20px) scale(1.1);
+  }
+  50% {
+    transform: translateY(-10px) scale(1.05);
+  }
+  75% {
+    transform: translateY(-15px) scale(1.08);
+  }
+}
+
+@keyframes chest-bounce-2 {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  30% {
+    transform: translateY(-25px) scale(1.15);
+  }
+  60% {
+    transform: translateY(-8px) scale(1.03);
+  }
+  80% {
+    transform: translateY(-18px) scale(1.1);
+  }
+}
+
+/* Confetti animations */
+@keyframes confetti-1 {
+  0% {
+    transform: translateY(-150px) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(calc(100vh + 150px)) translateX(100px) rotate(360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-2 {
+  0% {
+    transform: translateY(-180px) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(calc(100vh + 180px)) translateX(-120px) rotate(-360deg);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-3 {
+  0% {
+    transform: translateY(-120px) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(calc(100vh + 120px)) translateX(150px) rotate(540deg);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-4 {
+  0% {
+    transform: translateY(-160px) translateX(0) rotate(0deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(calc(100vh + 160px)) translateX(-80px) rotate(-540deg);
+    opacity: 0;
+  }
+}
+
+.animate-coin-fall-1 {
+  animation: coin-fall-1 2s ease-in-out infinite;
+}
+
+.animate-coin-fall-2 {
+  animation: coin-fall-2 2.2s ease-in-out infinite;
+}
+
+.animate-coin-fall-3 {
+  animation: coin-fall-3 2.4s ease-in-out infinite;
+}
+
+.animate-coin-fall-4 {
+  animation: coin-fall-4 2.1s ease-in-out infinite;
+}
+
+.animate-chest-bounce-1 {
+  animation: chest-bounce-1 1.5s ease-in-out infinite;
+}
+
+.animate-chest-bounce-2 {
+  animation: chest-bounce-2 1.8s ease-in-out infinite;
+}
+
+.animate-confetti-1 {
+  animation: confetti-1 2.5s ease-in-out infinite;
+}
+
+.animate-confetti-2 {
+  animation: confetti-2 2.7s ease-in-out infinite;
+}
+
+.animate-confetti-3 {
+  animation: confetti-3 2.3s ease-in-out infinite;
+}
+
+.animate-confetti-4 {
+  animation: confetti-4 2.6s ease-in-out infinite;
+}
+
+/* Seagull flying animations */
+@keyframes seagull-fly-1 {
+  0%, 100% {
+    transform: translateY(0px) scale(1) translateX(0px);
+  }
+  20% {
+    transform: translateY(-12px) scale(1.08) translateX(3px);
+  }
+  40% {
+    transform: translateY(-8px) scale(0.96) translateX(6px);
+  }
+  60% {
+    transform: translateY(-18px) scale(1.12) translateX(2px);
+  }
+  80% {
+    transform: translateY(-4px) scale(0.98) translateX(4px);
+  }
+}
+
+@keyframes seagull-fly-2 {
+  0%, 100% {
+    transform: translateY(0px) scale(1) translateX(0px);
+  }
+  25% {
+    transform: translateY(-16px) scale(1.1) translateX(-4px);
+  }
+  45% {
+    transform: translateY(-6px) scale(0.92) translateX(-8px);
+  }
+  65% {
+    transform: translateY(-22px) scale(1.14) translateX(-2px);
+  }
+  85% {
+    transform: translateY(-10px) scale(0.94) translateX(-5px);
+  }
+}
+
+.animate-seagull-fly-1 {
+  animation: seagull-fly-1 2.8s ease-in-out infinite;
+}
+
+.animate-seagull-fly-2 {
+  animation: seagull-fly-2 3.2s ease-in-out infinite;
+}
+
 

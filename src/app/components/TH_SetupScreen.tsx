@@ -86,159 +86,98 @@ const TH_SetupScreen = ({
   };
 
   return (
-    <div
-      key={_gameStatus}
-      className="flex-center w-full h-dvh relative overflow-hidden"
-      style={{
-        backgroundImage: "url(/Assets/TreasureHunt/game_background.png)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
-      {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-linear-to-r from-black/50 via-black/30 to-transparent pointer-events-none z-0"></div>
+    <div className="relative w-full h-dvh overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <Image
+          src="/Assets/TreasureHunt/bg_4.png"
+          alt="Treasure Hunt Background"
+          fill
+          className="object-cover"
+          priority
+        />
+      </div>
 
-      {/* Content - more compact */}
-      <div className="flex flex-col items-start justify-start p-8 gap-5 relative z-10 max-w-2xl">
-        <div className="flex w-full items-center justify-between gap-2">
-          <Link
-            href="/"
-            className="group flex flex-row items-center px-4 py-2 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20 hover:cursor-pointer hover:bg-slate-800/80 hover:border-white/30 transition-all duration-300 ease-in-out"
-          >
-            <ChevronLeft className="w-5 h-5 text-white group-hover:text-slate-300 transition-all duration-300 ease-in-out" />
-            <p className="font-bold text-md text-white group-hover:text-slate-300 transition-all duration-300 ease-in-out">
-              Back to Home
-            </p>
-          </Link>
-        </div>
+      {/* Main Content */}
+      <div className="relative z-10 flex-center w-full h-dvh">
+        <div className="flex flex-col w-full max-w-2xl p-10 gap-10 bg-white/50 backdrop-blur-md rounded-xl shadow-lg">
+        <Link
+          href="/"
+          className="group flex flex-row items-center px-3 hover:cursor-pointer hover:underline hover:text-gray-700 transition-all duration-300 ease-in-out w-fit"
+        >
+          <ChevronLeft className="w-6 h-6 text-gray-800 group-hover:text-gray-700 group-hover:underline transition-all duration-300 ease-in-out" />
+          <p className="font-bold text-md font-nunito text-gray-800 group-hover:text-gray-700 group-hover:underline transition-all duration-300 ease-in-out">
+            Back To Home
+          </p>
+        </Link>
 
-        {/* Title - compact */}
-        <h1 className="text-6xl font-black text-white leading-tight">
+        <h1 className="font-nunito text-6xl font-black text-center text-gray-800 drop-shadow-2xl">
           Treasure Hunt
         </h1>
 
-        {/* Player Name Input */}
-        <div className="flex flex-col gap-2 w-full max-w-md">
-          <p className="text-lg text-white font-semibold">Player Name:</p>
-          <input
-            value={playerName}
-            onChange={handlePlayerNameChange}
-            className="bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-lg p-3 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all placeholder:text-slate-400"
-            placeholder="Enter your name"
-          />
-        </div>
+        <div className="flex flex-col gap-6">
+          {/* Player Name Input */}
+          <div className="flex flex-col gap-2">
+            <p className="font-nunito text-lg font-semibold text-gray-800">
+              Player Name
+            </p>
+            <input
+              value={playerName}
+              onChange={handlePlayerNameChange}
+              className="bg-white/60 backdrop-blur-sm text-gray-900 p-3 rounded-lg text-lg font-nunito focus:outline-none focus:ring-2 focus:ring-green-400 transition-all duration-300"
+              placeholder="Enter your name"
+            />
+          </div>
 
-        {/* Grade & Mode - side by side */}
-        <div className="flex gap-4 w-full max-w-md">
-          <div className="flex flex-col gap-2 flex-1">
-            <p className="text-lg text-white font-semibold">Grade:</p>
-            <div className="relative">
+          {/* Grade & Mode - side by side */}
+          <div className="flex gap-4">
+            <div className="flex flex-col gap-2 flex-1">
+              <p className="font-nunito text-lg font-semibold text-gray-800">
+                Select Grade Level
+              </p>
               <select
                 value={gradeLevel}
                 onChange={handleGradeLevelChange}
-                className="appearance-none bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-lg p-3 pr-10 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all cursor-pointer"
-                style={{
-                  WebkitAppearance: "none",
-                  MozAppearance: "none",
-                }}
+                className="bg-white/60 backdrop-blur-sm text-gray-900 p-3 rounded-lg text-lg font-nunito focus:outline-none focus:ring-2 focus:ring-green-400 transition-all duration-300"
               >
-                <option value="K" className="bg-slate-900 text-white">
-                  {GRADE_LEVEL_LABELS.K}
-                </option>
-                <option value="1-2" className="bg-slate-900 text-white">
-                  {GRADE_LEVEL_LABELS["1-2"]}
-                </option>
-                <option value="3-4" className="bg-slate-900 text-white">
-                  {GRADE_LEVEL_LABELS["3-4"]}
-                </option>
-                <option value="5-6" className="bg-slate-900 text-white">
-                  {GRADE_LEVEL_LABELS["5-6"]}
-                </option>
+                <option value="K">{GRADE_LEVEL_LABELS.K}</option>
+                <option value="1-2">{GRADE_LEVEL_LABELS["1-2"]}</option>
+                <option value="3-4">{GRADE_LEVEL_LABELS["3-4"]}</option>
+                <option value="5-6">{GRADE_LEVEL_LABELS["5-6"]}</option>
               </select>
-              {/* Custom dropdown arrow */}
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg
-                  className="w-5 h-5 text-white/70"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
+              <p className="font-nunito text-sm text-gray-700 mt-2">
+                {GRADE_LEVEL_DESCRIPTIONS[gradeLevel]}
+              </p>
             </div>
-            <p className="text-sm text-slate-300 mt-2">
-              {GRADE_LEVEL_DESCRIPTIONS[gradeLevel]}
-            </p>
-          </div>
 
-          <div className="flex flex-col gap-2 flex-1">
-            <p className="text-lg text-white font-semibold">Mode:</p>
-            <div className="relative">
+            <div className="flex flex-col gap-2 flex-1">
+              <p className="font-nunito text-lg font-semibold text-gray-800">
+                Mode
+              </p>
               <select
                 value={gameMode}
                 onChange={handleGameModeChange}
-                className="appearance-none bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-lg p-3 pr-10 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all cursor-pointer"
-                style={{
-                  WebkitAppearance: "none",
-                  MozAppearance: "none",
-                }}
+                className="bg-white/60 backdrop-blur-sm text-gray-900 p-3 rounded-lg text-lg font-nunito focus:outline-none focus:ring-2 focus:ring-green-400 transition-all duration-300"
               >
-                <option value="solo" className="bg-slate-900 text-white">
-                  Solo
-                </option>
-                <option
-                  value="multiplayer"
-                  className="bg-slate-900 text-white"
-                >
-                  Multiplayer
-                </option>
+                <option value="solo">Solo</option>
+                <option value="multiplayer">Multiplayer</option>
               </select>
-              {/* Custom dropdown arrow */}
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg
-                  className="w-5 h-5 text-white/70"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-              </div>
+              {gameMode === "multiplayer" && (
+                <p className="font-nunito text-sm text-yellow-600 mt-2">
+                  ⚠️ Multiplayer coming soon! Please select Solo mode.
+                </p>
+              )}
             </div>
-            {gameMode === "multiplayer" && (
-              <p className="text-sm text-yellow-300 mt-2">
-                ⚠️ Multiplayer coming soon! Please select Solo mode.
-              </p>
-            )}
           </div>
-        </div>
 
-        {/* Number of Questions */}
-        <div className="flex flex-col gap-2 w-full max-w-md">
-          <p className="text-lg text-white font-semibold">
-            Number of Questions
-          </p>
-          <div className="relative">
+          <div className="flex flex-col gap-2">
+            <p className="font-nunito text-lg font-semibold text-gray-800">
+              Number of Questions
+            </p>
             <select
               value={questionCount}
               onChange={(e) => setQuestionCount(parseInt(e.target.value))}
-              className="appearance-none bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-lg p-3 pr-10 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all cursor-pointer"
-              style={{
-                WebkitAppearance: "none",
-                MozAppearance: "none",
-              }}
+              className="bg-white/60 backdrop-blur-sm text-gray-900 p-3 rounded-lg text-lg font-nunito focus:outline-none focus:ring-2 focus:ring-green-400 transition-all duration-300"
             >
               {Array.from(
                 {
@@ -247,31 +186,23 @@ const TH_SetupScreen = ({
                 },
                 (_, i) => GAME_CONFIG.MIN_QUESTIONS + i
               ).map((num) => (
-                <option key={num} value={num} className="bg-slate-900 text-white">
+                <option key={num} value={num}>
                   {num} {num === 1 ? "question" : "questions"}
                 </option>
               ))}
             </select>
-            {/* Custom dropdown arrow */}
-            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-              <svg
-                className="w-5 h-5 text-white/70"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </div>
+            <p className="font-nunito text-sm text-gray-700 mt-2">
+              Choose how many grammar challenges you want to complete!
+            </p>
           </div>
-          <p className="text-sm text-slate-300 mt-2">
-            Choose how many grammar challenges you want to complete!
-          </p>
+
+          <div className="bg-white/60 backdrop-blur-sm p-4 rounded-lg">
+            <p className="font-nunito text-sm text-gray-800">
+              <strong className="text-green-600">How to play:</strong>{" "}
+              You&apos;ll be shown grammatically incorrect sentences. Type the
+              correct version to advance through the treasure hunt!
+            </p>
+          </div>
         </div>
 
         {/* Start Game Button */}
@@ -279,10 +210,11 @@ const TH_SetupScreen = ({
           onClick={() =>
             handleStartGame(gameMode, gradeLevel, playerName, questionCount)
           }
-          className="bg-green-500 hover:bg-green-600 text-white text-xl font-bold px-6 py-4 rounded-lg hover:cursor-pointer hover:scale-105 transition-all duration-300 ease-in-out w-full max-w-md shadow-lg"
+          className="bg-green-400/70 backdrop-blur-sm text-gray-800 px-5 py-4 rounded-lg hover:cursor-pointer hover:bg-green-500/80 hover:scale-105 transition-all duration-300 ease-in-out"
         >
           Start Game
         </button>
+        </div>
       </div>
     </div>
   );
