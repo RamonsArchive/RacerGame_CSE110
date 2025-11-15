@@ -32,13 +32,11 @@ jobs:
 
       - name: Run tests
         run: npm run test:run
-        # ✅ Tests don't use Redis - no env vars needed
 
       - name: Build project
         run: npm run build
         env:
-          # Build needs dummy Redis values to compile (Redis initialized at module level)
-          # These are only used during build-time compilation, not at runtime
-          UPSTASH_REDIS_REST_URL: "https://dummy-build.upstash.io"
-          UPSTASH_REDIS_REST_TOKEN: "dummy-build-token"
-          PROJECT_PREFIX: "test"
+          # Add any required environment variables for build
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL || 'dummy' }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN || 'dummy' }}
+          PROJECT_PREFIX: ${{ secrets.PROJECT_PREFIX || 'test' }}
