@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
-import { GameMode, GradeLevel } from "../constants/index_typequest";
 
 interface TQ_RematchAcceptToastProps {
   myPlayerId?: string | null;

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { GameState } from "../constants/index_typequest";
 import BackTo from "./BackTo";
 import { getProgressPercentage } from "@/lib/utils_typequest";
@@ -10,13 +10,20 @@ const TQ_ActiveScreen = ({
   onAnswerSubmit,
   handleGameReset,
   opponentLeftGame = false,
+  isCorrectAnswer = 0,
 }: {
   gameState: GameState | null;
   onAnswerSubmit: (userAnswer: string) => void;
   handleGameReset: () => void;
   opponentLeftGame?: boolean;
+  isCorrectAnswer?: number;
 }) => {
   const [textInput, setTextInput] = useState<string>("");
+  const [giveInstruction, setGiveInstruction] = useState<boolean>(false);
+  const [errorClick, setErrorClick] = useState<boolean>(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const errorTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const currentPlayer = gameState?.currentPlayer || null;
   const opponent = gameState?.opponent || null;
   const currentQuestion =
@@ -53,6 +60,35 @@ const TQ_ActiveScreen = ({
   const opponentMoveX = opponentDistance * cosAngle;
   const opponentMoveY = opponentDistance * sinAngle;
 
+  // Show instruction popup on first render
+  useEffect(() => {
+    setGiveInstruction(true);
+    timeoutRef.current = setTimeout(() => {
+      setGiveInstruction(false);
+    }, 5000);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (errorClick) {
+      errorTimeoutRef.current = setTimeout(() => {
+        setErrorClick(false);
+      }, 4000);
+
+      return () => {
+        if (errorTimeoutRef.current) {
+          clearTimeout(errorTimeoutRef.current);
+        }
+      };
+    }
+  }, [errorClick]);
+
+  console.log("isCorrectAnswer", isCorrectAnswer);
   return (
     <div
       className="flex w-full h-dvh flex-col gap-5 p-10 relative overflow-hidden"
@@ -183,44 +219,284 @@ const TQ_ActiveScreen = ({
               width: 100%;
             }
           }
+          @keyframes fade-in-bounce {
+            0% {
+              opacity: 0;
+              transform: translateY(-10px) scale(0.9);
+            }
+            50% {
+              transform: translateY(5px) scale(1.05);
+            }
+            100% {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+            }
+          }
+          @keyframes fade-in-out {
+            0% {
+              opacity: 0;
+            }
+            10% {
+              opacity: 1;
+            }
+            90% {
+              opacity: 1;
+            }
+            100% {
+              opacity: 0;
+            }
+          }
+          @keyframes bounce-in {
+            0% {
+              transform: scale(0);
+            }
+            50% {
+              transform: scale(1.1);
+            }
+            70% {
+              transform: scale(0.95);
+            }
+            100% {
+              transform: scale(1);
+            }
+          }
+          @keyframes shake-in {
+            0% {
+              transform: scale(0) rotate(0deg);
+            }
+            25% {
+              transform: scale(1.1) rotate(-5deg);
+            }
+            50% {
+              transform: scale(0.95) rotate(5deg);
+            }
+            75% {
+              transform: scale(1.05) rotate(-3deg);
+            }
+            100% {
+              transform: scale(1) rotate(0deg);
+            }
+          }
+          @keyframes scale-bounce {
+            0%,
+            100% {
+              transform: scale(1);
+            }
+            50% {
+              transform: scale(1.2);
+            }
+          }
+          @keyframes spin-slow {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+          @keyframes wiggle {
+            0%,
+            100% {
+              transform: rotate(0deg);
+            }
+            25% {
+              transform: rotate(-10deg);
+            }
+            75% {
+              transform: rotate(10deg);
+            }
+          }
+          .animate-fade-in-bounce {
+            animation: fade-in-bounce 0.6s ease-out;
+          }
+          .animate-fade-in-out {
+            animation: fade-in-out 2s ease-in-out;
+          }
+          .animate-bounce-in {
+            animation: bounce-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+          }
+          .animate-shake-in {
+            animation: shake-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+          }
+          .animate-scale-bounce {
+            animation: scale-bounce 0.5s ease-in-out infinite;
+          }
+          .animate-spin-slow {
+            animation: spin-slow 2s linear infinite;
+          }
+          .animate-wiggle {
+            animation: wiggle 0.5s ease-in-out infinite;
+          }
+          @keyframes slide-in-right {
+            0% {
+              opacity: 0;
+              transform: translateX(20px);
+            }
+            100% {
+              opacity: 1;
+              transform: translateX(0);
+            }
+          }
+          .animate-slide-in-right {
+            animation: slide-in-right 0.4s
+              cubic-bezier(0.68, -0.55, 0.265, 1.55);
+          }
         `}</style>
       </div>
-      <div className="flex flex-col gap-5 w-full max-w-2xl ml-10 pt-10 p-5 relative z-10">
-        <div className="flex-center w-full">
-          <p className="text-3xl font-bold text-slate-100">
-            {currentQuestion?.prompt}
-          </p>
-        </div>
-        <div className="grid grid-cols-2 w-full gap-3">
-          {choices.map((choice: string, index: number) => (
-            <div
-              key={index}
-              className="flex flex-col items-center bg-slate-900/60 backdrop-blur-sm rounded-md px-5 py-4 hover:cursor-pointer hover:bg-slate-800/80 transition-all duration-300 ease-in-out shadow-md border border-white/20"
-            >
-              <p className="text-lg text-center font-semibold text-slate-100">
-                {choice}
+      <div className="flex flex-row gap-5 items-center w-full">
+        <div className="flex flex-col gap-6 w-full max-w-2xl ml-10 pt-10 p-5 relative z-10">
+          {/* Question Prompt */}
+          <div className="flex-center w-full">
+            <div className="bg-slate-900/70 backdrop-blur-md rounded-2xl px-8 py-6 shadow-2xl border-2 border-white/30">
+              <p className="text-3xl font-bold text-slate-100 text-center leading-tight">
+                {currentQuestion?.prompt}
               </p>
             </div>
-          ))}
-        </div>
-        <div className="flex flex-col gap-5">
-          <div className="relative flex-row items-center rounded-md border border-white/30 shadow-md bg-slate-900/60 backdrop-blur-sm">
-            <input
-              className="w-full text-semibold text-lg px-5 py-5 rounded-md border-0 bg-transparent text-slate-100 placeholder:text-slate-400 outline-none focus:outline-none focus:ring-0"
-              value={textInput}
-              onChange={(e) => setTextInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  onAnswerSubmit(textInput);
-                  setTextInput("");
-                }
-              }}
-              placeholder="Press Enter to submit your answer"
-            />
+          </div>
+
+          {/* Choices Grid */}
+          <div className="grid grid-cols-2 w-full gap-4">
+            {choices.map((choice: string, index: number) => (
+              <button
+                key={index}
+                onClick={() => setErrorClick(true)}
+                disabled={isCorrectAnswer !== 0 || errorClick}
+                className={`flex flex-col items-center justify-center bg-slate-900/70 backdrop-blur-md rounded-xl px-6 py-5 transition-all duration-300 ease-in-out shadow-lg border-2 border-white/30 min-h-[80px] ${
+                  isCorrectAnswer !== 0 || errorClick
+                    ? "pointer-events-none cursor-not-allowed"
+                    : "hover:border-white/50 hover:scale-105 cursor-pointer"
+                }`}
+              >
+                <p className="text-xl text-center font-bold text-slate-100">
+                  {choice}
+                </p>
+              </button>
+            ))}
+          </div>
+
+          {/* Input Section */}
+          <div className="flex flex-row gap-4 items-start">
+            <div className="flex-1 flex flex-col gap-4">
+              <div className="relative flex-row items-center rounded-xl border-2 border-white/40 shadow-xl bg-slate-900/70 backdrop-blur-md hover:border-white/60 transition-all duration-300">
+                <input
+                  className="w-full text-semibold text-xl px-6 py-6 rounded-xl border-0 bg-transparent text-slate-100 placeholder:text-slate-400/70 outline-none focus:outline-none focus:ring-0"
+                  value={textInput}
+                  onChange={(e) => setTextInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      onAnswerSubmit(textInput);
+                      setTextInput("");
+                    }
+                  }}
+                  placeholder="Type your answer here..."
+                />
+              </div>
+            </div>
+
+            {/* Error Click Warning Popup - appears on right side */}
           </div>
         </div>
+
+        {/* Instruction Popup - shows on first render, appears on right side */}
+        {giveInstruction && (
+          <div className="shrink-0 w-80 animate-slide-in-right relative z-30">
+            <div className="bg-linear-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl p-6 shadow-2xl border-4 border-white/80 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-3">
+                <div className="text-6xl animate-bounce">💡</div>
+                <p className="text-2xl font-black text-white drop-shadow-lg text-center">
+                  How to Play
+                </p>
+                <p className="text-lg font-bold text-white/95 drop-shadow-md text-center leading-relaxed">
+                  Type your answer and press{" "}
+                  <span className="bg-white/30 px-2 py-1 rounded-lg font-black">
+                    Enter
+                  </span>{" "}
+                  to submit!
+                </p>
+                <p className="text-base font-semibold text-white/90 drop-shadow-sm text-center">
+                  Race to win! 🏁
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Answer Feedback Overlay - Correct Answer */}
+      {isCorrectAnswer === 1 && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center animate-fade-in-out">
+          <div className="absolute inset-0 bg-green-500/20 backdrop-blur-sm pointer-events-auto"></div>
+          <div className="relative w-[500px] h-[400px] bg-linear-to-br from-green-400 via-emerald-400 to-teal-400 rounded-3xl p-12 shadow-2xl border-4 border-white/80 animate-bounce-in flex items-center justify-center pointer-events-none">
+            <div className="flex flex-col items-center gap-4 w-full">
+              <div className="text-8xl animate-spin-slow">✨</div>
+              <div className="text-7xl font-black text-white animate-scale-bounce">
+                ✓
+              </div>
+              <p className="text-4xl font-black text-white drop-shadow-lg text-center">
+                Correct!
+              </p>
+              <p className="text-2xl font-bold text-white/90 drop-shadow-md text-center">
+                Great job! 🎉
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Answer Feedback Overlay - Wrong Answer */}
+      {isCorrectAnswer === -1 && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center animate-fade-in-out">
+          <div className="absolute inset-0 bg-orange-500/20 backdrop-blur-sm pointer-events-auto"></div>
+          <div className="relative w-[500px] h-[400px] bg-linear-to-br from-orange-400 via-red-400 to-pink-400 rounded-3xl p-12 shadow-2xl border-4 border-white/80 animate-shake-in flex items-center justify-center pointer-events-none">
+            <div className="flex flex-col items-center gap-4 w-full">
+              <div className="text-8xl animate-wiggle">💪</div>
+              <div className="text-7xl font-black text-white animate-scale-bounce">
+                ✗
+              </div>
+              <p className="text-4xl font-black text-white drop-shadow-lg text-center">
+                Not quite...
+              </p>
+              <p className="text-2xl font-bold text-white/90 drop-shadow-md text-center">
+                Keep trying! You got this! 💪
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Click Warning Modal - appears when user clicks on choices */}
+      {errorClick && (
+        <div className="fixed inset-0 z-100 flex items-center justify-center animate-fade-in-out">
+          <div className="absolute inset-0 bg-orange-500/20 backdrop-blur-sm pointer-events-auto"></div>
+          <div className="relative w-[500px] h-[400px] bg-linear-to-br from-orange-400 via-amber-400 to-yellow-400 rounded-3xl p-12 shadow-2xl border-4 border-white/80 animate-shake-in flex items-center justify-center pointer-events-none">
+            <div className="flex flex-col items-center gap-4 w-full">
+              <div className="text-8xl animate-wiggle">⚠️</div>
+              <div className="text-7xl font-black text-white animate-scale-bounce">
+                ✋
+              </div>
+              <p className="text-4xl font-black text-white drop-shadow-lg text-center">
+                No Clicking!
+              </p>
+              <p className="text-2xl font-bold text-white/90 drop-shadow-md text-center">
+                You must{" "}
+                <span className="bg-white/30 px-3 py-1 rounded-lg font-black">
+                  type
+                </span>{" "}
+                your answer and press{" "}
+                <span className="bg-white/30 px-3 py-1 rounded-lg font-black">
+                  Enter
+                </span>
+                !
+              </p>
+              <p className="text-xl font-semibold text-white/90 drop-shadow-sm text-center">
+                Keep typing! 💪
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Cars positioned on left and right sides of the road line */}
       {/* White line center is at top: 70%, left: 70%, cars start from fixed positions on left/right sides */}
       {/* Player's car on the left side of the road */}

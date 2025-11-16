@@ -38,6 +38,7 @@ const TypeQuestPage = () => {
   const [hasBeenSaved, setHasBeenSaved] = useState(false);
   const [shouldPollOpponent, setShouldPollOpponent] = useState(false);
   const [opponentLeftGame, setOpponentLeftGame] = useState(false); // Track if opponent quit
+  const [isCorrectAnswer, setIsCorrectAnswer] = useState(0); // 0 is defaul state no awnswer given, 1 is correct, -1 is incorrect
   const cpuTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasResetRef = useRef(false); // Add this
 
@@ -543,6 +544,11 @@ const TypeQuestPage = () => {
         currentQuestion.correctAnswer,
         true
       );
+      setIsCorrectAnswer(isCorrect ? 1 : -1);
+
+      setTimeout(() => {
+        setIsCorrectAnswer(0);
+      }, 2000);
 
       if (isCorrect) {
         const points = calculateQuestionPoints(
@@ -1163,6 +1169,7 @@ const TypeQuestPage = () => {
         <TQ_ActiveScreen
           gameState={gameState}
           onAnswerSubmit={handleAnswerSubmit}
+          isCorrectAnswer={isCorrectAnswer}
           handleGameReset={handleGameReset}
           opponentLeftGame={opponentLeftGame}
         />
