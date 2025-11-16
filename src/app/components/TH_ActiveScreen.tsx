@@ -40,7 +40,7 @@ const TH_ActiveScreen = ({
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
   const [currentGameState, setCurrentGameState] =
     useState<TreasureHuntGameState>(gameState);
-  
+
   // Refs for CPU timer management
   const cpuTimerRef = useRef<NodeJS.Timeout | null>(null);
   const cpuScheduledRef = useRef<boolean>(false);
@@ -51,11 +51,13 @@ const TH_ActiveScreen = ({
   const opponent = currentGameState.opponent;
 
   // Calculate progress percentage - use currentPlayer if available, fallback to legacy
-  const currentQuestionIndex = currentPlayer?.currentQuestionIndex ?? 
-    currentGameState.currentQuestionIndex ?? 0;
+  const currentQuestionIndex =
+    currentPlayer?.currentQuestionIndex ??
+    currentGameState.currentQuestionIndex ??
+    0;
 
   const currentQuestion = currentGameState.questions?.[currentQuestionIndex];
-  
+
   const questionProgress = getCurrentQuestionProgress(currentGameState);
 
   // Calculate progress for display
@@ -63,7 +65,8 @@ const TH_ActiveScreen = ({
   const opponentPosition = opponent?.currentQuestionIndex || 0;
   const totalQuestions = currentGameState.totalQuestions || 0;
 
-  const currentPlayerPositionPercentage = (currentPlayerPosition / totalQuestions) * 90;
+  const currentPlayerPositionPercentage =
+    (currentPlayerPosition / totalQuestions) * 90;
   const opponentPositionPercentage = (opponentPosition / totalQuestions) * 90;
 
   // White line is at top: 70%, left: 70%, rotated -35.5deg
@@ -105,110 +108,121 @@ const TH_ActiveScreen = ({
     }
   }, [currentGameState]);
 
-  const scheduleCPUAnswer = useCallback(
-    (difficulty: "easy" | "medium") => {
-      console.log("Scheduling CPU answer...");
-      
-      if (cpuTimerRef.current) {
-        console.log("Clearing existing CPU timer");
-        clearTimeout(cpuTimerRef.current);
-        cpuTimerRef.current = null;
-      }
+  const scheduleCPUAnswer = useCallback((difficulty: "easy" | "medium") => {
+    console.log("Scheduling CPU answer...");
 
-      // random delay based on difficulty and current question
-      const baseThinkTime = 4000; // Base thinking time of 2 seconds
-      const randomThinkTime = Math.random() * 2000;
-      const difficultyMultiplier = difficulty === "easy" ? 1.5 : 1; // Easy mode is slower
-      
-      // Add some randomness based on question length
-      const questionLength = currentQuestion?.incorrectSentence.length || 20;
-      const lengthFactor = Math.min(questionLength / 20, 2); // Cap at 2x for very long sentences
-      
-      const totalDelay = (baseThinkTime + randomThinkTime) * difficultyMultiplier * lengthFactor;
-      
-      console.log("Setting timer for", {
-        baseThinkTime,
-        randomThinkTime,
-        difficultyMultiplier,
-        questionLength,
-        lengthFactor,
-        totalDelay: Math.round(totalDelay)
-      });
+    if (cpuTimerRef.current) {
+      console.log("Clearing existing CPU timer");
+      clearTimeout(cpuTimerRef.current);
+      cpuTimerRef.current = null;
+    }
 
-      cpuTimerRef.current = setTimeout(() => {
-        console.log("CPU timer triggered, updating state");
-        setCurrentGameState((prevState) => {
-          if (!prevState?.opponent || prevState.opponent.isFinished || prevState.status !== "active") {
-            console.log("CPU skipping move - game not active or opponent finished", {
+    // random delay based on difficulty and current question
+    const baseThinkTime = 4000; // Base thinking time of 2 seconds
+    const randomThinkTime = Math.random() * 2000;
+    const difficultyMultiplier = difficulty === "easy" ? 1.5 : 1; // Easy mode is slower
+
+    // Add some randomness based on question length
+    const questionLength = currentQuestion?.incorrectSentence.length || 20;
+    const lengthFactor = Math.min(questionLength / 20, 2); // Cap at 2x for very long sentences
+
+    const totalDelay =
+      (baseThinkTime + randomThinkTime) * difficultyMultiplier * lengthFactor;
+
+    console.log("Setting timer for", {
+      baseThinkTime,
+      randomThinkTime,
+      difficultyMultiplier,
+      questionLength,
+      lengthFactor,
+      totalDelay: Math.round(totalDelay),
+    });
+
+    cpuTimerRef.current = setTimeout(() => {
+      console.log("CPU timer triggered, updating state");
+      setCurrentGameState((prevState) => {
+        if (
+          !prevState?.opponent ||
+          prevState.opponent.isFinished ||
+          prevState.status !== "active"
+        ) {
+          console.log(
+            "CPU skipping move - game not active or opponent finished",
+            {
               hasOpponent: !!prevState?.opponent,
               opponentFinished: prevState?.opponent?.isFinished,
-              gameStatus: prevState?.status
-            });
-            return prevState;
-          }
+              gameStatus: prevState?.status,
+            }
+          );
+          return prevState;
+        }
 
-          console.log("CPU making move", {
-            currentQuestion: prevState.opponent.currentQuestionIndex,
-            questionsAnswered: prevState.opponent.questionsAnswered
-          });
-
-          const updatedState = updateCPUProgress(prevState, difficulty);
-          
-          console.log("CPU move complete", {
-            newQuestion: updatedState.opponent?.currentQuestionIndex,
-            totalAnswered: updatedState.opponent?.questionsAnswered
-          });
-
-          return updatedState;
+        console.log("CPU making move", {
+          currentQuestion: prevState.opponent.currentQuestionIndex,
+          questionsAnswered: prevState.opponent.questionsAnswered,
         });
 
-        // Schedule next move after state update
-        setTimeout(() => {
-          setCurrentGameState(prevState => {
-            if (prevState?.status === "active" && prevState.opponent && !prevState.opponent.isFinished) {
-              console.log("Scheduling next CPU move");
-              scheduleCPUAnswer(difficulty);
-            } else {
-              console.log("CPU finished or game ended", {
-                gameStatus: prevState?.status,
-                opponentFinished: prevState?.opponent?.isFinished
-              });
-            }
-            return prevState;
-          });
-        }, 0);
-      }, totalDelay);
-    },
-    []
-  );
+        const updatedState = updateCPUProgress(prevState, difficulty);
+
+        console.log("CPU move complete", {
+          newQuestion: updatedState.opponent?.currentQuestionIndex,
+          totalAnswered: updatedState.opponent?.questionsAnswered,
+        });
+
+        return updatedState;
+      });
+
+      // Schedule next move after state update
+      setTimeout(() => {
+        setCurrentGameState((prevState) => {
+          if (
+            prevState?.status === "active" &&
+            prevState.opponent &&
+            !prevState.opponent.isFinished
+          ) {
+            console.log("Scheduling next CPU move");
+            scheduleCPUAnswer(difficulty);
+          } else {
+            console.log("CPU finished or game ended", {
+              gameStatus: prevState?.status,
+              opponentFinished: prevState?.opponent?.isFinished,
+            });
+          }
+          return prevState;
+        });
+      }, 0);
+    }, totalDelay);
+  }, []);
 
   // Separate effect to handle game status updates to avoid setState during render
   useEffect(() => {
     // Only check for game end conditions if the game is active
     if (currentGameState.status === "active") {
-      const isGameFinished = 
-        currentGameState.opponent?.isFinished || 
+      const isGameFinished =
+        currentGameState.opponent?.isFinished ||
         currentGameState.currentPlayer.isFinished;
 
       if (isGameFinished) {
-          const finalState: TreasureHuntGameState = {
-            ...currentGameState,
-            status: "finished" as GameStatus,
-            endTime: Date.now(),
-            opponent: currentGameState.opponent ? {
-              ...currentGameState.opponent,
-              isFinished: true,
-            } : undefined,
-          };        // Update the state one final time
+        const finalState: TreasureHuntGameState = {
+          ...currentGameState,
+          status: "finished" as GameStatus,
+          endTime: Date.now(),
+          opponent: currentGameState.opponent
+            ? {
+                ...currentGameState.opponent,
+                isFinished: true,
+              }
+            : undefined,
+        }; // Update the state one final time
         setCurrentGameState(finalState);
-        
+
         // Schedule status updates in next tick to avoid setState during render
         setTimeout(() => {
           setGameStatus("finished");
           onGameFinished(finalState);
         }, 0);
       } else if (
-        currentGameState.opponent && 
+        currentGameState.opponent &&
         !currentGameState.opponent.isFinished &&
         !currentGameState.currentPlayer.isFinished
       ) {
@@ -230,7 +244,7 @@ const TH_ActiveScreen = ({
       status: currentGameState?.status,
       mode: currentGameState?.mode,
       hasTimer: !!cpuTimerRef.current,
-      isScheduled: cpuScheduledRef.current
+      isScheduled: cpuScheduledRef.current,
     });
 
     if (
@@ -468,10 +482,12 @@ const TH_ActiveScreen = ({
             <div className="w-full bg-gray-200/50 backdrop-blur-sm rounded-full h-8 overflow-visible shadow-inner relative">
               <div
                 className="bg-linear-to-r from-blue-400 via-blue-500 to-blue-600 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2 relative overflow-visible"
-                style={{ width: `${Math.max((currentQuestionIndex / currentGameState.totalQuestions) * 100, 5)}%` }}
+                style={{
+                  width: `${Math.max((currentQuestionIndex / currentGameState.totalQuestions) * 100, 5)}%`,
+                }}
               >
                 {/* Wave animation overlay */}
-                <div 
+                <div
                   className="absolute inset-0 opacity-30 animate-wave"
                   style={{
                     backgroundImage: `repeating-linear-gradient(
@@ -481,12 +497,18 @@ const TH_ActiveScreen = ({
                       rgba(255, 255, 255, 0.3) 2px,
                       rgba(255, 255, 255, 0.3) 4px
                     )`,
-                    backgroundSize: '200px 100%',
+                    backgroundSize: "200px 100%",
                   }}
                 />
-                {(currentQuestionIndex / currentGameState.totalQuestions) * 100 > 15 && (
+                {(currentQuestionIndex / currentGameState.totalQuestions) *
+                  100 >
+                  15 && (
                   <span className="text-white font-bold text-sm relative z-10">
-                    {Math.round((currentQuestionIndex / currentGameState.totalQuestions) * 100)}%
+                    {Math.round(
+                      (currentQuestionIndex / currentGameState.totalQuestions) *
+                        100
+                    )}
+                    %
                   </span>
                 )}
               </div>
@@ -495,7 +517,7 @@ const TH_ActiveScreen = ({
                 className="absolute top-1/2 -translate-y-1/2 animate-boat-float z-20"
                 style={{
                   left: `calc(${Math.max((currentQuestionIndex / currentGameState.totalQuestions) * 100, 5)}% - 30px)`,
-                  transition: 'left 0.5s ease-out',
+                  transition: "left 0.5s ease-out",
                 }}
               >
                 <Image
@@ -596,13 +618,17 @@ const TH_ActiveScreen = ({
           <div className="absolute top-0 left-[70%] w-12 h-12 animate-coin-fall-4">
             <span className="text-4xl">🪙</span>
           </div>
-          
+
           {/* Success message with chest bounce */}
           <div className="relative pointer-events-auto">
             <div className="bg-linear-to-br from-green-400 to-green-600 text-white p-10 rounded-3xl text-center shadow-2xl border-4 border-white">
               <div className="mb-4">
-                <span className="text-6xl inline-block animate-chest-bounce-1">🎉</span>
-                <span className="text-6xl inline-block animate-chest-bounce-2 ml-2">💎</span>
+                <span className="text-6xl inline-block animate-chest-bounce-1">
+                  🎉
+                </span>
+                <span className="text-6xl inline-block animate-chest-bounce-2 ml-2">
+                  💎
+                </span>
               </div>
               <p className="text-5xl font-bold mb-4 animate-bounce">Awesome!</p>
               <p className="text-2xl">Correct! Moving to next treasure...</p>
@@ -615,7 +641,9 @@ const TH_ActiveScreen = ({
       {showIncorrectPopup && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
           <div className="bg-linear-to-br from-red-400/80 to-red-600/80 backdrop-blur-md text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl border-4 border-white/60 animate-bounce">
-            <p className="text-4xl font-bold mb-4 animate-pulse">😅 Try Again!</p>
+            <p className="text-4xl font-bold mb-4 animate-pulse">
+              😅 Try Again!
+            </p>
             <p className="text-xl mb-6">
               Not quite right yet! Take another look and try again.
             </p>

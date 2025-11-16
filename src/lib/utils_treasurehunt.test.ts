@@ -5,7 +5,10 @@ import {
   calculateAccuracy,
   calculateAverageTime,
 } from "./utils_treasurehunt";
-import { QuestionResult, GAME_CONFIG } from "@/app/constants/index_treasurehunt";
+import {
+  QuestionResult,
+  GAME_CONFIG,
+} from "@/app/constants/index_treasurehunt";
 
 describe("TreasureHunt Utils", () => {
   describe("calculateQuestionPoints", () => {
@@ -15,8 +18,13 @@ describe("TreasureHunt Utils", () => {
       const targetTime = 10;
       const basePoints = GAME_CONFIG.BASE_POINTS;
 
-      const expectedSpeedBonus = Math.round((targetTime - timeInSeconds) * GAME_CONFIG.SPEED_BONUS_MULTIPLIER);
-      const expected = Math.max(0, basePoints + expectedSpeedBonus - mistakes * GAME_CONFIG.MISTAKE_PENALTY);
+      const expectedSpeedBonus = Math.round(
+        (targetTime - timeInSeconds) * GAME_CONFIG.SPEED_BONUS_MULTIPLIER
+      );
+      const expected = Math.max(
+        0,
+        basePoints + expectedSpeedBonus - mistakes * GAME_CONFIG.MISTAKE_PENALTY
+      );
 
       const points = calculateQuestionPoints(
         timeInSeconds,
@@ -34,8 +42,13 @@ describe("TreasureHunt Utils", () => {
       const targetTime = 10;
       const basePoints = GAME_CONFIG.BASE_POINTS;
 
-      const expectedSpeedBonus = Math.round((targetTime - timeInSeconds) * GAME_CONFIG.SPEED_BONUS_MULTIPLIER);
-      const expected = Math.max(0, basePoints + expectedSpeedBonus - mistakes * GAME_CONFIG.MISTAKE_PENALTY);
+      const expectedSpeedBonus = Math.round(
+        (targetTime - timeInSeconds) * GAME_CONFIG.SPEED_BONUS_MULTIPLIER
+      );
+      const expected = Math.max(
+        0,
+        basePoints + expectedSpeedBonus - mistakes * GAME_CONFIG.MISTAKE_PENALTY
+      );
 
       const points = calculateQuestionPoints(
         timeInSeconds,
@@ -53,8 +66,13 @@ describe("TreasureHunt Utils", () => {
       const targetTime = 10;
       const basePoints = GAME_CONFIG.BASE_POINTS;
 
-      const expectedSpeedBonus = Math.round((targetTime - timeInSeconds) * GAME_CONFIG.SPEED_BONUS_MULTIPLIER);
-      const expected = Math.max(0, basePoints + expectedSpeedBonus - mistakes * GAME_CONFIG.MISTAKE_PENALTY);
+      const expectedSpeedBonus = Math.round(
+        (targetTime - timeInSeconds) * GAME_CONFIG.SPEED_BONUS_MULTIPLIER
+      );
+      const expected = Math.max(
+        0,
+        basePoints + expectedSpeedBonus - mistakes * GAME_CONFIG.MISTAKE_PENALTY
+      );
 
       const points = calculateQuestionPoints(
         timeInSeconds,
@@ -94,7 +112,10 @@ describe("TreasureHunt Utils", () => {
       const actualTime = (endTime - startTime) / 1000;
       const expectedTime = targetTimePerQuestion * totalQuestions;
       const timeSaved = expectedTime - actualTime;
-      const speedBonus = timeSaved > 0 ? Math.round(timeSaved * GAME_CONFIG.SPEED_BONUS_MULTIPLIER) : 0;
+      const speedBonus =
+        timeSaved > 0
+          ? Math.round(timeSaved * GAME_CONFIG.SPEED_BONUS_MULTIPLIER)
+          : 0;
       const expected = baseScore + perfectBonus + speedBonus;
 
       const score = calculateGameScore(
@@ -135,7 +156,10 @@ describe("TreasureHunt Utils", () => {
       const actualTime = (endTime - startTime) / 1000;
       const expectedTime = targetTimePerQuestion * totalQuestions;
       const timeSaved = expectedTime - actualTime;
-      const speedBonus = timeSaved > 0 ? Math.round(timeSaved * GAME_CONFIG.SPEED_BONUS_MULTIPLIER) : 0;
+      const speedBonus =
+        timeSaved > 0
+          ? Math.round(timeSaved * GAME_CONFIG.SPEED_BONUS_MULTIPLIER)
+          : 0;
       const expected = baseScore + perfectBonus + speedBonus;
 
       const score = calculateGameScore(
@@ -176,7 +200,10 @@ describe("TreasureHunt Utils", () => {
       const actualTime = (endTime - startTime) / 1000;
       const expectedTime = targetTimePerQuestion * totalQuestions;
       const timeSaved = expectedTime - actualTime;
-      const speedBonus = timeSaved > 0 ? Math.round(timeSaved * GAME_CONFIG.SPEED_BONUS_MULTIPLIER) : 0;
+      const speedBonus =
+        timeSaved > 0
+          ? Math.round(timeSaved * GAME_CONFIG.SPEED_BONUS_MULTIPLIER)
+          : 0;
       const expected = baseScore + perfectBonus + speedBonus;
 
       const score = calculateGameScore(
@@ -228,7 +255,10 @@ describe("TreasureHunt Utils", () => {
       const actualTime = (endTime - startTime) / 1000;
       const expectedTime = targetTimePerQuestion * totalQuestions;
       const timeSaved = expectedTime - actualTime;
-      const speedBonus = timeSaved > 0 ? Math.round(timeSaved * GAME_CONFIG.SPEED_BONUS_MULTIPLIER) : 0;
+      const speedBonus =
+        timeSaved > 0
+          ? Math.round(timeSaved * GAME_CONFIG.SPEED_BONUS_MULTIPLIER)
+          : 0;
       const expected = baseScore + perfectBonus + speedBonus;
 
       const score = calculateGameScore(
@@ -269,7 +299,10 @@ describe("TreasureHunt Utils", () => {
       const actualTime = (endTime - startTime) / 1000;
       const expectedTime = targetTimePerQuestion * totalQuestions;
       const timeSaved = expectedTime - actualTime;
-      const speedBonus = timeSaved > 0 ? Math.round(timeSaved * GAME_CONFIG.SPEED_BONUS_MULTIPLIER) : 0;
+      const speedBonus =
+        timeSaved > 0
+          ? Math.round(timeSaved * GAME_CONFIG.SPEED_BONUS_MULTIPLIER)
+          : 0;
       const expected = baseScore + perfectBonus + speedBonus;
 
       const score = calculateGameScore(

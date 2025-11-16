@@ -41,8 +41,18 @@ const TreasureHuntPage = () => {
   }, [gameState, gameStatus]);
 
   const handleGameStart = useCallback(
-    (gameMode: GameMode, gradeLevel: GradeLevel, playerName: string, questionCount: number) => {
-      const newGameState = initializeGame(gameMode, gradeLevel, playerName, questionCount);
+    (
+      gameMode: GameMode,
+      gradeLevel: GradeLevel,
+      playerName: string,
+      questionCount: number
+    ) => {
+      const newGameState = initializeGame(
+        gameMode,
+        gradeLevel,
+        playerName,
+        questionCount
+      );
       // Set start time when game becomes active
       newGameState.startTime = Date.now();
       newGameState.status = "active";
