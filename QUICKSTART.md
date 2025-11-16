@@ -36,11 +36,9 @@ npm run dev
 ### 4. Test with Two Windows (2 min)
 
 1. **Window 1**: `http://localhost:3000/typequest`
-
    - Name: Alice | Grade: K | Mode: Multiplayer → Start Game
 
 2. **Window 2**: `http://localhost:3000/typequest`
-
    - Name: Bob | Grade: K | Mode: Multiplayer → Start Game
 
 3. **In Window 1**: You'll see "Bob" appear → Click **Connect**

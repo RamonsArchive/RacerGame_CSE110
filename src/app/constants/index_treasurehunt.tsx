@@ -71,11 +71,11 @@ export interface TreasureHuntGameState {
   startTime: number | null;
   endTime: number | null;
   targetTimePerQuestion: number; // Used for speed bonus calculation
-  
+
   // Player data
   currentPlayer: PlayerProgress;
   opponent?: PlayerProgress; // CPU or other player
-  
+
   // Legacy fields for backward compatibility (deprecated, use currentPlayer instead)
   currentQuestionIndex?: number;
   score?: number;
@@ -108,7 +108,7 @@ export interface GameResult {
   averageTimePerQuestion: number; // seconds
   startTime: number;
   endTime: number;
-  
+
   // Multiplayer/solo specific
   opponent?: {
     name: string;
@@ -128,13 +128,13 @@ export const GAME_CONFIG = {
   MAX_LEADERBOARD_ENTRIES: 50,
   HINT_MISTAKE_THRESHOLD: 1, // Show hint after first mistake
   GIVE_UP_MISTAKE_THRESHOLD: 3, // Show give up after 3 mistakes
-  
+
   // Points system
   BASE_POINTS: 100,
   SPEED_BONUS_MULTIPLIER: 20,
   MISTAKE_PENALTY: 20,
   PERFECT_BONUS: 50,
-  
+
   // Target times by grade band (seconds per question)
   TARGET_TIMES: {
     K: 15,
@@ -142,7 +142,7 @@ export const GAME_CONFIG = {
     "3-4": 20,
     "5-6": 22,
   } as Record<GradeLevel, number>,
-  
+
   // CPU difficulty settings
   CPU_DIFFICULTY: {
     easy: {

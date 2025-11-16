@@ -320,4 +320,3 @@ describe("TypeQuest Utils", () => {
     });
   });
 });
-

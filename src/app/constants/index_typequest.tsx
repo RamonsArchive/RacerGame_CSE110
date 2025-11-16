@@ -567,7 +567,7 @@ export const WORD_BANK: Record<GradeLevel, Question[]> = {
     // ========== VOCABULARY (fill in the blank) ==========
     {
       id: "34-v1",
-      prompt: "The teacher ___ the lesson clearly (explained/explain)",
+      prompt: "The teacher ___ the lesson clearly",
       correctAnswer: "explained",
       gradeLevel: "3-4",
       category: "vocabulary",
@@ -576,7 +576,7 @@ export const WORD_BANK: Record<GradeLevel, Question[]> = {
     },
     {
       id: "34-v2",
-      prompt: "She felt ___ when she won the race (excited/exciting)",
+      prompt: "She felt ___ when she won the race",
       correctAnswer: "excited",
       gradeLevel: "3-4",
       category: "vocabulary",
@@ -585,8 +585,7 @@ export const WORD_BANK: Record<GradeLevel, Question[]> = {
     },
     {
       id: "34-v3",
-      prompt:
-        "The story was so ___ that I couldn't stop reading (interesting/interested)",
+      prompt: "The story was so ___ that I couldn't stop reading",
       correctAnswer: "interesting",
       gradeLevel: "3-4",
       category: "vocabulary",
@@ -595,7 +594,7 @@ export const WORD_BANK: Record<GradeLevel, Question[]> = {
     },
     {
       id: "34-v4",
-      prompt: "We ___ to the beach last summer (went/go)",
+      prompt: "We ___ to the beach last summer",
       correctAnswer: "went",
       gradeLevel: "3-4",
       category: "vocabulary",
@@ -604,7 +603,7 @@ export const WORD_BANK: Record<GradeLevel, Question[]> = {
     },
     {
       id: "34-v5",
-      prompt: "The scientist ___ a new discovery (made/make)",
+      prompt: "The scientist ___ a new discovery",
       correctAnswer: "made",
       gradeLevel: "3-4",
       category: "vocabulary",
@@ -775,8 +774,7 @@ export const WORD_BANK: Record<GradeLevel, Question[]> = {
     // ========== VOCABULARY (fill in the blank) ==========
     {
       id: "56-v1",
-      prompt:
-        "The scientist's hypothesis was ___ by the experiment (confirmed/confirm)",
+      prompt: "The scientist's hypothesis was ___ by the experiment",
       correctAnswer: "confirmed",
       gradeLevel: "5-6",
       category: "vocabulary",
@@ -785,8 +783,7 @@ export const WORD_BANK: Record<GradeLevel, Question[]> = {
     },
     {
       id: "56-v2",
-      prompt:
-        "The ancient ruins ___ a fascinating glimpse into the past (provided/provide)",
+      prompt: "The ancient ruins ___ a fascinating glimpse into the past",
       correctAnswer: "provided",
       gradeLevel: "5-6",
       category: "vocabulary",
@@ -795,7 +792,7 @@ export const WORD_BANK: Record<GradeLevel, Question[]> = {
     },
     {
       id: "56-v3",
-      prompt: "Her argument was both ___ and persuasive (logical/logic)",
+      prompt: "Her argument was both ___ and persuasive",
       correctAnswer: "logical",
       gradeLevel: "5-6",
       category: "vocabulary",
@@ -804,8 +801,7 @@ export const WORD_BANK: Record<GradeLevel, Question[]> = {
     },
     {
       id: "56-v4",
-      prompt:
-        "The committee will ___ the proposal tomorrow (consider/considering)",
+      prompt: "The committee will ___ the proposal tomorrow",
       correctAnswer: "consider",
       gradeLevel: "5-6",
       category: "vocabulary",
@@ -814,8 +810,7 @@ export const WORD_BANK: Record<GradeLevel, Question[]> = {
     },
     {
       id: "56-v5",
-      prompt:
-        "The results were ___ different from what we expected (significantly/significant)",
+      prompt: "The results were ___ different from what we expected",
       correctAnswer: "significantly",
       gradeLevel: "5-6",
       category: "vocabulary",

@@ -109,17 +109,14 @@ You can see CI status:
 ## Documentation Links
 
 1. **GitHub Actions Basics**
-
    - https://docs.github.com/en/actions/get-started/continuous-integration
    - https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions
 
 2. **Vitest Documentation**
-
    - https://vitest.dev/
    - https://vitest.dev/guide/
 
 3. **Next.js Testing**
-
    - https://nextjs.org/docs/app/building-your-application/testing
 
 4. **React Testing Library**

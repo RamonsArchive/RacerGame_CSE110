@@ -423,14 +423,9 @@ const TypeQuestPage = () => {
           // ✅ For multiplayer, use async version that fetches latest opponent data from Redis
           // This ensures both players use the same source of truth
           if (gameState.mode === "multiplayer") {
-            const result = await createGameResultMultiplayer(gameState);
-            console.log(
-              "✅ Saved multiplayer game result with fresh opponent data:",
-              result
-            );
+            await createGameResultMultiplayer(gameState);
           } else {
-            const result = createGameResult(gameState);
-            console.log("✅ Saved solo game result:", result);
+            createGameResult(gameState);
           }
           setHasBeenSaved(true);
         } catch (error) {
@@ -500,15 +495,6 @@ const TypeQuestPage = () => {
     }, 100);
   }, [gameState]);
 
-  const handlePlayAgainWithCPU = useCallback((gameState: GameState) => {
-    handleGameReset();
-    handleGameStart(
-      gameState.mode,
-      gameState.gradeLevel,
-      gameState.currentPlayer.playerName
-    );
-  }, []);
-
   const handleGameStart = useCallback(
     (gameMode: GameMode, gradeLevel: GradeLevel, playerName: string) => {
       const newGameState = initializeGame(gameMode, gradeLevel, playerName);
@@ -527,6 +513,18 @@ const TypeQuestPage = () => {
       setHasBeenSaved(false);
     },
     []
+  );
+
+  const handlePlayAgainWithCPU = useCallback(
+    (gameState: GameState) => {
+      handleGameReset();
+      handleGameStart(
+        gameState.mode,
+        gameState.gradeLevel,
+        gameState.currentPlayer.playerName
+      );
+    },
+    [handleGameReset, handleGameStart]
   );
 
   const handleAnswerSubmit = useCallback(
@@ -699,12 +697,6 @@ const TypeQuestPage = () => {
   // Handle rematch acceptance
   const handleRematchAccepted = useCallback(
     async (matchId: string, opponentId: string, opponentName: string) => {
-      console.log("🔄 Starting rematch:", {
-        matchId,
-        opponentId,
-        opponentName,
-      });
-
       // Reset game state
       handleGameReset();
 
@@ -776,7 +768,6 @@ const TypeQuestPage = () => {
           // Get all players in lobby to check for old match requests
           const lobbyRes = await fetch(`/api/lobby?exclude=${newPlayerId}`);
           const lobbyData = await lobbyRes.json();
-          console.log("joining lobby", lobbyData);
           if (lobbyData.ok && lobbyData.players) {
             for (const player of lobbyData.players) {
               // Clean up match requests in both directions for the NEW playerId
@@ -845,7 +836,6 @@ const TypeQuestPage = () => {
               break; // Only show one request at a time
             } else {
               // ✅ Clean up stale match request
-              console.log("🧹 Cleaning up stale match request:", matchId);
               fetch(`/api/match?matchId=${matchId}`, {
                 method: "DELETE",
               }).catch(() => {});
@@ -1093,7 +1083,6 @@ const TypeQuestPage = () => {
 
   // Reject incoming match request
   const handleRejectMatch = async () => {
-    console.log("Rejecting match:", incomingRequest);
     if (!incomingRequest) return;
 
     try {
@@ -1106,8 +1095,7 @@ const TypeQuestPage = () => {
         }),
       });
 
-      const rejectData = await res.json();
-      console.log("Rejected match:", rejectData);
+      await res.json();
 
       // ✅ Clean up rejected match request
       await fetch(`/api/match?matchId=${incomingRequest.matchId}`, {
@@ -1140,8 +1128,7 @@ const TypeQuestPage = () => {
           status: "rejected",
         }),
       });
-      const rejectData = await res.json();
-      console.log("Rejected rematch:", rejectData);
+      await res.json();
 
       // ✅ Step 2: Wait a moment for the requester to see the rejection
       // Wait 2 seconds to ensure the requester's polling (every 1 second) sees the "rejected" status

@@ -1,0 +1,14 @@
+# Default owner - all files require review from maintainer
+* @RamonsArchive
+
+# Critical files that always need review
+/src/app/layout.tsx @RamonsArchive
+/src/lib/GlobalTypes.ts @RamonsArchive
+package.json @RamonsArchive
+next.config.ts @RamonsArchive
+tsconfig.json @RamonsArchive
+
+# Data files - can be updated by board members but still need review
+/src/constants/board_index.tsx @RamonsArchive
+/src/constants/home_index.tsx @RamonsArchive
+

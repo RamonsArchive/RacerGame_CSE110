@@ -1,7 +1,11 @@
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
 import { TreasureHuntGameState } from "@/app/constants/index_treasurehunt";
-import { calculateGameScore, calculateAccuracy, calculateAverageTime } from "@/lib/utils_treasurehunt";
+import {
+  calculateGameScore,
+  calculateAccuracy,
+  calculateAverageTime,
+} from "@/lib/utils_treasurehunt";
 import TH_Summary from "./TH_Summary";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
@@ -72,8 +76,8 @@ const TH_FinishedScreen = ({
         ? playerPoints > oppPoints
           ? "win"
           : playerPoints < oppPoints
-          ? "loss"
-          : "tie"
+            ? "loss"
+            : "tie"
         : null;
 
     setWinner(calculatedWinner);
@@ -133,12 +137,15 @@ const TH_FinishedScreen = ({
   }, [winner, currentPlayerTotalPoints, opponentTotalPoints, gameState]);
 
   // Calculate stats for display
-  const correctAnswers = gameState.currentPlayer.questionResults.filter((q) => q.correct).length;
+  const correctAnswers = gameState.currentPlayer.questionResults.filter(
+    (q) => q.correct
+  ).length;
   const totalAnswered = gameState.currentPlayer.questionResults.length;
   const accuracy = calculateAccuracy(correctAnswers, totalAnswered);
-  const totalTime = gameState.endTime && gameState.startTime 
-    ? (gameState.endTime - gameState.startTime) / 1000 
-    : 0;
+  const totalTime =
+    gameState.endTime && gameState.startTime
+      ? (gameState.endTime - gameState.startTime) / 1000
+      : 0;
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
@@ -172,7 +179,7 @@ const TH_FinishedScreen = ({
             <div className="flex flex-col gap-8 flex-1">
               {/* Title */}
               <h1 className="text-5xl md:text-6xl font-black text-center text-emerald-700 drop-shadow-[0_2px_2px_rgba(0,0,0,0.2)] mt-4">
-                 Treasure Found! 
+                Treasure Found!
               </h1>
 
               {/* Winner Message */}
@@ -186,7 +193,9 @@ const TH_FinishedScreen = ({
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-emerald-50/60 backdrop-blur-sm p-6 rounded-2xl text-emerald-800 shadow">
                   <p className="text-lg font-bold mb-2">⭐ Points</p>
-                  <p className="text-4xl font-black">{currentPlayerTotalPoints}</p>
+                  <p className="text-4xl font-black">
+                    {currentPlayerTotalPoints}
+                  </p>
                 </div>
                 <div className="bg-emerald-50/60 backdrop-blur-sm p-6 rounded-2xl text-emerald-800 shadow">
                   <p className="text-lg font-bold mb-2">🎯 Accuracy</p>
@@ -194,28 +203,44 @@ const TH_FinishedScreen = ({
                 </div>
                 <div className="bg-rose-50/60 backdrop-blur-sm p-6 rounded-2xl text-rose-700 shadow">
                   <p className="text-lg font-bold mb-2">😅 Mistakes</p>
-                  <p className="text-4xl font-black">{gameState.currentPlayer.totalMistakes}</p>
+                  <p className="text-4xl font-black">
+                    {gameState.currentPlayer.totalMistakes}
+                  </p>
                 </div>
                 <div className="bg-sky-50/60 backdrop-blur-sm p-6 rounded-2xl text-sky-700 shadow">
                   <p className="text-lg font-bold mb-2">⏱️ Time</p>
-                  <p className="text-4xl font-black">{Math.round(totalTime)}s</p>
+                  <p className="text-4xl font-black">
+                    {Math.round(totalTime)}s
+                  </p>
                 </div>
               </div>
 
               {/* Wrong Answers Dropdown */}
               {gameState.answerLog && gameState.answerLog.length > 0 && (
                 <details className="bg-white/60 backdrop-blur-sm rounded-2xl p-5 shadow">
-                  <summary className="cursor-pointer text-lg font-bold text-gray-800">See sentences you missed</summary>
+                  <summary className="cursor-pointer text-lg font-bold text-gray-800">
+                    See sentences you missed
+                  </summary>
                   <div className="mt-4 flex flex-col gap-4">
                     {gameState.answerLog.map((entry) => (
-                      <div key={entry.questionId} className="bg-gray-50/60 backdrop-blur-sm rounded-xl p-4">
-                        <p className="text-sm text-gray-500 mb-1">Incorrect sentence shown</p>
-                        <p className="font-bold text-gray-800 mb-2">{entry.prompt}</p>
+                      <div
+                        key={entry.questionId}
+                        className="bg-gray-50/60 backdrop-blur-sm rounded-xl p-4"
+                      >
+                        <p className="text-sm text-gray-500 mb-1">
+                          Incorrect sentence shown
+                        </p>
+                        <p className="font-bold text-gray-800 mb-2">
+                          {entry.prompt}
+                        </p>
                         {entry.userAnswer && (
-                          <p className="text-sm text-rose-700 mb-1">Your answer: {entry.userAnswer}</p>
+                          <p className="text-sm text-rose-700 mb-1">
+                            Your answer: {entry.userAnswer}
+                          </p>
                         )}
                         <p className="text-sm text-emerald-700">
-                          Correct answer{Array.isArray(entry.correctAnswer) ? "s" : ""}:
+                          Correct answer
+                          {Array.isArray(entry.correctAnswer) ? "s" : ""}:
                           {Array.isArray(entry.correctAnswer) ? (
                             <span> {entry.correctAnswer.join(" | ")}</span>
                           ) : (
@@ -223,7 +248,9 @@ const TH_FinishedScreen = ({
                           )}
                         </p>
                         {entry.gaveUp && (
-                          <p className="text-xs text-gray-500 mt-1">You chose to give up on this one.</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            You chose to give up on this one.
+                          </p>
                         )}
                       </div>
                     ))}
@@ -236,7 +263,9 @@ const TH_FinishedScreen = ({
             <div className="flex flex-col gap-8 flex-1">
               {/* Grade Level Badge */}
               <div className="text-center">
-                <p className="text-lg font-bold text-gray-700 mb-2">Grade Level</p>
+                <p className="text-lg font-bold text-gray-700 mb-2">
+                  Grade Level
+                </p>
                 <span className="inline-block bg-emerald-600/70 backdrop-blur-sm text-white px-6 py-3 rounded-full text-xl font-bold shadow-lg">
                   {gameState.gradeLevel}
                 </span>

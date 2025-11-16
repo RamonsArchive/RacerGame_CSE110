@@ -4,9 +4,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
   UnscrambleGameState,
   GameStatus,
-  GradeLevel
-}
-from "@/app/constants/index_unscramble";
+  GradeLevel,
+} from "@/app/constants/index_unscramble";
 import {
   initializeGame,
   loadGameState,
@@ -40,12 +39,15 @@ const UnscramblePage = () => {
     }
   }, [gameState, gameStatus]);
 
-  const handleGameStart = useCallback((gradeLevel: GradeLevel, questionCount: number) => {
-    const newGameState = initializeGame(gradeLevel, questionCount);
-    setGameState(newGameState);
-    setGameStatus("active");
-    saveGameState(newGameState);
-  }, []);
+  const handleGameStart = useCallback(
+    (gradeLevel: GradeLevel, questionCount: number) => {
+      const newGameState = initializeGame(gradeLevel, questionCount);
+      setGameState(newGameState);
+      setGameStatus("active");
+      saveGameState(newGameState);
+    },
+    []
+  );
 
   const handleGameFinished = useCallback(
     (updatedState: UnscrambleGameState) => {

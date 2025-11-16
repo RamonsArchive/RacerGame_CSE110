@@ -6,9 +6,6 @@ interface TQ_RematchAcceptToastProps {
   myPlayerId?: string | null;
   opponentId?: string | null;
   opponentName?: string;
-  matchId: string;
-  gradeLevel: GradeLevel;
-  gameMode: GameMode;
   onRematchAccepted: (
     matchId: string,
     opponentId: string,
@@ -21,9 +18,6 @@ const TQ_RematchAcceptToast = ({
   myPlayerId,
   opponentId,
   opponentName,
-  matchId: _matchId,
-  gradeLevel: _gradeLevel,
-  gameMode: _gameMode,
   onRematchAccepted,
   handleRejectRematch,
 }: TQ_RematchAcceptToastProps) => {
@@ -43,12 +37,9 @@ const TQ_RematchAcceptToast = ({
 
     const checkInterval = setInterval(async () => {
       try {
-        // Check for incoming rematch request (opponentId_myPlayerId)
         const incomingMatchId = `${opponentId}_${myPlayerId}`;
-        console.log("incomingMatchId", incomingMatchId);
         const res = await fetch(`/api/match?matchId=${incomingMatchId}`);
 
-        // 404 is expected when no match exists, ignore it
         if (res.status === 404) {
           return;
         }
@@ -70,7 +61,7 @@ const TQ_RematchAcceptToast = ({
             }
           }
         }
-      } catch (_err) {
+      } catch {
         // Silently ignore errors (404s are expected)
       }
     }, 2000); // Poll every 2 seconds

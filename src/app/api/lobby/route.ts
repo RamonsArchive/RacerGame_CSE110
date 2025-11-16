@@ -7,12 +7,18 @@ import { checkRateLimit, lobbyMatchLimiter } from "@/lib/rateLimiter";
 // Run on Edge for snappy responses
 export const runtime = "edge";
 // Keys
-const LOBBY_SET = "tq:lobby:v1";      // Set of active player IDs
+const LOBBY_SET = "tq:lobby:v1"; // Set of active player IDs
 const PLAYER_KEY = (id: string) => `tq:player:${id}`;
 // TTL in seconds (players auto-expire if no heartbeat)
 const PLAYER_TTL = 90;
 
-type Player = { id: string; name: string; joinedAt: number; gradeLevel: GradeLevel; gameMode: GameMode };
+type Player = {
+  id: string;
+  name: string;
+  joinedAt: number;
+  gradeLevel: GradeLevel;
+  gameMode: GameMode;
+};
 
 function json(data: unknown, init?: ResponseInit) {
   return NextResponse.json(data, init);
@@ -27,16 +33,17 @@ function bad(msg: string, code = 400) {
  * Body: { name: string, gradeLevel: GradeLevel, gameMode: GameMode }
  * Joins the lobby, returns { ok, player: { id, name }, ttl }
  */
-// might want to check if existing already exists 
+// might want to check if existing already exists
 export async function POST(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "lobby:join", req);
+    const rateLimitCheck = await checkRateLimit(
+      lobbyMatchLimiter,
+      "lobby:join",
+      req
+    );
     if (!rateLimitCheck.success) {
-      return json(
-        { ok: false, error: rateLimitCheck.error },
-        { status: 429 }
-      );
+      return json({ ok: false, error: rateLimitCheck.error }, { status: 429 });
     }
 
     const body = await req.json().catch(() => ({}));
@@ -52,7 +59,13 @@ export async function POST(req: NextRequest) {
     }
 
     const id = crypto.randomUUID();
-    const player: Player = { id, name, joinedAt: Date.now(), gradeLevel: gradeLevel as GradeLevel, gameMode: gameMode as GameMode };
+    const player: Player = {
+      id,
+      name,
+      joinedAt: Date.now(),
+      gradeLevel: gradeLevel as GradeLevel,
+      gameMode: gameMode as GameMode,
+    };
 
     // Store player, add to lobby set, set TTL
     await Promise.all([
@@ -63,7 +76,10 @@ export async function POST(req: NextRequest) {
 
     return json({ ok: true, player: { id, name }, ttl: PLAYER_TTL });
   } catch (err: unknown) {
-    return bad(err instanceof Error ? err.message : "Failed to join lobby.", 500);
+    return bad(
+      err instanceof Error ? err.message : "Failed to join lobby.",
+      500
+    );
   }
 }
 
@@ -74,12 +90,13 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "lobby:list", req);
+    const rateLimitCheck = await checkRateLimit(
+      lobbyMatchLimiter,
+      "lobby:list",
+      req
+    );
     if (!rateLimitCheck.success) {
-      return json(
-        { ok: false, error: rateLimitCheck.error },
-        { status: 429 }
-      );
+      return json({ ok: false, error: rateLimitCheck.error }, { status: 429 });
     }
 
     const { searchParams } = new URL(req.url);
@@ -90,7 +107,9 @@ export async function GET(req: NextRequest) {
 
     // Fetch players in parallel
     const playersRaw = await Promise.all(
-      ids.map((id: string) => redis.hgetall<Record<string, string>>(PLAYER_KEY(id)))
+      ids.map((id: string) =>
+        redis.hgetall<Record<string, string>>(PLAYER_KEY(id))
+      )
     );
 
     // Filter out expired/null and format
@@ -100,7 +119,14 @@ export async function GET(req: NextRequest) {
 
     playersRaw.forEach((data: Record<string, string> | null, idx: number) => {
       const id = ids[idx];
-      if (!data || !data.id || !data.name || !data.joinedAt || !data.gradeLevel || !data.gameMode) {
+      if (
+        !data ||
+        !data.id ||
+        !data.name ||
+        !data.joinedAt ||
+        !data.gradeLevel ||
+        !data.gameMode
+      ) {
         // player hash missing — probably expired; clean from set
         toRemoveFromSet.push(id);
         return;
@@ -120,14 +146,19 @@ export async function GET(req: NextRequest) {
     }
 
     // Exclude requester if present
-    const filtered = exclude ? players.filter((p) => p.id !== exclude) : players;
+    const filtered = exclude
+      ? players.filter((p) => p.id !== exclude)
+      : players;
 
     // Sort by join time (newest first)
     filtered.sort((a, b) => b.joinedAt - a.joinedAt);
 
     return json({ ok: true, players: filtered, now });
   } catch (err: unknown) {
-    return bad(err instanceof Error ? err.message : "Failed to list lobby.", 500);
+    return bad(
+      err instanceof Error ? err.message : "Failed to list lobby.",
+      500
+    );
   }
 }
 
@@ -139,12 +170,13 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "lobby:heartbeat", req);
+    const rateLimitCheck = await checkRateLimit(
+      lobbyMatchLimiter,
+      "lobby:heartbeat",
+      req
+    );
     if (!rateLimitCheck.success) {
-      return json(
-        { ok: false, error: rateLimitCheck.error },
-        { status: 429 }
-      );
+      return json({ ok: false, error: rateLimitCheck.error }, { status: 429 });
     }
 
     const body = await req.json().catch(() => ({}));
@@ -163,7 +195,10 @@ export async function PATCH(req: NextRequest) {
     ]);
     return json({ ok: true, ttl: PLAYER_TTL });
   } catch (err: unknown) {
-    return bad(err instanceof Error ? err.message : "Failed to heartbeat.", 500);
+    return bad(
+      err instanceof Error ? err.message : "Failed to heartbeat.",
+      500
+    );
   }
 }
 
@@ -175,12 +210,13 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "lobby:leave", req);
+    const rateLimitCheck = await checkRateLimit(
+      lobbyMatchLimiter,
+      "lobby:leave",
+      req
+    );
     if (!rateLimitCheck.success) {
-      return json(
-        { ok: false, error: rateLimitCheck.error },
-        { status: 429 }
-      );
+      return json({ ok: false, error: rateLimitCheck.error }, { status: 429 });
     }
 
     const body = await req.json().catch(() => ({}));
@@ -191,6 +227,9 @@ export async function DELETE(req: NextRequest) {
     await Promise.all([redis.del(PLAYER_KEY(id)), redis.srem(LOBBY_SET, id)]);
     return json({ ok: true });
   } catch (err: unknown) {
-    return bad(err instanceof Error ? err.message : "Failed to leave lobby.", 500);
+    return bad(
+      err instanceof Error ? err.message : "Failed to leave lobby.",
+      500
+    );
   }
 }

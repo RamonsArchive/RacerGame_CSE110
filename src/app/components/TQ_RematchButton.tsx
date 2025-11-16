@@ -1,13 +1,12 @@
 "use client";
 import React, { useState } from "react";
-import { GradeLevel, GameMode } from "@/app/constants/index_typequest";
+import { GradeLevel } from "@/app/constants/index_typequest";
 
 interface RematchButtonProps {
   myPlayerId: string;
   opponentId: string;
   opponentName: string;
   gradeLevel: GradeLevel;
-  gameMode: GameMode;
   onRematchAccepted: (
     matchId: string,
     opponentId: string,
@@ -20,13 +19,11 @@ const TQ_RematchButton = ({
   opponentId,
   opponentName,
   gradeLevel,
-  gameMode: _gameMode,
   onRematchAccepted,
 }: RematchButtonProps) => {
   const [rematchStatus, setRematchStatus] = useState<
     "idle" | "waiting" | "ready" | "rejected"
   >("idle");
-  const [_matchId, setMatchId] = useState<string>("");
 
   // Request rematch
   const handleRematchRequest = async () => {
@@ -43,9 +40,7 @@ const TQ_RematchButton = ({
 
       const data = await res.json();
       if (data.ok) {
-        setMatchId(data.matchId);
         setRematchStatus("waiting");
-        console.log("🔄 Rematch request sent");
 
         // Start polling for acceptance
         pollForRematchAcceptance(data.matchId);
@@ -81,7 +76,6 @@ const TQ_RematchButton = ({
             if (hasCompleted) return; // Prevent double-triggering
             hasCompleted = true;
             clearInterval(checkInterval);
-            console.log("✅ Rematch accepted!");
 
             // Clean up match request
             await fetch(`/api/match?matchId=${matchId}`, { method: "DELETE" });
@@ -92,7 +86,6 @@ const TQ_RematchButton = ({
             if (hasCompleted) return;
             hasCompleted = true;
             clearInterval(checkInterval);
-            console.log("❌ Rematch rejected");
             setRematchStatus("rejected");
 
             // Clean up rejected match
@@ -104,20 +97,17 @@ const TQ_RematchButton = ({
             }, 5000);
           }
         } else if (!data.ok && res.status === 404) {
-          // ✅ Match was deleted
           if (hasCompleted) return;
 
           if (lastSeenStatus === "accepted") {
             // We saw "accepted" before deletion, so opponent accepted and started game
             hasCompleted = true;
             clearInterval(checkInterval);
-            console.log("🎮 Match deleted after acceptance - starting game...");
             onRematchAccepted(matchId, opponentId, opponentName);
           } else if (lastSeenStatus === "rejected") {
             // We saw "rejected" before deletion, so opponent rejected it
             hasCompleted = true;
             clearInterval(checkInterval);
-            console.log("❌ Match deleted after rejection");
             setRematchStatus("rejected");
             setTimeout(() => {
               setRematchStatus("idle");
@@ -127,9 +117,6 @@ const TQ_RematchButton = ({
             // Since Player B no longer deletes the match (only Player A does after seeing "accepted"),
             // this shouldn't happen unless there's a timeout or manual deletion
             // If we're still waiting, continue polling in case the match was just slow to update
-            console.log(
-              "⚠️ Match deleted without seeing status - continuing to poll..."
-            );
             // Don't stop polling yet - the match might have been deleted by timeout
             // Continue polling for a bit more to see if status appears
           }
@@ -144,7 +131,6 @@ const TQ_RematchButton = ({
       clearInterval(checkInterval);
       if (rematchStatus === "waiting" && !hasCompleted) {
         setRematchStatus("idle");
-        console.log("⏱️ Rematch request timed out");
       }
     }, 30000);
   };

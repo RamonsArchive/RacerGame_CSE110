@@ -39,7 +39,6 @@ export interface UnscrambleQuestion {
   hint?: string;
 }
 
-
 export interface UnscrambleGameState {
   gameId: string;
   gradeLevel: GradeLevel;
@@ -61,10 +60,9 @@ export const GAME_CONFIG = {
   MIN_QUESTIONS: 5,
   MAX_QUESTIONS: 15,
   SESSION_STORAGE_KEY: "unscramble_game_state",
-  HINT_MISTAKE_THRESHOLD: 2, 
-  GIVE_UP_MISTAKE_THRESHOLD: 3, 
+  HINT_MISTAKE_THRESHOLD: 2,
+  GIVE_UP_MISTAKE_THRESHOLD: 3,
 } as const;
-
 
 export interface GameResult {
   gameId: string;

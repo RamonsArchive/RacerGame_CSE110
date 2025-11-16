@@ -7,13 +7,13 @@ export default function Home() {
   const treasureHuntGame = GAMES[1];
   const unscrambleGame = GAMES[2];
   return (
-    <div 
+    <div
       className="flex flex-col w-full h-dvh"
       style={{
-        backgroundImage: 'url(/background.png)',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
+        backgroundImage: "url(/background.png)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
     >
       <div className="flex flex-col w-full h-full gap-15 p-10 max-w-7xl mx-auto">

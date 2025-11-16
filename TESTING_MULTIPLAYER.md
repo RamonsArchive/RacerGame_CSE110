@@ -64,7 +64,6 @@ OR use:
 ### 2.3 Test Flow
 
 1. **In Window 1**:
-
    - Enter name: "Alice"
    - Select grade level: "K"
    - Select game mode: "Multiplayer"
@@ -72,7 +71,6 @@ OR use:
    - ✅ Modal should open showing "No players available"
 
 2. **In Window 2**:
-
    - Enter name: "Bob"
    - Select grade level: "K" (same as Alice)
    - Select game mode: "Multiplayer"
@@ -80,7 +78,6 @@ OR use:
    - ✅ Modal should open
 
 3. **Back to Window 1**:
-
    - ✅ After ~2 seconds, you should see "Bob" appear in the player list!
 
 4. **Click "Connect" on Bob**:

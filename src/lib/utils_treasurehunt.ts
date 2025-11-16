@@ -22,11 +22,11 @@ const generatePlayerId = (): string => {
   const timestamp = Date.now();
   const random1 = Math.random().toString(36).substring(2, 15);
   const random2 = Math.random().toString(36).substring(2, 15);
-  
-  if (typeof window !== 'undefined' && window.crypto?.randomUUID) {
+
+  if (typeof window !== "undefined" && window.crypto?.randomUUID) {
     return `player_${timestamp}_${window.crypto.randomUUID()}`;
   }
-  
+
   return `player_${timestamp}_${random1}${random2}`;
 };
 
@@ -35,20 +35,21 @@ export const calculateQuestionPoints = (
   timeInSeconds: number,
   mistakes: number,
   targetTime: number,
-  basePoints: number = GAME_CONFIG.BASE_POINTS,
+  basePoints: number = GAME_CONFIG.BASE_POINTS
 ): number => {
   // Speed bonus: earn points for being faster than target
   const timeDiff = targetTime - timeInSeconds;
-  const speedBonus = timeDiff > 0 
-    ? Math.round(timeDiff * GAME_CONFIG.SPEED_BONUS_MULTIPLIER) 
-    : 0;
-  
+  const speedBonus =
+    timeDiff > 0
+      ? Math.round(timeDiff * GAME_CONFIG.SPEED_BONUS_MULTIPLIER)
+      : 0;
+
   // Mistake penalty
   const mistakePenalty = mistakes * GAME_CONFIG.MISTAKE_PENALTY;
-  
+
   // Calculate total (minimum 0)
   const totalPoints = Math.max(0, basePoints + speedBonus - mistakePenalty);
-  
+
   return totalPoints;
 };
 
@@ -62,17 +63,18 @@ export const calculateGameScore = (
 ): number => {
   const baseScore = questionResults.reduce((total, q) => total + q.points, 0);
   const perfectBonus = hadPerfectGame ? GAME_CONFIG.PERFECT_BONUS : 0;
-  
+
   // Speed bonus: reward finishing FASTER than target time
   const actualTime = (endTime - startTime) / 1000; // in seconds
   const expectedTime = targetTimePerQuestion * totalQuestions;
   const timeSaved = expectedTime - actualTime;
-  
+
   // Only give bonus if finished faster than expected (timeSaved > 0)
-  const speedBonus = timeSaved > 0 
-    ? Math.round(timeSaved * GAME_CONFIG.SPEED_BONUS_MULTIPLIER)
-    : 0;
-  
+  const speedBonus =
+    timeSaved > 0
+      ? Math.round(timeSaved * GAME_CONFIG.SPEED_BONUS_MULTIPLIER)
+      : 0;
+
   return baseScore + perfectBonus + speedBonus;
 };
 
@@ -80,15 +82,15 @@ export const calculateGameScore = (
 export const simulateCPUAnswer = (
   question: GrammarQuestion,
   opponent: PlayerProgress,
-  difficulty: keyof typeof GAME_CONFIG.CPU_DIFFICULTY = 'medium'
+  difficulty: keyof typeof GAME_CONFIG.CPU_DIFFICULTY = "medium"
 ): { timeSpent: number; mistakes: number; correct: boolean } => {
   const config = GAME_CONFIG.CPU_DIFFICULTY[difficulty];
-  const timeSpent = opponent.questionStartTime 
-    ? (Date.now() - opponent.questionStartTime) / 1000 
+  const timeSpent = opponent.questionStartTime
+    ? (Date.now() - opponent.questionStartTime) / 1000
     : GAME_CONFIG.TARGET_TIMES[question.gradeLevel] * config.speedMultiplier;
   const willMakeMistake = Math.random() < config.mistakeRate;
   const mistakes = willMakeMistake ? Math.floor(Math.random() * 2) + 1 : 0;
-  
+
   return {
     timeSpent: Math.round(timeSpent * 10) / 10,
     mistakes,
@@ -99,7 +101,7 @@ export const simulateCPUAnswer = (
 // Update CPU progress (similar to TypeQuest)
 export const updateCPUProgress = (
   currentGameState: TreasureHuntGameState,
-  difficulty: keyof typeof GAME_CONFIG.CPU_DIFFICULTY = 'medium'
+  difficulty: keyof typeof GAME_CONFIG.CPU_DIFFICULTY = "medium"
 ): TreasureHuntGameState => {
   if (!currentGameState.opponent || currentGameState.opponent.isFinished) {
     return currentGameState;
@@ -117,16 +119,15 @@ export const updateCPUProgress = (
   }
 
   const currentQuestion =
-    currentGameState.questions[
-      currentGameState.opponent.currentQuestionIndex
-    ];
+    currentGameState.questions[currentGameState.opponent.currentQuestionIndex];
 
   if (!currentQuestion) {
     return currentGameState;
   }
 
   // Calculate time spent based on when CPU started this question
-  const questionStartTime = currentGameState.opponent.questionStartTime || Date.now();
+  const questionStartTime =
+    currentGameState.opponent.questionStartTime || Date.now();
   const timeSpent = (Date.now() - questionStartTime) / 1000;
 
   const cpuResult = simulateCPUAnswer(
@@ -134,10 +135,10 @@ export const updateCPUProgress = (
     currentGameState.opponent,
     difficulty
   );
-  
+
   // Use the actual time spent, not the simulated one
   const actualTimeSpent = Math.max(timeSpent, cpuResult.timeSpent);
-  
+
   const cpuPoints = calculateQuestionPoints(
     actualTimeSpent,
     cpuResult.mistakes,
@@ -184,10 +185,8 @@ export const updateCPUProgress = (
     cpuQuestionResult,
   ];
 
-  const newQuestionIndex =
-    currentGameState.opponent.currentQuestionIndex + 1;
-  const newQuestionsAnswered =
-    currentGameState.opponent.questionsAnswered + 1;
+  const newQuestionIndex = currentGameState.opponent.currentQuestionIndex + 1;
+  const newQuestionsAnswered = currentGameState.opponent.questionsAnswered + 1;
   const isOpponentFinished =
     newQuestionsAnswered >= currentGameState.totalQuestions;
 
@@ -196,8 +195,7 @@ export const updateCPUProgress = (
     currentQuestionIndex: newQuestionIndex,
     questionsAnswered: newQuestionsAnswered,
     totalPoints: currentGameState.opponent.totalPoints + cpuPoints,
-    totalMistakes:
-      currentGameState.opponent.totalMistakes + cpuResult.mistakes,
+    totalMistakes: currentGameState.opponent.totalMistakes + cpuResult.mistakes,
     questionResults: allQuestionResults,
     isFinished: isOpponentFinished,
     finishTime: isOpponentFinished ? Date.now() : null,
@@ -337,19 +335,22 @@ export const initializeGame = (
       questionStartTime: null,
       currentQuestionMistakes: 0,
     },
-    opponent: mode === 'solo' ? {
-      playerId: 'cpu',
-      playerName: 'CPU',
-      currentQuestionIndex: 0,
-      questionsAnswered: 0,
-      totalPoints: 0,
-      totalMistakes: 0,
-      questionResults: [],
-      isFinished: false,
-      finishTime: null,
-      questionStartTime: null,
-      currentQuestionMistakes: 0,
-    } : undefined,
+    opponent:
+      mode === "solo"
+        ? {
+            playerId: "cpu",
+            playerName: "CPU",
+            currentQuestionIndex: 0,
+            questionsAnswered: 0,
+            totalPoints: 0,
+            totalMistakes: 0,
+            questionResults: [],
+            isFinished: false,
+            finishTime: null,
+            questionStartTime: null,
+            currentQuestionMistakes: 0,
+          }
+        : undefined,
     // Legacy fields for backward compatibility
     currentQuestionIndex: 0,
     score: 0,
@@ -364,9 +365,9 @@ export const initializeGame = (
 export const isGameFinished = (gameState: TreasureHuntGameState): boolean => {
   return (
     gameState.currentPlayer.isFinished ||
-    (gameState.currentQuestionIndex !== undefined && 
-     gameState.currentQuestionIndex >= gameState.totalQuestions) ||
-    (gameState.isGameFinished === true)
+    (gameState.currentQuestionIndex !== undefined &&
+      gameState.currentQuestionIndex >= gameState.totalQuestions) ||
+    gameState.isGameFinished === true
   );
 };
 
@@ -400,9 +401,10 @@ export const handleCorrectAnswer = (
 ): TreasureHuntGameState => {
   const currentIndex = gameState.currentPlayer.currentQuestionIndex;
   const currentQuestion = gameState.questions[currentIndex];
-  const questionStartTime = gameState.currentPlayer.questionStartTime || Date.now();
+  const questionStartTime =
+    gameState.currentPlayer.questionStartTime || Date.now();
   const actualTimeSpent = timeSpent || (Date.now() - questionStartTime) / 1000;
-  
+
   // Calculate points for this question
   const points = calculateQuestionPoints(
     actualTimeSpent,
@@ -415,8 +417,8 @@ export const handleCorrectAnswer = (
   const questionResult: QuestionResult = {
     questionId: currentQuestion.id,
     prompt: currentQuestion.incorrectSentence,
-    userAnswer: Array.isArray(currentQuestion.correctSentence) 
-      ? currentQuestion.correctSentence[0] 
+    userAnswer: Array.isArray(currentQuestion.correctSentence)
+      ? currentQuestion.correctSentence[0]
       : currentQuestion.correctSentence,
     correctAnswer: currentQuestion.correctSentence,
     correct: true,
@@ -439,7 +441,10 @@ export const handleCorrectAnswer = (
       ...gameState.currentPlayer,
       questionsAnswered: gameState.currentPlayer.questionsAnswered + 1,
       totalPoints: gameState.currentPlayer.totalPoints + points,
-      questionResults: [...gameState.currentPlayer.questionResults, questionResult],
+      questionResults: [
+        ...gameState.currentPlayer.questionResults,
+        questionResult,
+      ],
       currentQuestionMistakes: 0,
       questionStartTime: Date.now(),
     },
@@ -507,7 +512,8 @@ export const handleIncorrectAnswer = (
 
   // Create a QuestionResult entry for this incorrect attempt so accuracy
   // counts attempts (correct / total submissions) rather than only scored answers.
-  const questionStartTime = gameState.currentPlayer.questionStartTime || Date.now();
+  const questionStartTime =
+    gameState.currentPlayer.questionStartTime || Date.now();
   const attemptTime = (Date.now() - questionStartTime) / 1000;
 
   const incorrectResult = {
@@ -526,10 +532,14 @@ export const handleIncorrectAnswer = (
     ...gameState,
     currentPlayer: {
       ...gameState.currentPlayer,
-      currentQuestionMistakes: gameState.currentPlayer.currentQuestionMistakes + 1,
+      currentQuestionMistakes:
+        gameState.currentPlayer.currentQuestionMistakes + 1,
       totalMistakes: gameState.currentPlayer.totalMistakes + 1,
       // append the incorrect attempt to questionResults so totalAttempts increases
-      questionResults: [...gameState.currentPlayer.questionResults, incorrectResult],
+      questionResults: [
+        ...gameState.currentPlayer.questionResults,
+        incorrectResult,
+      ],
     },
     // Legacy fields for backward compatibility
     mistakes: (gameState.mistakes || 0) + 1,
@@ -635,8 +645,8 @@ export const handleGiveUp = (
     userAnswer: "",
     correctAnswer: currentQuestion.correctSentence,
     correct: false,
-    timeSpent: gameState.currentPlayer.questionStartTime 
-      ? (Date.now() - gameState.currentPlayer.questionStartTime) / 1000 
+    timeSpent: gameState.currentPlayer.questionStartTime
+      ? (Date.now() - gameState.currentPlayer.questionStartTime) / 1000
       : 0,
     mistakes: gameState.currentPlayer.currentQuestionMistakes,
     points: 0,
@@ -649,14 +659,17 @@ export const handleGiveUp = (
     currentPlayer: {
       ...gameState.currentPlayer,
       questionsAnswered: gameState.currentPlayer.questionsAnswered + 1,
-      questionResults: [...gameState.currentPlayer.questionResults, questionResult],
+      questionResults: [
+        ...gameState.currentPlayer.questionResults,
+        questionResult,
+      ],
       currentQuestionMistakes: 0,
       questionStartTime: Date.now(),
     },
     questionProgress: updatedProgress,
     answerLog: newAnswerLog,
   });
-  
+
   return updated;
 };
 
@@ -669,8 +682,10 @@ export const getCurrentQuestionProgress = (
     return null;
   }
 
-  const currentIndex = gameState.currentPlayer?.currentQuestionIndex ?? 
-    gameState.currentQuestionIndex ?? 0;
+  const currentIndex =
+    gameState.currentPlayer?.currentQuestionIndex ??
+    gameState.currentQuestionIndex ??
+    0;
   const currentQuestion = gameState.questions?.[currentIndex];
   if (!currentQuestion) {
     return null;
@@ -687,26 +702,39 @@ export const getCurrentQuestionProgress = (
 export const createGameResult = (
   gameState: TreasureHuntGameState
 ): GameResult => {
-  const { currentPlayer, opponent, startTime, endTime, gradeLevel, mode, totalQuestions, targetTimePerQuestion } = gameState;
-  
+  const {
+    currentPlayer,
+    opponent,
+    startTime,
+    endTime,
+    gradeLevel,
+    mode,
+    totalQuestions,
+    targetTimePerQuestion,
+  } = gameState;
+
   // Use player's individual finish time for accurate speed bonus calculation
   const playerEndTime = currentPlayer.finishTime || endTime || Date.now();
   const totalTime = startTime ? (playerEndTime - startTime) / 1000 : 0;
-  const correctAnswers = currentPlayer.questionResults.filter(q => q.correct).length;
-  
+  const correctAnswers = currentPlayer.questionResults.filter(
+    (q) => q.correct
+  ).length;
+
   const hadPerfectGame = currentPlayer.totalMistakes === 0;
   const finalPoints = calculateGameScore(
-    currentPlayer.questionResults, 
-    hadPerfectGame, 
-    startTime!, 
-    playerEndTime, 
-    targetTimePerQuestion, 
+    currentPlayer.questionResults,
+    hadPerfectGame,
+    startTime!,
+    playerEndTime,
+    targetTimePerQuestion,
     totalQuestions
   );
 
-  const averageTimePerQuestion = currentPlayer.questionsAnswered > 0
-    ? currentPlayer.questionResults.reduce((sum, q) => sum + q.timeSpent, 0) / currentPlayer.questionsAnswered
-    : 0;
+  const averageTimePerQuestion =
+    currentPlayer.questionsAnswered > 0
+      ? currentPlayer.questionResults.reduce((sum, q) => sum + q.timeSpent, 0) /
+        currentPlayer.questionsAnswered
+      : 0;
   // Total attempts should count every submission (correct + incorrect attempts)
   const totalAttempts = currentPlayer.questionResults.length;
 
@@ -727,20 +755,20 @@ export const createGameResult = (
     accuracy: calculateAccuracy(correctAnswers, totalAttempts),
     averageTimePerQuestion: Math.round(averageTimePerQuestion * 10) / 10,
   };
-  
+
   // Add opponent data for solo mode
-  if (opponent && mode === 'solo') {
+  if (opponent && mode === "solo") {
     const opponentPerfect = opponent.totalMistakes === 0;
     const opponentEndTime = opponent.finishTime || endTime || Date.now();
     const opponentPoints = calculateGameScore(
-      opponent.questionResults, 
-      opponentPerfect, 
-      startTime!, 
-      opponentEndTime, 
-      targetTimePerQuestion, 
+      opponent.questionResults,
+      opponentPerfect,
+      startTime!,
+      opponentEndTime,
+      targetTimePerQuestion,
       totalQuestions
     );
-    
+
     result.opponent = {
       name: opponent.playerName,
       points: opponentPoints,
@@ -748,7 +776,7 @@ export const createGameResult = (
     result.won = finalPoints > opponentPoints;
     result.pointMargin = finalPoints - opponentPoints;
   }
-  
+
   return result;
 };
 
@@ -811,7 +839,8 @@ export const loadGameState = (): TreasureHuntGameState | null => {
 
         // Ensure targetTimePerQuestion exists
         if (!gameState.targetTimePerQuestion) {
-          gameState.targetTimePerQuestion = GAME_CONFIG.TARGET_TIMES[gameState.gradeLevel];
+          gameState.targetTimePerQuestion =
+            GAME_CONFIG.TARGET_TIMES[gameState.gradeLevel];
         }
 
         return gameState;

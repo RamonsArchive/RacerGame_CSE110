@@ -1,0 +1,15 @@
+node_modules
+.next
+out
+build
+*.lock
+package-lock.json
+public
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.ico
+*.woff
+*.woff2
+

@@ -20,20 +20,6 @@ type QuestionResult = {
   timestamp: number;
 };
 
-type PlayerProgressRedis = {
-  playerId: string;
-  playerName: string;
-  currentQuestionIndex: number;
-  questionsAnswered: number;
-  totalPoints: number;
-  totalMistakes: number;
-  isFinished: boolean;
-  finishTime: number | null;
-  questionResults: QuestionResult[]; // ✅ Add for metrics
-  isActive: boolean; // ✅ Track if player is still in game (for detecting quits)
-  lastUpdate: number;
-};
-
 /**
  * POST /api/game/progress
  * Body: { roomId, playerId, playerName, progress }
@@ -79,7 +65,10 @@ export async function POST(req: NextRequest) {
     };
 
     // Store progress in Redis
-    await redis.hset(PROGRESS_KEY(roomId, playerId), playerProgress as Record<string, string | number | boolean>);
+    await redis.hset(
+      PROGRESS_KEY(roomId, playerId),
+      playerProgress as Record<string, string | number | boolean>
+    );
     await redis.expire(PROGRESS_KEY(roomId, playerId), PROGRESS_TTL);
 
     return NextResponse.json({
@@ -88,7 +77,10 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: unknown) {
     return NextResponse.json(
-      { ok: false, error: err instanceof Error ? err.message : "Failed to update progress" },
+      {
+        ok: false,
+        error: err instanceof Error ? err.message : "Failed to update progress",
+      },
       { status: 500 }
     );
   }
@@ -100,18 +92,17 @@ export async function POST(req: NextRequest) {
  */
 export async function GET(req: NextRequest) {
   try {
-
-     // ✅ Check rate limit FIRST
+    // ✅ Check rate limit FIRST
     const rateLimitCheck = await checkRateLimit(
-        gameProgressLimiter,
-        "progress:get",
-        req
+      gameProgressLimiter,
+      "progress:get",
+      req
     );
     if (!rateLimitCheck.success) {
-        return NextResponse.json(
+      return NextResponse.json(
         { ok: false, error: rateLimitCheck.error },
         { status: 429 } // Too Many Requests
-        );
+      );
     }
     const { searchParams } = new URL(req.url);
     const roomId = searchParams.get("roomId");
@@ -136,9 +127,7 @@ export async function GET(req: NextRequest) {
 
     // Determine opponent ID
     const opponentId =
-      gameRoom.player1Id === playerId
-        ? gameRoom.player2Id
-        : gameRoom.player1Id;
+      gameRoom.player1Id === playerId ? gameRoom.player2Id : gameRoom.player1Id;
 
     // Fetch opponent's progress
     const opponentProgress = await redis.hgetall(
@@ -154,8 +143,6 @@ export async function GET(req: NextRequest) {
       });
     }
 
-
-    console.log("🔍 Opponent question results:", opponentProgress.questionResults);
     return NextResponse.json({
       ok: true,
       opponentProgress: {
@@ -165,20 +152,30 @@ export async function GET(req: NextRequest) {
         questionsAnswered: Number(opponentProgress.questionsAnswered),
         totalPoints: Number(opponentProgress.totalPoints),
         totalMistakes: Number(opponentProgress.totalMistakes),
-        isFinished: opponentProgress.isFinished === "true" || opponentProgress.isFinished === true,
+        isFinished:
+          opponentProgress.isFinished === "true" ||
+          opponentProgress.isFinished === true,
         finishTime: opponentProgress.finishTime
           ? Number(opponentProgress.finishTime)
           : null,
         questionResults: opponentProgress.questionResults, // ✅ Parse for client
-        isActive: opponentProgress.isActive === "true" || opponentProgress.isActive === true || opponentProgress.isActive === undefined, // ✅ Default to true for backward compatibility
+        isActive:
+          opponentProgress.isActive === "true" ||
+          opponentProgress.isActive === true ||
+          opponentProgress.isActive === undefined, // ✅ Default to true for backward compatibility
         lastUpdate: Number(opponentProgress.lastUpdate),
       },
     });
   } catch (err: unknown) {
     return NextResponse.json(
-      { ok: false, error: err instanceof Error ? err.message : "Failed to fetch opponent progress" },
+      {
+        ok: false,
+        error:
+          err instanceof Error
+            ? err.message
+            : "Failed to fetch opponent progress",
+      },
       { status: 500 }
     );
   }
 }
-
