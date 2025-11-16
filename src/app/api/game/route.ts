@@ -24,7 +24,6 @@ type GameRoom = {
  */
 export async function POST(req: NextRequest) {
   try {
-    // ✅ Check rate limit FIRST
     const rateLimitCheck = await checkRateLimit(
       gameRoomLimiter,
       "room:create",
@@ -48,9 +47,7 @@ export async function POST(req: NextRequest) {
       questions,
     } = body;
 
-    console.log("🎮 POST request body of game room:", body);
     if (!roomId || !player1Id || !player2Id || !questions) {
-      console.log("❌ Missing required fields");
       return NextResponse.json(
         { ok: false, error: "Missing required fields" },
         { status: 400 }
@@ -61,19 +58,16 @@ export async function POST(req: NextRequest) {
 
     // Check if room already exists (handle race condition)
     const existing = await redis.hgetall(GAME_ROOM_KEY(roomId));
-    console.log("🎮 Existing game room:", existing);
     if (existing && existing.roomId) {
-      console.log("Game room already exists, returning existing:", roomId);
       return NextResponse.json({
         ok: true,
         roomId,
         questions: existing.questions,
-        createdAt: existing.createdAt, // ✅ Return createdAt as startTime
+        createdAt: existing.createdAt,
         message: "Game room already exists",
       });
     }
 
-    console.log("🎮 Creating new game room:", roomId);
     const gameRoom: GameRoom = {
       roomId,
       player1Id,
@@ -93,17 +87,14 @@ export async function POST(req: NextRequest) {
     );
     await redis.expire(GAME_ROOM_KEY(roomId), GAME_TTL);
 
-    console.log("✅ Game room created:", roomId);
-
     return NextResponse.json({
       ok: true,
       roomId,
       questions,
-      createdAt: gameRoom.createdAt, // ✅ Return createdAt as startTime
+      createdAt: gameRoom.createdAt,
       message: "Game room created",
     });
   } catch (err: unknown) {
-    console.error("❌ Failed to create game room: in match route", err);
     return NextResponse.json(
       {
         ok: false,
@@ -121,7 +112,6 @@ export async function POST(req: NextRequest) {
  */
 export async function GET(req: NextRequest) {
   try {
-    // ✅ Check rate limit FIRST
     const rateLimitCheck = await checkRateLimit(
       gameRoomLimiter,
       "room:get",
@@ -174,7 +164,6 @@ export async function GET(req: NextRequest) {
  */
 export async function DELETE(req: NextRequest) {
   try {
-    // ✅ Check rate limit FIRST
     const rateLimitCheck = await checkRateLimit(
       gameRoomLimiter,
       "room:delete",

@@ -97,12 +97,6 @@ const TQ_FinishedScreen = ({
         : null;
 
     setWinner(calculatedWinner);
-
-    console.log("🏆 Winner calculation:", {
-      playerPoints,
-      oppPoints,
-      winner: calculatedWinner,
-    });
   }, [
     gameState,
     calculateCurrentPlayerTotalPoints,

@@ -42,7 +42,6 @@ export const calculateGameScore = (
   totalQuestions: number
 ): number => {
   const baseScore = questionResults.reduce((total, q) => total + q.points, 0);
-  console.log("Base score calcualteGameSCore", baseScore);
 
   // ✅ If no questions were answered (baseScore is 0), return 0 immediately
   // No speed bonus or perfect bonus should be awarded for zero questions
@@ -94,11 +93,6 @@ export const initializeGameMultiplayer = async (
       // ✅ Use createdAt from game room as startTime (single source of truth)
       if (fetchData.gameRoom.createdAt) {
         gameStartTime = Number(fetchData.gameRoom.createdAt);
-        console.log("game start from game room", gameStartTime);
-        console.log(
-          "✅ Using startTime from existing game room:",
-          gameStartTime
-        );
       }
 
       // ✅ Safe parsing: check if questions is string or already parsed
@@ -154,10 +148,6 @@ export const initializeGameMultiplayer = async (
       // ✅ Use createdAt from game room as startTime (single source of truth)
       if (createData.createdAt) {
         gameStartTime = Number(createData.createdAt);
-        console.log(
-          "✅ Using startTime from newly created game room:",
-          gameStartTime
-        );
       }
 
       // Use the questions from the response if room already existed
@@ -428,7 +418,6 @@ export const createGameResult = (gameState: GameState): GameResult => {
   const correctAnswers = currentPlayer.questionResults.filter(
     (q) => q.correct
   ).length;
-  console.log("correctAnswers", correctAnswers);
   const totalCharacters = currentPlayer.questionResults.reduce(
     (sum, q) => sum + q.correctAnswer.length,
     0
@@ -484,22 +473,17 @@ export const createGameResult = (gameState: GameState): GameResult => {
     const opponentCorrectAnswers = opponent.questionResults.filter(
       (q) => q.correct
     ).length;
-    console.log("opponentCorrectAnswers", opponentCorrectAnswers);
     const opponentPerfect =
       opponent.totalMistakes === 0 && opponentCorrectAnswers === totalQuestions;
-    console.log("opponentPerfect", opponentPerfect);
     const opponentEndTime = opponent.finishTime || endTime || Date.now();
     const opponentPoints = calculateGameScore(
       opponent.questionResults,
       opponentPerfect,
       startTime!,
-      opponentEndTime, // ✅ Use opponent's individual finish time
+      opponentEndTime,
       targetTimePerQuestion,
       totalQuestions
     );
-
-    console.log("opponentPoints", opponentPoints);
-
     result.opponent = {
       name: opponent.playerName,
       points: opponentPoints,
@@ -553,14 +537,6 @@ export const createGameResultMultiplayer = async (
         if (roomCreatedAt) {
           // ✅ Use createdAt from game room as the single source of truth for startTime
           finalStartTime = roomCreatedAt;
-          console.log(
-            "✅ Using startTime from game room (createdAt):",
-            finalStartTime,
-            {
-              localStartTime: startTime,
-              difference: startTime ? finalStartTime - startTime : 0,
-            }
-          );
         } else {
           console.warn(
             "⚠️ Game room createdAt not found, using local startTime"
@@ -585,16 +561,6 @@ export const createGameResultMultiplayer = async (
             questionResults = [];
           }
         }
-
-        // ✅ Log fresh opponent data from Redis (data is used in createGameResultMultiplayer via gameState)
-        console.log(
-          "✅ Fetched fresh opponent data from Redis for leaderboard:",
-          {
-            opponentPoints: progressData.opponentProgress.totalPoints,
-            opponentFinished: progressData.opponentProgress.isFinished,
-            opponentQuestionResults: questionResults.length,
-          }
-        );
       }
     } catch (err) {
       console.error(
@@ -627,17 +593,6 @@ export const createGameResultMultiplayer = async (
     targetTimePerQuestion,
     totalQuestions
   );
-
-  console.log("🎯 Calculating player score:", {
-    playerName: currentPlayer.playerName,
-    startTime: finalStartTime,
-    finishTime: playerEndTime,
-    totalTime: totalTime,
-    questionResultsCount: currentPlayer.questionResults.length,
-    correctAnswers,
-    totalMistakes: currentPlayer.totalMistakes,
-    calculatedPoints: finalPoints,
-  });
 
   // ✅ For multiplayer, append playerId to gameId to ensure uniqueness in leaderboard
   const uniqueGameId =
@@ -675,11 +630,6 @@ export const createGameResultMultiplayer = async (
   // ✅ Save to Redis leaderboard
   if (mode === "multiplayer") {
     await saveGameResultMultiplayer(result);
-    console.log("💾 Saved multiplayer result to leaderboard:", {
-      gameId: uniqueGameId,
-      playerName: currentPlayer.playerName,
-      totalPoints: finalPoints,
-    });
   } else {
     saveGameResult(result);
   }

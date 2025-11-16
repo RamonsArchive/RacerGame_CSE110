@@ -37,12 +37,9 @@ const TQ_RematchAcceptToast = ({
 
     const checkInterval = setInterval(async () => {
       try {
-        // Check for incoming rematch request (opponentId_myPlayerId)
         const incomingMatchId = `${opponentId}_${myPlayerId}`;
-        console.log("incomingMatchId", incomingMatchId);
         const res = await fetch(`/api/match?matchId=${incomingMatchId}`);
 
-        // 404 is expected when no match exists, ignore it
         if (res.status === 404) {
           return;
         }

@@ -143,10 +143,6 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    console.log(
-      "🔍 Opponent question results:",
-      opponentProgress.questionResults
-    );
     return NextResponse.json({
       ok: true,
       opponentProgress: {
