@@ -25,7 +25,11 @@ type GameRoom = {
 export async function POST(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(gameRoomLimiter, "room:create", req);
+    const rateLimitCheck = await checkRateLimit(
+      gameRoomLimiter,
+      "room:create",
+      req
+    );
     if (!rateLimitCheck.success) {
       return NextResponse.json(
         { ok: false, error: rateLimitCheck.error },
@@ -83,7 +87,10 @@ export async function POST(req: NextRequest) {
     };
 
     // Store game room in Redis
-    await redis.hset(GAME_ROOM_KEY(roomId), gameRoom as Record<string, string | number | unknown[]>);
+    await redis.hset(
+      GAME_ROOM_KEY(roomId),
+      gameRoom as Record<string, string | number | unknown[]>
+    );
     await redis.expire(GAME_ROOM_KEY(roomId), GAME_TTL);
 
     console.log("✅ Game room created:", roomId);
@@ -98,7 +105,11 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     console.error("❌ Failed to create game room: in match route", err);
     return NextResponse.json(
-      { ok: false, error: err instanceof Error ? err.message : "Failed to create game room" },
+      {
+        ok: false,
+        error:
+          err instanceof Error ? err.message : "Failed to create game room",
+      },
       { status: 500 }
     );
   }
@@ -111,7 +122,11 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(gameRoomLimiter, "room:get", req);
+    const rateLimitCheck = await checkRateLimit(
+      gameRoomLimiter,
+      "room:get",
+      req
+    );
     if (!rateLimitCheck.success) {
       return NextResponse.json(
         { ok: false, error: rateLimitCheck.error },
@@ -144,7 +159,10 @@ export async function GET(req: NextRequest) {
     });
   } catch (err: unknown) {
     return NextResponse.json(
-      { ok: false, error: err instanceof Error ? err.message : "Failed to fetch game room" },
+      {
+        ok: false,
+        error: err instanceof Error ? err.message : "Failed to fetch game room",
+      },
       { status: 500 }
     );
   }
@@ -157,7 +175,11 @@ export async function GET(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(gameRoomLimiter, "room:delete", req);
+    const rateLimitCheck = await checkRateLimit(
+      gameRoomLimiter,
+      "room:delete",
+      req
+    );
     if (!rateLimitCheck.success) {
       return NextResponse.json(
         { ok: false, error: rateLimitCheck.error },
@@ -180,9 +202,12 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ ok: true, message: "Game room deleted" });
   } catch (err: unknown) {
     return NextResponse.json(
-      { ok: false, error: err instanceof Error ? err.message : "Failed to delete game room" },
+      {
+        ok: false,
+        error:
+          err instanceof Error ? err.message : "Failed to delete game room",
+      },
       { status: 500 }
     );
   }
 }
-

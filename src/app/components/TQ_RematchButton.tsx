@@ -1,13 +1,12 @@
 "use client";
 import React, { useState } from "react";
-import { GradeLevel, GameMode } from "@/app/constants/index_typequest";
+import { GradeLevel } from "@/app/constants/index_typequest";
 
 interface RematchButtonProps {
   myPlayerId: string;
   opponentId: string;
   opponentName: string;
   gradeLevel: GradeLevel;
-  gameMode: GameMode;
   onRematchAccepted: (
     matchId: string,
     opponentId: string,
@@ -20,13 +19,11 @@ const TQ_RematchButton = ({
   opponentId,
   opponentName,
   gradeLevel,
-  gameMode: _gameMode,
   onRematchAccepted,
 }: RematchButtonProps) => {
   const [rematchStatus, setRematchStatus] = useState<
     "idle" | "waiting" | "ready" | "rejected"
   >("idle");
-  const [_matchId, setMatchId] = useState<string>("");
 
   // Request rematch
   const handleRematchRequest = async () => {
@@ -43,7 +40,6 @@ const TQ_RematchButton = ({
 
       const data = await res.json();
       if (data.ok) {
-        setMatchId(data.matchId);
         setRematchStatus("waiting");
         console.log("🔄 Rematch request sent");
 

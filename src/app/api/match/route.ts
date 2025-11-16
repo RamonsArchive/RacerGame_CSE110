@@ -18,7 +18,11 @@ type MatchRequest = {
 // POST: Create match request
 export async function POST(req: NextRequest) {
   // ✅ Check rate limit FIRST
-  const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "match:create", req);
+  const rateLimitCheck = await checkRateLimit(
+    lobbyMatchLimiter,
+    "match:create",
+    req
+  );
   if (!rateLimitCheck.success) {
     return NextResponse.json(
       { ok: false, error: rateLimitCheck.error },
@@ -29,18 +33,22 @@ export async function POST(req: NextRequest) {
   const { requesterId, targetId, gradeLevel } = await req.json();
 
   const matchId = `${requesterId}_${targetId}`;
-  
+
   // ✅ Check if match already exists
   const existingMatch = await redis.hgetall(MATCH_KEY(matchId));
-  
+
   // ✅ If match exists and is not rejected, return error (can't overwrite pending/accepted)
-  if (existingMatch && existingMatch.status && existingMatch.status !== "rejected") {
+  if (
+    existingMatch &&
+    existingMatch.status &&
+    existingMatch.status !== "rejected"
+  ) {
     return NextResponse.json(
       { ok: false, error: "Match request already exists" },
       { status: 409 }
     );
   }
-  
+
   // ✅ Delete existing rejected match (if any) before creating new one
   if (existingMatch && existingMatch.status === "rejected") {
     await redis.del(MATCH_KEY(matchId));
@@ -54,18 +62,24 @@ export async function POST(req: NextRequest) {
     createdAt: Date.now(),
   };
 
-  await redis.hset(MATCH_KEY(matchId), match as Record<string, string | number>);
+  await redis.hset(
+    MATCH_KEY(matchId),
+    match as Record<string, string | number>
+  );
   await redis.expire(MATCH_KEY(matchId), MATCH_TTL);
 
   return NextResponse.json({ ok: true, matchId });
 }
 
-
 // GET: Check match status by matchId
 export async function GET(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "match:check", req);
+    const rateLimitCheck = await checkRateLimit(
+      lobbyMatchLimiter,
+      "match:check",
+      req
+    );
     if (!rateLimitCheck.success) {
       return NextResponse.json(
         { ok: false, error: rateLimitCheck.error },
@@ -77,26 +91,44 @@ export async function GET(req: NextRequest) {
     const matchId = searchParams.get("matchId");
 
     if (!matchId) {
-      return NextResponse.json({ ok: false, error: "matchId required" }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: "matchId required" },
+        { status: 400 }
+      );
     }
 
     const match = await redis.hgetall(MATCH_KEY(matchId));
-    
+
     if (!match || !match.status) {
-      return NextResponse.json({ ok: false, error: "Match not found" }, { status: 404 });
+      return NextResponse.json(
+        { ok: false, error: "Match not found" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({ ok: true, match });
   } catch (err: unknown) {
-    return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : "Failed to process match request" }, { status: 500 });
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          err instanceof Error
+            ? err.message
+            : "Failed to process match request",
+      },
+      { status: 500 }
+    );
   }
 }
-
 
 // PATCH: Accept/reject match
 export async function PATCH(req: NextRequest) {
   // ✅ Check rate limit FIRST
-  const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "match:respond", req);
+  const rateLimitCheck = await checkRateLimit(
+    lobbyMatchLimiter,
+    "match:respond",
+    req
+  );
   if (!rateLimitCheck.success) {
     return NextResponse.json(
       { ok: false, error: rateLimitCheck.error },
@@ -115,7 +147,11 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(lobbyMatchLimiter, "match:delete", req);
+    const rateLimitCheck = await checkRateLimit(
+      lobbyMatchLimiter,
+      "match:delete",
+      req
+    );
     if (!rateLimitCheck.success) {
       return NextResponse.json(
         { ok: false, error: rateLimitCheck.error },
@@ -127,13 +163,25 @@ export async function DELETE(req: NextRequest) {
     const matchId = searchParams.get("matchId");
 
     if (!matchId) {
-      return NextResponse.json({ ok: false, error: "matchId required" }, { status: 400 });
+      return NextResponse.json(
+        { ok: false, error: "matchId required" },
+        { status: 400 }
+      );
     }
 
     await redis.del(MATCH_KEY(matchId));
 
     return NextResponse.json({ ok: true, message: "Match request deleted" });
   } catch (err: unknown) {
-    return NextResponse.json({ ok: false, error: err instanceof Error ? err.message : "Failed to process match request" }, { status: 500 });
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          err instanceof Error
+            ? err.message
+            : "Failed to process match request",
+      },
+      { status: 500 }
+    );
   }
 }

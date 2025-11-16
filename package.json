@@ -6,11 +6,16 @@
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint . && echo '✅ ESLint: No issues found!' || (echo '❌ ESLint: Issues found. Run npm run lint:fix to auto-fix some issues.' && exit 1)",
+    "lint:fix": "eslint . --fix && echo '✅ ESLint: Auto-fixed issues successfully!' || (echo '❌ ESLint: Some issues could not be auto-fixed.' && exit 1)",
+    "format": "prettier --write . && echo '✅ Prettier: Code formatted successfully!' || (echo '❌ Prettier: Formatting failed.' && exit 1)",
+    "format:check": "prettier --check . && echo '✅ Prettier: All files are properly formatted!' || (echo '❌ Prettier: Formatting issues found. Run npm run format to fix.' && exit 1)",
+    "type-check": "tsc --noEmit && echo '✅ TypeScript: No type errors found!' || (echo '❌ TypeScript: Type errors found. Fix the errors above.' && exit 1)",
+    "check": "npm run lint && npm run format:check && npm run type-check && echo '✅ All checks passed!' || (echo '❌ Some checks failed. See errors above.' && exit 1)",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:run": "vitest run && echo '✅ Tests: All tests passed!' || (echo '❌ Tests: Some tests failed.' && exit 1)",
+    "test:coverage": "vitest run --coverage && echo '✅ Tests: Coverage report generated successfully!' || (echo '❌ Tests: Coverage generation failed.' && exit 1)"
   },
   "dependencies": {
     "@upstash/ratelimit": "^2.0.6",
@@ -40,6 +45,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "jsdom": "^27.1.0",
+    "prettier": "^3.0.0",
     "tailwindcss": "^4.1.14",
     "typescript": "^5",
     "vite": "^7.2.2",

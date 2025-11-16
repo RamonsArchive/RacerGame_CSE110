@@ -6,9 +6,6 @@ interface TQ_RematchAcceptToastProps {
   myPlayerId?: string | null;
   opponentId?: string | null;
   opponentName?: string;
-  matchId: string;
-  gradeLevel: GradeLevel;
-  gameMode: GameMode;
   onRematchAccepted: (
     matchId: string,
     opponentId: string,
@@ -21,9 +18,6 @@ const TQ_RematchAcceptToast = ({
   myPlayerId,
   opponentId,
   opponentName,
-  matchId: _matchId,
-  gradeLevel: _gradeLevel,
-  gameMode: _gameMode,
   onRematchAccepted,
   handleRejectRematch,
 }: TQ_RematchAcceptToastProps) => {
@@ -70,7 +64,7 @@ const TQ_RematchAcceptToast = ({
             }
           }
         }
-      } catch (_err) {
+      } catch {
         // Silently ignore errors (404s are expected)
       }
     }, 2000); // Poll every 2 seconds

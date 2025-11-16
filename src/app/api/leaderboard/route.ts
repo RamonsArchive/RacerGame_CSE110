@@ -22,7 +22,11 @@ const MAX_ENTRIES_PER_BOARD = 100; // Keep top 100 per board
 export async function GET(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(leaderboardLimiter, "leaderboard:get", req);
+    const rateLimitCheck = await checkRateLimit(
+      leaderboardLimiter,
+      "leaderboard:get",
+      req
+    );
     if (!rateLimitCheck.success) {
       return NextResponse.json(
         { ok: false, error: rateLimitCheck.error },
@@ -44,14 +48,16 @@ export async function GET(req: NextRequest) {
     });
 
     // Parse JSON results
-    const leaderboard = results.map((entry: string | unknown) => {
-      try {
-        return typeof entry === "string" ? JSON.parse(entry) : entry;
-      } catch (err) {
-        console.error("Failed to parse leaderboard entry:", err);
-        return null;
-      }
-    }).filter(Boolean);
+    const leaderboard = results
+      .map((entry: string | unknown) => {
+        try {
+          return typeof entry === "string" ? JSON.parse(entry) : entry;
+        } catch (err) {
+          console.error("Failed to parse leaderboard entry:", err);
+          return null;
+        }
+      })
+      .filter(Boolean);
 
     return NextResponse.json({
       ok: true,
@@ -61,7 +67,11 @@ export async function GET(req: NextRequest) {
   } catch (error: unknown) {
     console.error("Failed to get leaderboard:", error);
     return NextResponse.json(
-      { ok: false, error: error instanceof Error ? error.message : "Failed to get leaderboard" },
+      {
+        ok: false,
+        error:
+          error instanceof Error ? error.message : "Failed to get leaderboard",
+      },
       { status: 500 }
     );
   }
@@ -75,7 +85,11 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(leaderboardLimiter, "leaderboard:save", req);
+    const rateLimitCheck = await checkRateLimit(
+      leaderboardLimiter,
+      "leaderboard:save",
+      req
+    );
     if (!rateLimitCheck.success) {
       return NextResponse.json(
         { ok: false, error: rateLimitCheck.error },
@@ -89,7 +103,10 @@ export async function POST(req: NextRequest) {
 
     if (!mode || !gradeLevel || totalPoints === undefined) {
       return NextResponse.json(
-        { ok: false, error: "Missing required fields: mode, gradeLevel, totalPoints" },
+        {
+          ok: false,
+          error: "Missing required fields: mode, gradeLevel, totalPoints",
+        },
         { status: 400 }
       );
     }
@@ -109,7 +126,11 @@ export async function POST(req: NextRequest) {
     // ZREMRANGEBYRANK removes entries outside the top N
     const totalCount = await redis.zcard(key);
     if (totalCount > MAX_ENTRIES_PER_BOARD) {
-      await redis.zremrangebyrank(key, 0, totalCount - MAX_ENTRIES_PER_BOARD - 1);
+      await redis.zremrangebyrank(
+        key,
+        0,
+        totalCount - MAX_ENTRIES_PER_BOARD - 1
+      );
     }
 
     return NextResponse.json({
@@ -119,7 +140,13 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     console.error("Failed to save to leaderboard:", error);
     return NextResponse.json(
-      { ok: false, error: error instanceof Error ? error.message : "Failed to save to leaderboard" },
+      {
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to save to leaderboard",
+      },
       { status: 500 }
     );
   }
@@ -132,7 +159,11 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     // ✅ Check rate limit FIRST
-    const rateLimitCheck = await checkRateLimit(leaderboardLimiter, "leaderboard:delete", req);
+    const rateLimitCheck = await checkRateLimit(
+      leaderboardLimiter,
+      "leaderboard:delete",
+      req
+    );
     if (!rateLimitCheck.success) {
       return NextResponse.json(
         { ok: false, error: rateLimitCheck.error },
@@ -171,7 +202,13 @@ export async function DELETE(req: NextRequest) {
   } catch (error: unknown) {
     console.error("Failed to delete leaderboard:", error);
     return NextResponse.json(
-      { ok: false, error: error instanceof Error ? error.message : "Failed to delete leaderboard" },
+      {
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to delete leaderboard",
+      },
       { status: 500 }
     );
   }

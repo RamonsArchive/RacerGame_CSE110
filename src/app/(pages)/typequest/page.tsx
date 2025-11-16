@@ -502,15 +502,6 @@ const TypeQuestPage = () => {
     }, 100);
   }, [gameState]);
 
-  const handlePlayAgainWithCPU = useCallback((gameState: GameState) => {
-    handleGameReset();
-    handleGameStart(
-      gameState.mode,
-      gameState.gradeLevel,
-      gameState.currentPlayer.playerName
-    );
-  }, []);
-
   const handleGameStart = useCallback(
     (gameMode: GameMode, gradeLevel: GradeLevel, playerName: string) => {
       const newGameState = initializeGame(gameMode, gradeLevel, playerName);
@@ -529,6 +520,18 @@ const TypeQuestPage = () => {
       setHasBeenSaved(false);
     },
     []
+  );
+
+  const handlePlayAgainWithCPU = useCallback(
+    (gameState: GameState) => {
+      handleGameReset();
+      handleGameStart(
+        gameState.mode,
+        gameState.gradeLevel,
+        gameState.currentPlayer.playerName
+      );
+    },
+    [handleGameReset, handleGameStart]
   );
 
   const handleAnswerSubmit = useCallback(

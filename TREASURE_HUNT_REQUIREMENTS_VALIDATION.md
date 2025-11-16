@@ -1,11 +1,13 @@
 # Treasure Hunt Minigame - Requirements Validation
 
 ## Overview
+
 This document validates the user requirements for the Treasure Hunt minigame implementation against the current codebase state.
 
 ## Current Implementation Status
 
 ### ✅ Partially Implemented
+
 1. **Visual Components (User Story 2.1)**
    - ✅ Finished screen component
    - ✅ Active gameplay screen
@@ -24,6 +26,7 @@ This document validates the user requirements for the Treasure Hunt minigame imp
    - **Recommendation:** Implement robust matching similar to `checkAnswer` in `utils_typequest.ts`
 
 ### ❌ Not Implemented
+
 1. **Progress Bar (User Story 2.2)**
    - Currently only shows "Question X of Y" text
    - **Missing:** Visual progress bar component showing completion percentage
@@ -33,7 +36,7 @@ This document validates the user requirements for the Treasure Hunt minigame imp
    - ❌ No grade level selection screen
    - ❌ No grade-based difficulty system
    - **Current:** Hardcoded questions array
-   - **Recommendation:** 
+   - **Recommendation:**
      - Create setup screen with grade selection (K, 1-2, 3-4, 5-6)
      - Store questions by grade in `index_treasurehunt.tsx`
      - Follow TypeQuest pattern
@@ -41,7 +44,7 @@ This document validates the user requirements for the Treasure Hunt minigame imp
 3. **Constants File Structure**
    - ❌ `index_treasurehunt.tsx` exists but contains TypeQuest types
    - **Current:** All types/questions defined in page component
-   - **Recommendation:** 
+   - **Recommendation:**
      - Restructure `index_treasurehunt.tsx` with proper types
      - Add `GRAMMAR_QUESTIONS_BANK` organized by grade level
      - Define `GameState`, `GrammarQuestion`, `GradeLevel` types
@@ -55,6 +58,7 @@ This document validates the user requirements for the Treasure Hunt minigame imp
      - Question validation logic
 
 ### ✅ Fully Implemented
+
 1. **Display Incorrect Sentences (User Story 2.4)**
    - ✅ Incorrect sentences displayed prominently
    - ✅ Clear visual indication (red text)
@@ -62,7 +66,9 @@ This document validates the user requirements for the Treasure Hunt minigame imp
 ## Requirements Breakdown
 
 ### User Story 2.1: Visual Components for Each Step
+
 **Status:** ⚠️ **Partially Complete**
+
 - ✅ Active screen with question display
 - ✅ Finished screen with results
 - ❌ Setup screen for grade selection needed
@@ -72,7 +78,9 @@ This document validates the user requirements for the Treasure Hunt minigame imp
   - Add game initialization flow
 
 ### User Story 2.2: Progress Bar
+
 **Status:** ❌ **Not Implemented**
+
 - Current: Text-only progress indicator
 - **Action Items:**
   - Create visual progress bar component
@@ -80,7 +88,9 @@ This document validates the user requirements for the Treasure Hunt minigame imp
   - Update progress bar on each question advancement
 
 ### User Story 2.3: Text Area for User Input
+
 **Status:** ⚠️ **Partially Complete**
+
 - ✅ Input field exists
 - ⚠️ Should be textarea for longer sentences
 - **Action Items:**
@@ -89,12 +99,16 @@ This document validates the user requirements for the Treasure Hunt minigame imp
   - Consider character count indicator
 
 ### User Story 2.4: Display Incorrect Sentences
+
 **Status:** ✅ **Complete**
+
 - ✅ Implemented correctly
 - ✅ Clear visual presentation
 
 ### User Story 2.5: Acceptance and Unit Tests
+
 **Status:** ❌ **Not Implemented**
+
 - **Action Items:**
   - Create `__tests__/treasurehunt/` directory
   - Write unit tests for:
@@ -110,7 +124,9 @@ This document validates the user requirements for the Treasure Hunt minigame imp
     - Progress bar updates correctly
 
 ### User Story 2.6: Sentence Matching Algorithm & State Transitions
+
 **Status:** ⚠️ **Partially Complete**
+
 - ✅ Basic exact matching works
 - ❌ Missing: Case-insensitive matching
 - ❌ Missing: Whitespace normalization
@@ -122,7 +138,9 @@ This document validates the user requirements for the Treasure Hunt minigame imp
   - Test state transitions thoroughly
 
 ### System Requirement: Grade Level Selection
+
 **Status:** ❌ **Not Implemented**
+
 - **Action Items:**
   - Add grade level selection to setup flow
   - Create `GrammarQuestion` bank organized by grade:
@@ -136,6 +154,7 @@ This document validates the user requirements for the Treasure Hunt minigame imp
 ## Architecture Recommendations
 
 ### File Structure
+
 ```
 src/app/
 ├── components/
@@ -158,6 +177,7 @@ __tests__/
 ```
 
 ### Type Definitions Needed
+
 ```typescript
 // In index_treasurehunt.tsx
 export type GradeLevel = "K" | "1-2" | "3-4" | "5-6";
@@ -203,16 +223,16 @@ export interface TreasureHuntGameState {
 
 ## Validation Summary
 
-| Requirement | Status | Notes |
-|------------|--------|-------|
-| 2.1 Visual Components | ⚠️ Partial | Missing setup screen |
-| 2.2 Progress Bar | ❌ Missing | Needs implementation |
-| 2.3 Text Area | ⚠️ Partial | Input exists, should be textarea |
-| 2.4 Display Incorrect Sentences | ✅ Complete | Working well |
-| 2.5 Tests | ❌ Missing | Need full test suite |
-| 2.6 Matching Algorithm | ⚠️ Partial | Basic matching, needs enhancement |
-| Grade Level Selection | ❌ Missing | Core system requirement |
-| Constants Structure | ❌ Missing | Needs restructuring |
+| Requirement                     | Status      | Notes                             |
+| ------------------------------- | ----------- | --------------------------------- |
+| 2.1 Visual Components           | ⚠️ Partial  | Missing setup screen              |
+| 2.2 Progress Bar                | ❌ Missing  | Needs implementation              |
+| 2.3 Text Area                   | ⚠️ Partial  | Input exists, should be textarea  |
+| 2.4 Display Incorrect Sentences | ✅ Complete | Working well                      |
+| 2.5 Tests                       | ❌ Missing  | Need full test suite              |
+| 2.6 Matching Algorithm          | ⚠️ Partial  | Basic matching, needs enhancement |
+| Grade Level Selection           | ❌ Missing  | Core system requirement           |
+| Constants Structure             | ❌ Missing  | Needs restructuring               |
 
 ## Next Steps
 
@@ -225,4 +245,5 @@ export interface TreasureHuntGameState {
    - Writing tests
 
 ---
-*Validation completed based on codebase analysis as of current state*
+
+_Validation completed based on codebase analysis as of current state_

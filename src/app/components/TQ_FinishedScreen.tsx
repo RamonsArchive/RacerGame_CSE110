@@ -92,8 +92,8 @@ const TQ_FinishedScreen = ({
         ? playerPoints > oppPoints
           ? "win"
           : playerPoints < oppPoints
-          ? "loss"
-          : "tie"
+            ? "loss"
+            : "tie"
         : null;
 
     setWinner(calculatedWinner);
@@ -233,7 +233,6 @@ const TQ_FinishedScreen = ({
                     opponentId={gameState.opponent.playerId}
                     opponentName={gameState.opponent.playerName}
                     gradeLevel={gameState.gradeLevel}
-                    gameMode={gameState.mode}
                     onRematchAccepted={onRematchAccepted}
                   />
                 ) : (
@@ -279,9 +278,6 @@ const TQ_FinishedScreen = ({
           myPlayerId={myPlayerId}
           opponentId={gameState.opponent?.playerId}
           opponentName={gameState.opponent?.playerName}
-          matchId={gameState.gameId}
-          gradeLevel={gameState.gradeLevel}
-          gameMode={gameState.mode}
           onRematchAccepted={onRematchAccepted!}
           handleRejectRematch={handleRejectRematch!}
         />
