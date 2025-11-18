@@ -37,7 +37,7 @@ const TH_ActiveScreen = ({
   const [showIncorrectPopup, setShowIncorrectPopup] = useState<boolean>(false);
   const [showHintPopup, setShowHintPopup] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
+  // const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
   const [currentGameState, setCurrentGameState] =
     useState<TreasureHuntGameState>(gameState);
 
@@ -296,10 +296,10 @@ const TH_ActiveScreen = ({
 
     if (isCorrect) {
       // Show success animation
-      setShowSuccessMessage(true);
-      setTimeout(() => {
-        setShowSuccessMessage(false);
-      }, 1500);
+      // setShowSuccessMessage(true);
+      // setTimeout(() => {
+      //   setShowSuccessMessage(false);
+      // }, 1500);
 
       setCurrentGameState((prevState) => {
         // Clear CPU timer when player answers to prevent stale updates
@@ -601,11 +601,11 @@ const TH_ActiveScreen = ({
           </div>
         </div>
       </div>
-
-      {/* Success Message with Coin Animation */}
+      {/* 
+      // Success Message with Coin Animation
       {showSuccessMessage && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50 pointer-events-none">
-          {/* Coin falling animations */}
+          // Coin falling animations
           <div className="absolute top-0 left-[10%] w-12 h-12 animate-coin-fall-1">
             <span className="text-4xl">🪙</span>
           </div>
@@ -619,7 +619,7 @@ const TH_ActiveScreen = ({
             <span className="text-4xl">🪙</span>
           </div>
 
-          {/* Success message with chest bounce */}
+          // Success message with chest bounce
           <div className="relative pointer-events-auto">
             <div className="bg-linear-to-br from-green-400 to-green-600 text-white p-10 rounded-3xl text-center shadow-2xl border-4 border-white">
               <div className="mb-4">
@@ -636,7 +636,7 @@ const TH_ActiveScreen = ({
           </div>
         </div>
       )}
-
+  */}
       {/* Incorrect Answer Popup with shake animation */}
       {showIncorrectPopup && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
