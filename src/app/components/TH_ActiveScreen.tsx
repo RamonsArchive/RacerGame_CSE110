@@ -118,7 +118,7 @@ const TH_ActiveScreen = ({
     }
 
     // random delay based on difficulty and current question
-    const baseThinkTime = 4000; // Base thinking time of 2 seconds
+    const baseThinkTime = 6000; // Base thinking time of 2 seconds
     const randomThinkTime = Math.random() * 2000;
     const difficultyMultiplier = difficulty === "easy" ? 1.5 : 1; // Easy mode is slower
 
@@ -516,7 +516,7 @@ const TH_ActiveScreen = ({
               <div
                 className="absolute top-1/2 -translate-y-1/2 animate-boat-float z-20"
                 style={{
-                  left: `calc(${Math.max((currentQuestionIndex / currentGameState.totalQuestions) * 100, 5)}% - 30px)`,
+                  left: `calc(${Math.max((currentQuestionIndex / currentGameState.totalQuestions) * 100, 5)}% - 10px)`,
                   transition: "left 0.5s ease-out",
                 }}
               >
