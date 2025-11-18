@@ -482,7 +482,7 @@ const TH_ActiveScreen = ({
             </div>
             <div className="w-full bg-gray-200/50 backdrop-blur-sm rounded-full h-8 overflow-visible shadow-inner relative">
               <div
-                className="bg-linear-to-r from-blue-400 via-blue-500 to-blue-600 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2 relative overflow-visible"
+                className="bg-linear-to-r from-blue-400 via-blue-500 to-blue-600 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-16 relative overflow-visible"
                 style={{
                   width: `${Math.max((currentQuestionIndex / currentGameState.totalQuestions) * 100, 5)}%`,
                 }}
@@ -517,7 +517,7 @@ const TH_ActiveScreen = ({
               <div
                 className="absolute top-1/2 -translate-y-1/2 animate-boat-float z-20"
                 style={{
-                  left: `calc(${Math.max((currentQuestionIndex / currentGameState.totalQuestions) * 100, 5)}% - 10px)`,
+                  left: `calc(${Math.max((currentQuestionIndex / currentGameState.totalQuestions) * 100, 5)}% - 30px)`,
                   transition: "left 0.5s ease-out",
                 }}
               >
@@ -628,7 +628,7 @@ const TH_ActiveScreen = ({
               </div>
               <div className="w-full bg-gray-200/50 backdrop-blur-sm rounded-full h-8 overflow-visible shadow-inner relative">
                 <div
-                  className="bg-linear-to-r from-purple-400 via-purple-500 to-purple-600 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2 relative overflow-visible"
+                  className="bg-linear-to-r from-purple-400 via-purple-500 to-purple-600 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-16 relative overflow-visible"
                   style={{
                     width: `${Math.max(
                       (opponent.currentQuestionIndex /
@@ -675,7 +675,7 @@ const TH_ActiveScreen = ({
                         currentGameState.totalQuestions) *
                         100,
                       5
-                    )}% - 10px)`,
+                    )}% - 30px)`,
                     transition: "left 0.5s ease-out",
                   }}
                 >
