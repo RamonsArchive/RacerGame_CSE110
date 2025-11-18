@@ -37,7 +37,6 @@ const TH_ActiveScreen = ({
   const [showIncorrectPopup, setShowIncorrectPopup] = useState<boolean>(false);
   const [showHintPopup, setShowHintPopup] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
-  // const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
   const [currentGameState, setCurrentGameState] =
     useState<TreasureHuntGameState>(gameState);
 
@@ -295,12 +294,6 @@ const TH_ActiveScreen = ({
     );
 
     if (isCorrect) {
-      // Show success animation
-      // setShowSuccessMessage(true);
-      // setTimeout(() => {
-      //   setShowSuccessMessage(false);
-      // }, 1500);
-
       setCurrentGameState((prevState) => {
         // Clear CPU timer when player answers to prevent stale updates
         if (cpuTimerRef.current) {
@@ -708,42 +701,6 @@ const TH_ActiveScreen = ({
           </div>
         )}
       </div>
-      {/* 
-      // Success Message with Coin Animation
-      {showSuccessMessage && (
-        <div className="fixed inset-0 bg-black/60 flex-center z-50 pointer-events-none">
-          // Coin falling animations
-          <div className="absolute top-0 left-[10%] w-12 h-12 animate-coin-fall-1">
-            <span className="text-4xl">🪙</span>
-          </div>
-          <div className="absolute top-0 left-[30%] w-12 h-12 animate-coin-fall-2">
-            <span className="text-4xl">🪙</span>
-          </div>
-          <div className="absolute top-0 left-[50%] w-12 h-12 animate-coin-fall-3">
-            <span className="text-4xl">🪙</span>
-          </div>
-          <div className="absolute top-0 left-[70%] w-12 h-12 animate-coin-fall-4">
-            <span className="text-4xl">🪙</span>
-          </div>
-
-          // Success message with chest bounce
-          <div className="relative pointer-events-auto">
-            <div className="bg-linear-to-br from-green-400 to-green-600 text-white p-10 rounded-3xl text-center shadow-2xl border-4 border-white">
-              <div className="mb-4">
-                <span className="text-6xl inline-block animate-chest-bounce-1">
-                  🎉
-                </span>
-                <span className="text-6xl inline-block animate-chest-bounce-2 ml-2">
-                  💎
-                </span>
-              </div>
-              <p className="text-5xl font-bold mb-4 animate-bounce">Awesome!</p>
-              <p className="text-2xl">Correct! Moving to next treasure...</p>
-            </div>
-          </div>
-        </div>
-      )}
-  */}
       {/* Incorrect Answer Popup with shake animation */}
       {showIncorrectPopup && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
