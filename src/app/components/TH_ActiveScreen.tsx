@@ -37,7 +37,6 @@ const TH_ActiveScreen = ({
   const [showIncorrectPopup, setShowIncorrectPopup] = useState<boolean>(false);
   const [showHintPopup, setShowHintPopup] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
   const [currentGameState, setCurrentGameState] =
     useState<TreasureHuntGameState>(gameState);
 
@@ -118,7 +117,7 @@ const TH_ActiveScreen = ({
     }
 
     // random delay based on difficulty and current question
-    const baseThinkTime = 4000; // Base thinking time of 2 seconds
+    const baseThinkTime = 6000; // Base thinking time of 2 seconds
     const randomThinkTime = Math.random() * 2000;
     const difficultyMultiplier = difficulty === "easy" ? 1.5 : 1; // Easy mode is slower
 
@@ -295,12 +294,6 @@ const TH_ActiveScreen = ({
     );
 
     if (isCorrect) {
-      // Show success animation
-      setShowSuccessMessage(true);
-      setTimeout(() => {
-        setShowSuccessMessage(false);
-      }, 1500);
-
       setCurrentGameState((prevState) => {
         // Clear CPU timer when player answers to prevent stale updates
         if (cpuTimerRef.current) {
@@ -438,8 +431,9 @@ const TH_ActiveScreen = ({
       </div>
 
       {/* Main Content */}
-      <div className="relative z-14 flex items-center justify-start w-full h-dvh p-8">
-        <div className="flex flex-col w-full max-w-2xl gap-6 bg-white/40 backdrop-blur-sm p-8 rounded-3xl shadow-2xl ml-6">
+      <div className="relative z-14 flex items-center justify-center w-full h-dvh p-8 gap-8">
+        {/* Player Progress Card - Left Side */}
+        <div className="flex flex-col w-full max-w-2xl gap-6 bg-white/40 backdrop-blur-sm p-8 rounded-3xl shadow-2xl">
           {/* Header */}
           <div className="flex items-center justify-between">
             <Link
@@ -481,7 +475,7 @@ const TH_ActiveScreen = ({
             </div>
             <div className="w-full bg-gray-200/50 backdrop-blur-sm rounded-full h-8 overflow-visible shadow-inner relative">
               <div
-                className="bg-linear-to-r from-blue-400 via-blue-500 to-blue-600 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2 relative overflow-visible"
+                className="bg-linear-to-r from-blue-400 via-blue-500 to-blue-600 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-16 relative overflow-visible"
                 style={{
                   width: `${Math.max((currentQuestionIndex / currentGameState.totalQuestions) * 100, 5)}%`,
                 }}
@@ -600,43 +594,113 @@ const TH_ActiveScreen = ({
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Success Message with Coin Animation */}
-      {showSuccessMessage && (
-        <div className="fixed inset-0 bg-black/60 flex-center z-50 pointer-events-none">
-          {/* Coin falling animations */}
-          <div className="absolute top-0 left-[10%] w-12 h-12 animate-coin-fall-1">
-            <span className="text-4xl">🪙</span>
-          </div>
-          <div className="absolute top-0 left-[30%] w-12 h-12 animate-coin-fall-2">
-            <span className="text-4xl">🪙</span>
-          </div>
-          <div className="absolute top-0 left-[50%] w-12 h-12 animate-coin-fall-3">
-            <span className="text-4xl">🪙</span>
-          </div>
-          <div className="absolute top-0 left-[70%] w-12 h-12 animate-coin-fall-4">
-            <span className="text-4xl">🪙</span>
-          </div>
+        {/* CPU/Opponent Progress Card - Right Side */}
+        {opponent && (
+          <div className="flex flex-col w-full max-w-2xl gap-6 bg-white/40 backdrop-blur-sm p-8 rounded-3xl shadow-2xl">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-purple-700">
+                {opponent.playerName || "CPU"}
+              </h2>
+            </div>
 
-          {/* Success message with chest bounce */}
-          <div className="relative pointer-events-auto">
-            <div className="bg-linear-to-br from-green-400 to-green-600 text-white p-10 rounded-3xl text-center shadow-2xl border-4 border-white">
-              <div className="mb-4">
-                <span className="text-6xl inline-block animate-chest-bounce-1">
-                  🎉
-                </span>
-                <span className="text-6xl inline-block animate-chest-bounce-2 ml-2">
-                  💎
-                </span>
+            {/* Progress Bar */}
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between items-center">
+                <p className="text-xl font-bold text-purple-700">
+                  Question {opponent.currentQuestionIndex + 1} of{" "}
+                  {currentGameState.totalQuestions}
+                </p>
+                <div className="flex items-center gap-2 px-4 py-2 bg-purple-400/60 backdrop-blur-sm rounded-full">
+                  <span className="text-2xl">⭐</span>
+                  <p className="text-xl font-bold text-white">
+                    Points: {opponent.totalPoints ?? 0}
+                  </p>
+                </div>
               </div>
-              <p className="text-5xl font-bold mb-4 animate-bounce">Awesome!</p>
-              <p className="text-2xl">Correct! Moving to next treasure...</p>
+              <div className="w-full bg-gray-200/50 backdrop-blur-sm rounded-full h-8 overflow-visible shadow-inner relative">
+                <div
+                  className="bg-linear-to-r from-purple-400 via-purple-500 to-purple-600 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-16 relative overflow-visible"
+                  style={{
+                    width: `${Math.max(
+                      (opponent.currentQuestionIndex /
+                        currentGameState.totalQuestions) *
+                        100,
+                      5
+                    )}%`,
+                  }}
+                >
+                  {/* Wave animation overlay */}
+                  <div
+                    className="absolute inset-0 opacity-30 animate-wave"
+                    style={{
+                      backgroundImage: `repeating-linear-gradient(
+                      90deg,
+                      transparent,
+                      transparent 2px,
+                      rgba(255, 255, 255, 0.3) 2px,
+                      rgba(255, 255, 255, 0.3) 4px
+                    )`,
+                      backgroundSize: "200px 100%",
+                    }}
+                  />
+                  {(opponent.currentQuestionIndex /
+                    currentGameState.totalQuestions) *
+                    100 >
+                    15 && (
+                    <span className="text-white font-bold text-sm relative z-10">
+                      {Math.round(
+                        (opponent.currentQuestionIndex /
+                          currentGameState.totalQuestions) *
+                          100
+                      )}
+                      %
+                    </span>
+                  )}
+                </div>
+                {/* Floating boat on progress bar */}
+                <div
+                  className="absolute top-1/2 -translate-y-1/2 animate-boat-float z-20"
+                  style={{
+                    left: `calc(${Math.max(
+                      (opponent.currentQuestionIndex /
+                        currentGameState.totalQuestions) *
+                        100,
+                      5
+                    )}% - 30px)`,
+                    transition: "left 0.5s ease-out",
+                  }}
+                >
+                  <Image
+                    src="/Assets/TreasureHunt/Boat.png"
+                    alt="Boat"
+                    width={60}
+                    height={60}
+                    className="drop-shadow-lg"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Status Display */}
+            <div className="text-center">
+              <p className="text-xl font-bold text-gray-700 mb-4">
+                {opponent.isFinished
+                  ? "🏁 Finished!"
+                  : "⏳ Working on question..."}
+              </p>
+              {opponent.isFinished && (
+                <div className="bg-purple-100/50 backdrop-blur-sm p-4 rounded-2xl shadow-lg">
+                  <p className="text-lg font-semibold text-purple-700">
+                    Completed all questions!
+                  </p>
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      )}
-
+        )}
+      </div>
       {/* Incorrect Answer Popup with shake animation */}
       {showIncorrectPopup && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
