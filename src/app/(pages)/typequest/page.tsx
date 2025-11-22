@@ -41,6 +41,7 @@ const TypeQuestPage = () => {
   const [isCorrectAnswer, setIsCorrectAnswer] = useState(0); // 0 is defaul state no awnswer given, 1 is correct, -1 is incorrect
   const cpuTimerRef = useRef<NodeJS.Timeout | null>(null);
   const hasResetRef = useRef(false); // Add this
+  const feedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   /* ****************************************************** */
   /* MULTIPLAYER VARIABLES */
@@ -447,6 +448,13 @@ const TypeQuestPage = () => {
   const handleGameReset = useCallback(() => {
     hasResetRef.current = true; // Prevent load effect from running
 
+    // Clear feedback timeout if it exists
+    if (feedbackTimeoutRef.current) {
+      clearTimeout(feedbackTimeoutRef.current);
+      feedbackTimeoutRef.current = null;
+    }
+    setIsCorrectAnswer(0); // Reset feedback state
+
     // ✅ MULTIPLAYER: Notify opponent that we're leaving
     if (
       gameState?.mode === "multiplayer" &&
@@ -528,6 +536,29 @@ const TypeQuestPage = () => {
     [handleGameReset, handleGameStart]
   );
 
+  const handleDismissFeedback = useCallback(() => {
+    if (isCorrectAnswer === 0) return; // No feedback to dismiss
+
+    // Clear the auto-dismiss timeout if it exists
+    if (feedbackTimeoutRef.current) {
+      clearTimeout(feedbackTimeoutRef.current);
+      feedbackTimeoutRef.current = null;
+    }
+
+    // Immediately dismiss the feedback
+    setIsCorrectAnswer(0);
+  }, [isCorrectAnswer]);
+
+  // Cleanup feedback timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+        feedbackTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
   const handleAnswerSubmit = useCallback(
     (userAnswer: string) => {
       if (!gameState || gameState.status !== "active") return;
@@ -544,10 +575,19 @@ const TypeQuestPage = () => {
         currentQuestion.correctAnswer,
         true
       );
+
+      // Clear any existing feedback timeout
+      if (feedbackTimeoutRef.current) {
+        clearTimeout(feedbackTimeoutRef.current);
+        feedbackTimeoutRef.current = null;
+      }
+
       setIsCorrectAnswer(isCorrect ? 1 : -1);
 
-      setTimeout(() => {
+      // Set auto-dismiss timeout and store it in ref
+      feedbackTimeoutRef.current = setTimeout(() => {
         setIsCorrectAnswer(0);
+        feedbackTimeoutRef.current = null;
       }, 2000);
 
       if (isCorrect) {
@@ -1170,6 +1210,7 @@ const TypeQuestPage = () => {
           gameState={gameState}
           onAnswerSubmit={handleAnswerSubmit}
           isCorrectAnswer={isCorrectAnswer}
+          onDismissFeedback={handleDismissFeedback}
           handleGameReset={handleGameReset}
           opponentLeftGame={opponentLeftGame}
         />
