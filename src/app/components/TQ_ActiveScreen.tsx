@@ -11,12 +11,14 @@ const TQ_ActiveScreen = ({
   handleGameReset,
   opponentLeftGame = false,
   isCorrectAnswer = 0,
+  onDismissFeedback,
 }: {
   gameState: GameState | null;
   onAnswerSubmit: (userAnswer: string) => void;
   handleGameReset: () => void;
   opponentLeftGame?: boolean;
   isCorrectAnswer?: number;
+  onDismissFeedback?: () => void;
 }) => {
   const [textInput, setTextInput] = useState<string>("");
   const [giveInstruction, setGiveInstruction] = useState<boolean>(false);
@@ -65,7 +67,7 @@ const TQ_ActiveScreen = ({
     setGiveInstruction(true);
     timeoutRef.current = setTimeout(() => {
       setGiveInstruction(false);
-    }, 5000);
+    }, 8000);
 
     return () => {
       if (timeoutRef.current) {
@@ -362,9 +364,8 @@ const TQ_ActiveScreen = ({
                 onClick={() => setErrorClick(true)}
                 disabled={isCorrectAnswer !== 0 || errorClick}
                 className={`flex flex-col items-center justify-center bg-slate-900/70 backdrop-blur-md rounded-xl px-6 py-5 transition-all duration-300 ease-in-out shadow-lg border-2 border-white/30 min-h-[80px] ${
-                  isCorrectAnswer !== 0 || errorClick
-                    ? "pointer-events-none cursor-not-allowed"
-                    : "hover:border-white/50 hover:scale-105 cursor-pointer"
+                  isCorrectAnswer !== 0 ||
+                  (errorClick && "pointer-events-none cursor-not-allowed")
                 }`}
               >
                 <p className="text-xl text-center font-bold text-slate-100">
@@ -385,8 +386,18 @@ const TQ_ActiveScreen = ({
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       e.preventDefault();
-                      onAnswerSubmit(textInput);
-                      setTextInput("");
+
+                      // If feedback modal is showing, dismiss it instead of submitting
+                      if (isCorrectAnswer !== 0 && onDismissFeedback) {
+                        onDismissFeedback();
+                        return;
+                      }
+
+                      // Otherwise, submit the answer normally
+                      if (textInput.trim()) {
+                        onAnswerSubmit(textInput);
+                        setTextInput("");
+                      }
                     }
                   }}
                   placeholder="Type your answer here..."

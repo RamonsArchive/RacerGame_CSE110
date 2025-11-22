@@ -9,17 +9,16 @@ const GameCard = ({ game }: { game: GameType }) => {
   return (
     <Link
       id={id}
-      className="flex flex-col w-full h-fit p-6 rounded-xl border border-primary-100 shadow-lg bg-white/70 hover:scale-105 hover:shadow-xl hover:bg-white/80 transition-all duration-300 ease-in-out"
+      className="flex w-full h-full p-6 rounded-xl border border-primary-100 shadow-lg bg-white/70 hover:scale-105 hover:shadow-xl hover:bg-white/80 transition-all duration-300 ease-in-out"
       href={href}
     >
-      <div className="flex flex-row w-full h-fit gap-5">
-        <div className="flex flex-center w-[33%]">
+      <div className="flex flex-row w-full h-full gap-5">
+        <div className="relative w-[33%] min-w-[120px] aspect-square">
           <Image
             src={image_path}
             alt={title}
-            width={100}
-            height={100}
-            className="object-cover rounded-lg w-full h-full shadow-md"
+            fill
+            className="object-contain rounded-lg shadow-md"
           />
         </div>
         <div className="flex flex-col flex-1 gap-3">
