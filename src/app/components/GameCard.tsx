@@ -13,13 +13,16 @@ const GameCard = ({ game }: { game: GameType }) => {
       href={href}
     >
       <div className="flex flex-row w-full h-full gap-5">
-        <div className="relative w-[33%] min-w-[120px] aspect-square">
-          <Image
-            src={image_path}
-            alt={title}
-            fill
-            className="object-contain rounded-lg shadow-md"
-          />
+        <div className="flex items-center justify-center w-[33%] min-w-[120px] shrink-0 h-full">
+          <div className="relative w-full h-full">
+            <Image
+              src={image_path}
+              alt={title}
+              fill
+              className="object-contain rounded-lg shadow-md p-2 aspect-square"
+              sizes="(max-width: 768px) 120px, 150px"
+            />
+          </div>
         </div>
         <div className="flex flex-col flex-1 gap-3">
           <div className="flex flex-col gap-2">
