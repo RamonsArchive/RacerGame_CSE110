@@ -404,14 +404,15 @@ const TH_ActiveScreen = ({
 
   return (
     <div className="relative w-full h-dvh overflow-hidden">
-      {/* Background Image */}
+      {/* Background Video */}
       <div className="absolute inset-0 z-0">
-        <Image
-          src="/Assets/TreasureHunt/TH.png"
-          alt="Treasure Hunt Background"
-          fill
-          className="object-cover"
-          priority
+        <video
+          src="/Assets/TreasureHunt/TH.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
         />
       </div>
 

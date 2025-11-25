@@ -94,13 +94,18 @@ const TQ_ActiveScreen = ({
   return (
     <div
       className="flex w-full h-dvh flex-col gap-5 p-10 relative overflow-hidden"
-      style={{
-        backgroundImage: "url(/Assets/TypeQuest/background_play.png)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
     >
+      {/* Background Video */}
+      <div className="absolute inset-0 z-0">
+        <video
+          src="/Assets/TypeQuest/background_play.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+        />
+      </div>
       {/* Background gradient overlay - darker on left, transparent on right */}
       <div className="absolute inset-0 bg-linear-to-r from-black/50 via-black/30 to-transparent pointer-events-none z-0"></div>
 
@@ -108,10 +113,10 @@ const TQ_ActiveScreen = ({
       <div
         className="absolute pointer-events-none z-1 overflow-hidden"
         style={{
-          width: "150vw",
-          height: "4px",
+          width: "200vw",
+          height: "8px",
           top: "70%",
-          left: "70%",
+          left: "73%",
           transformOrigin: "center center",
           transform: "translate(-50%, -50%) rotate(-35.5deg)",
         }}
@@ -526,8 +531,8 @@ const TQ_ActiveScreen = ({
         <Image
           src="/Assets/TypeQuest/racer car 1.png"
           alt="Player Car"
-          width={320}
-          height={320}
+          width={480}
+          height={480}
           className="object-contain"
         />
       </div>
@@ -548,8 +553,8 @@ const TQ_ActiveScreen = ({
         <Image
           src="/Assets/TypeQuest/racer car 2.png"
           alt="Opponent Car"
-          width={320}
-          height={320}
+          width={480}
+          height={480}
           className="object-contain"
         />
       </div>
