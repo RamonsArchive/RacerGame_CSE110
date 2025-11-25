@@ -29,12 +29,15 @@ const UN_SetupScreen = ({
   );
 
   return (
-    <div className="flex-center w-full h-dvh" style={{
-      backgroundImage: "url(/Assets/Unscramble/unscramble.png)",
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-      backgroundRepeat: "no-repeat",
-    }}>
+    <div
+      className="flex-center w-full h-dvh"
+      style={{
+        backgroundImage: "url(/Assets/Unscramble/unscramble.png)",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
       <div className="flex flex-col w-full max-w-2xl p-10 gap-10 bg-gradient-to-b from-pink-700/60 via-primary-900/60 to-secondary-800/60 rounded-xl shadow-lg backdrop-blur-md">
         <Link
           href="/"

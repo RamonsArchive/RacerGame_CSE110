@@ -7,9 +7,7 @@ export default function Home() {
   const treasureHuntGame = GAMES[1];
   const unscrambleGame = GAMES[2];
   return (
-    <div
-      className="flex flex-col w-full h-dvh overflow-hidden relative"
-    >
+    <div className="flex flex-col w-full h-dvh overflow-hidden relative">
       {/* Background Video */}
       <div className="absolute inset-0 z-0">
         <video

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 export default function BackgroundMusic() {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -19,7 +19,7 @@ export default function BackgroundMusic() {
         await audio.play();
       } catch (error) {
         // 某些浏览器不允许自动播放，这是正常的
-        console.log('自动播放被浏览器阻止');
+        console.log("自动播放被浏览器阻止");
       }
     };
 
@@ -30,24 +30,18 @@ export default function BackgroundMusic() {
       try {
         await audio.play();
       } catch (error) {
-        console.log('播放失败', error);
+        console.log("播放失败", error);
       }
     };
 
-    document.addEventListener('click', handleUserInteraction, { once: true });
-    document.addEventListener('keydown', handleUserInteraction, { once: true });
+    document.addEventListener("click", handleUserInteraction, { once: true });
+    document.addEventListener("keydown", handleUserInteraction, { once: true });
 
     return () => {
-      document.removeEventListener('click', handleUserInteraction);
-      document.removeEventListener('keydown', handleUserInteraction);
+      document.removeEventListener("click", handleUserInteraction);
+      document.removeEventListener("keydown", handleUserInteraction);
     };
   }, []);
 
-  return (
-    <audio
-      ref={audioRef}
-      src="/Assets/bgm.mp3"
-      preload="auto"
-    />
-  );
+  return <audio ref={audioRef} src="/Assets/bgm.mp3" preload="auto" />;
 }
