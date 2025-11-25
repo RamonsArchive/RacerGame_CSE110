@@ -25,10 +25,10 @@ export default function Home() {
             <GameCard game={typeQuestGame} />
           </div>
           <div className="flex flex-row w-full gap-5 flex-1">
-            <div className="flex-1">
+            <div className="flex-1 h-[240px]">
               <GameCard game={treasureHuntGame} />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 h-[240px]">
               <GameCard game={unscrambleGame} />
             </div>
           </div>

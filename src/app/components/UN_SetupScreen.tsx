@@ -29,8 +29,13 @@ const UN_SetupScreen = ({
   );
 
   return (
-    <div className="flex-center w-full h-dvh">
-      <div className="flex flex-col w-full max-w-2xl p-10 gap-10 bg-gradient-to-b from-pink-700 via-primary-900 to-secondary-800 rounded-xl shadow-lg">
+    <div className="flex-center w-full h-dvh" style={{
+      backgroundImage: "url(/Assets/Unscramble/unscramble.png)",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+    }}>
+      <div className="flex flex-col w-full max-w-2xl p-10 gap-10 bg-gradient-to-b from-pink-700/60 via-primary-900/60 to-secondary-800/60 rounded-xl shadow-lg backdrop-blur-md">
         <Link
           href="/"
           className="group flex flex-row items-center px-3 hover:cursor-pointer hover:underline hover:text-slate-300 transition-all duration-300 ease-in-out w-fit"
