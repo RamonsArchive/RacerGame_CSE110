@@ -36,6 +36,7 @@ export interface UnscrambleQuestion {
   scrambledAnswer: string;
   unscrambledAnswer: string;
   gradeLevel: GradeLevel;
+  correctAnswer?: string | string[];
   hint?: string;
 }
 
@@ -74,6 +75,7 @@ export interface GameResult {
   totalTime: number;
   accuracy: number; // percentage
 }
+
 export const UNSCRAMBLE_QUESTIONS_BANK: Record<
   GradeLevel,
   UnscrambleQuestion[]
