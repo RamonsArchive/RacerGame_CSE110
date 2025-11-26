@@ -92,15 +92,18 @@ const TQ_ActiveScreen = ({
 
   console.log("isCorrectAnswer", isCorrectAnswer);
   return (
-    <div
-      className="flex w-full h-dvh flex-col gap-5 p-10 relative overflow-hidden"
-      style={{
-        backgroundImage: "url(/Assets/TypeQuest/background_play.png)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
+    <div className="flex w-full h-dvh flex-col gap-5 p-10 relative overflow-hidden">
+      {/* Background Video */}
+      <div className="absolute inset-0 z-0">
+        <video
+          src="/Assets/TypeQuest/background_play.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+        />
+      </div>
       {/* Background gradient overlay - darker on left, transparent on right */}
       <div className="absolute inset-0 bg-linear-to-r from-black/50 via-black/30 to-transparent pointer-events-none z-0"></div>
 
@@ -108,10 +111,10 @@ const TQ_ActiveScreen = ({
       <div
         className="absolute pointer-events-none z-1 overflow-hidden"
         style={{
-          width: "150vw",
-          height: "4px",
+          width: "200vw",
+          height: "8px",
           top: "70%",
-          left: "70%",
+          left: "73%",
           transformOrigin: "center center",
           transform: "translate(-50%, -50%) rotate(-35.5deg)",
         }}
@@ -412,9 +415,9 @@ const TQ_ActiveScreen = ({
         {/* Instruction Popup - shows on first render, appears on right side */}
         {giveInstruction && (
           <div className="shrink-0 w-80 animate-slide-in-right relative z-30">
-            <div className="bg-linear-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl p-6 shadow-2xl border-4 border-white/80 backdrop-blur-sm">
+            <div className="bg-linear-to-br from-blue-500/50 via-purple-500/50 to-pink-500/50 rounded-2xl p-6 shadow-2xl backdrop-blur-sm">
               <div className="flex flex-col items-center gap-3">
-                <div className="text-6xl animate-bounce">💡</div>
+                <div className="text-6xl">💡</div>
                 <p className="text-2xl font-black text-white drop-shadow-lg text-center">
                   How to Play
                 </p>
@@ -526,8 +529,8 @@ const TQ_ActiveScreen = ({
         <Image
           src="/Assets/TypeQuest/racer car 1.png"
           alt="Player Car"
-          width={320}
-          height={320}
+          width={480}
+          height={480}
           className="object-contain"
         />
       </div>
@@ -548,8 +551,8 @@ const TQ_ActiveScreen = ({
         <Image
           src="/Assets/TypeQuest/racer car 2.png"
           alt="Opponent Car"
-          width={320}
-          height={320}
+          width={480}
+          height={480}
           className="object-contain"
         />
       </div>

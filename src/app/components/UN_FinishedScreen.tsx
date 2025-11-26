@@ -54,8 +54,8 @@ const UN_FinishedScreen = ({
       {/* Background image matching provided art */}
       <div className="fixed inset-0 -z-10">
         <Image
-          src="/Assets/TreasureHunt/finished_screen_bg.png"
-          alt="Treasure Hunt Finish Background"
+          src="/Assets/Unscramble/unscramble.png"
+          alt="Unscramble Finish Background"
           fill
           className="object-cover"
           priority
@@ -65,28 +65,15 @@ const UN_FinishedScreen = ({
 
       {/* Main Content */}
       <div className="relative z-10 flex items-center justify-center w-full h-screen p-4 overflow-y-auto">
-        <div className="flex flex-col w-full max-w-3xl gap-8 bg-white/95 backdrop-blur-sm p-10 rounded-3xl shadow-2xl border-4 border-emerald-400 my-4">
+        <div className="flex flex-col w-full max-w-3xl gap-4 bg-white/50 backdrop-blur-md p-10 rounded-3xl shadow-2xl my-2">
           {/* Header */}
           <Link
             href="/"
-            className="group flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-bold transition-all hover:scale-105 w-fit"
+            className="group flex items-center gap-2 px-4 py-2 bg-blue-500/70 hover:bg-blue-600/70 text-white rounded-xl font-bold transition-all hover:scale-105 w-fit backdrop-blur-sm"
           >
             <ChevronLeft className="w-5 h-5" />
             <span>Back to Home</span>
           </Link>
-
-          {/* Treasure Chest Image */}
-          <div className="flex justify-center">
-            <div className="relative w-48 h-48 animate-bounce">
-              <Image
-                src="/Assets/TreasureHunt/treasure_chest.png"
-                alt="Treasure Chest"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-          </div>
 
           {/* Title */}
           <h1 className="text-5xl md:text-6xl font-black text-center text-emerald-700 drop-shadow-[0_2px_2px_rgba(0,0,0,0.2)]">
@@ -94,7 +81,7 @@ const UN_FinishedScreen = ({
           </h1>
 
           {/* Performance Message */}
-          <div className="text-center p-6 rounded-2xl bg-emerald-100 text-emerald-800 shadow-lg border border-emerald-300">
+          <div className="text-center p-6 rounded-2xl bg-emerald-100 text-emerald-800 shadow-lg">
             <p className="text-5xl mb-2">{performance.emoji}</p>
             <h2 className="text-4xl font-extrabold">{performance.text}</h2>
             <p className="text-xl mt-2">
@@ -104,21 +91,21 @@ const UN_FinishedScreen = ({
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-emerald-50 p-6 rounded-2xl text-emerald-800 shadow border border-emerald-200">
+            <div className="bg-emerald-50 p-6 rounded-2xl text-emerald-800 shadow">
               <p className="text-lg font-bold mb-2">⭐ Score</p>
               <p className="text-4xl font-black">
                 {gameState.score}/{gameState.totalQuestions}
               </p>
             </div>
-            <div className="bg-emerald-50 p-6 rounded-2xl text-emerald-800 shadow border border-emerald-200">
+            <div className="bg-emerald-50 p-6 rounded-2xl text-emerald-800 shadow">
               <p className="text-lg font-bold mb-2">🎯 Accuracy</p>
               <p className="text-4xl font-black">{accuracy.toFixed(1)}%</p>
             </div>
-            <div className="bg-rose-50 p-6 rounded-2xl text-rose-700 shadow border border-rose-200">
+            <div className="bg-rose-50 p-6 rounded-2xl text-rose-700 shadow">
               <p className="text-lg font-bold mb-2">😅 Mistakes</p>
               <p className="text-4xl font-black">{gameState.mistakes}</p>
             </div>
-            <div className="bg-sky-50 p-6 rounded-2xl text-sky-700 shadow border border-sky-200">
+            <div className="bg-sky-50 p-6 rounded-2xl text-sky-700 shadow">
               <p className="text-lg font-bold mb-2">⏱️ Time</p>
               <p className="text-4xl font-black">
                 {Math.round(result.totalTime)}s
@@ -136,7 +123,7 @@ const UN_FinishedScreen = ({
 
           {/* Wrong Answers Dropdown */}
           {gameState.answerLog && gameState.answerLog.length > 0 && (
-            <details className="bg-white border border-gray-200 rounded-2xl p-5 shadow">
+            <details className="bg-white rounded-2xl p-5 shadow">
               <summary className="cursor-pointer text-lg font-bold text-gray-800">
                 See sentences you missed
               </summary>
@@ -144,7 +131,7 @@ const UN_FinishedScreen = ({
                 {gameState.answerLog.map((entry) => (
                   <div
                     key={entry.questionId}
-                    className="bg-gray-50 border rounded-xl p-4"
+                    className="bg-gray-50 rounded-xl p-4"
                   >
                     <p className="text-sm text-gray-500 mb-1">
                       Incorrect sentence shown

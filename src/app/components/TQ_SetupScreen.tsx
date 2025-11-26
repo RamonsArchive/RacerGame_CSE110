@@ -114,13 +114,18 @@ const TQ_SetupScreen = ({
       <div
         key={gameStatus}
         className="flex-center w-full h-dvh relative overflow-hidden"
-        style={{
-          backgroundImage: "url(/Assets/TypeQuest/background.png)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
       >
+        {/* Background Video */}
+        <div className="absolute inset-0 z-0">
+          <video
+            src="/Assets/TypeQuest/background.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+          />
+        </div>
         {/* Background gradient overlay */}
         <div className="absolute inset-0 bg-linear-to-r from-black/50 via-black/30 to-transparent pointer-events-none z-0"></div>
 
@@ -130,14 +135,14 @@ const TQ_SetupScreen = ({
           style={{
             width: "150vw",
             height: "4px",
-            top: "50%",
-            left: "50%",
+            top: "48%",
+            left: "53%",
             transformOrigin: "center center",
             transform: "translate(-64%, -36%) rotate(35deg)",
           }}
         >
           <div
-            className="w-full h-full animate-road-line"
+            className="w-full h-full animate-road-line-reverse"
             style={{
               backgroundImage:
                 "repeating-linear-gradient(90deg, transparent 0px, transparent 50px, rgba(255, 255, 255, 0.95) 50px, rgba(255, 255, 255, 0.95) 100px)",
@@ -150,7 +155,7 @@ const TQ_SetupScreen = ({
         <div
           className="absolute pointer-events-none z-5"
           style={{
-            top: "70%",
+            top: "63%",
             left: "30%",
             transformOrigin: "center center",
             transform: "translate(-33%, -67%) rotate(0deg)",
@@ -159,8 +164,8 @@ const TQ_SetupScreen = ({
           <Image
             src="/Assets/TypeQuest/car_setup.png"
             alt="Setup Car"
-            width={1400}
-            height={700}
+            width={1000}
+            height={500}
             className="object-contain"
           />
         </div>
