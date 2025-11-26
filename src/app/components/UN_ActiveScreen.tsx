@@ -286,7 +286,7 @@ const TH_ActiveScreen = ({
       {/* Success Message */}
       {showSuccessMessage && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
-          <div className="bg-linear-to-br from-green-400 to-green-600 text-white p-10 rounded-3xl text-center shadow-2xl animate-bounce">
+          <div className="bg-linear-to-br from-green-400/50 to-green-600/50 text-white p-10 rounded-3xl text-center shadow-2xl backdrop-blur-sm">
             <p className="text-5xl font-bold mb-4">🎉 Awesome! 🎉</p>
             <p className="text-2xl">Correct! You unscrambled it!</p>
           </div>
@@ -296,7 +296,7 @@ const TH_ActiveScreen = ({
       {/* Incorrect Answer Popup */}
       {showIncorrectPopup && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
-          <div className="bg-linear-to-br from-red-400 to-red-600 text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl">
+          <div className="bg-linear-to-br from-red-400/50 to-red-600/50 text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl backdrop-blur-sm">
             <p className="text-4xl font-bold mb-4">😅 Try Again!</p>
             <p className="text-xl mb-6">
               Not quite right yet! Take another look and try again.

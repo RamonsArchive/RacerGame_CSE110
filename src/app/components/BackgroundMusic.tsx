@@ -9,28 +9,24 @@ export default function BackgroundMusic() {
     const audio = audioRef.current;
     if (!audio) return;
 
-    // 设置音频为循环播放
     audio.loop = true;
-    audio.volume = 0.3; // 设置音量为30%，可根据需要调整
+    audio.volume = 0.3;
 
-    // 尝试自动播放
     const playAudio = async () => {
       try {
         await audio.play();
       } catch (error) {
-        // 某些浏览器不允许自动播放，这是正常的
-        console.log("自动播放被浏览器阻止");
+        console.log("Autoplay blocked by browser");
       }
     };
 
     playAudio();
 
-    // 用户交互后确保音乐播放
     const handleUserInteraction = async () => {
       try {
         await audio.play();
       } catch (error) {
-        console.log("播放失败", error);
+        console.log("Playback failed", error);
       }
     };
 

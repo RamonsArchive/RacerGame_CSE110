@@ -415,9 +415,9 @@ const TQ_ActiveScreen = ({
         {/* Instruction Popup - shows on first render, appears on right side */}
         {giveInstruction && (
           <div className="shrink-0 w-80 animate-slide-in-right relative z-30">
-            <div className="bg-linear-to-br from-blue-500 via-purple-500 to-pink-500 rounded-2xl p-6 shadow-2xl border-4 border-white/80 backdrop-blur-sm">
+            <div className="bg-linear-to-br from-blue-500/50 via-purple-500/50 to-pink-500/50 rounded-2xl p-6 shadow-2xl backdrop-blur-sm">
               <div className="flex flex-col items-center gap-3">
-                <div className="text-6xl animate-bounce">💡</div>
+                <div className="text-6xl">💡</div>
                 <p className="text-2xl font-black text-white drop-shadow-lg text-center">
                   How to Play
                 </p>

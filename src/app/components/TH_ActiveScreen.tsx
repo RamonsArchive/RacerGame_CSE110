@@ -622,16 +622,16 @@ const TH_ActiveScreen = ({
 
           {/* Success message with chest bounce */}
           <div className="relative pointer-events-auto">
-            <div className="bg-linear-to-br from-green-400 to-green-600 text-white p-10 rounded-3xl text-center shadow-2xl border-4 border-white">
+            <div className="bg-linear-to-br from-green-400/50 to-green-600/50 text-white p-10 rounded-3xl text-center shadow-2xl backdrop-blur-sm">
               <div className="mb-4">
-                <span className="text-6xl inline-block animate-chest-bounce-1">
+                <span className="text-6xl inline-block">
                   🎉
                 </span>
-                <span className="text-6xl inline-block animate-chest-bounce-2 ml-2">
+                <span className="text-6xl inline-block ml-2">
                   💎
                 </span>
               </div>
-              <p className="text-5xl font-bold mb-4 animate-bounce">Awesome!</p>
+              <p className="text-5xl font-bold mb-4">Awesome!</p>
               <p className="text-2xl">Correct! Moving to next treasure...</p>
             </div>
           </div>
@@ -641,8 +641,8 @@ const TH_ActiveScreen = ({
       {/* Incorrect Answer Popup with shake animation */}
       {showIncorrectPopup && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
-          <div className="bg-linear-to-br from-red-400/80 to-red-600/80 backdrop-blur-md text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl border-4 border-white/60 animate-bounce">
-            <p className="text-4xl font-bold mb-4 animate-pulse">
+          <div className="bg-linear-to-br from-red-400/50 to-red-600/50 backdrop-blur-md text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl">
+            <p className="text-4xl font-bold mb-4">
               😅 Try Again!
             </p>
             <p className="text-xl mb-6">
@@ -650,7 +650,7 @@ const TH_ActiveScreen = ({
             </p>
             <button
               onClick={handleTryAgain}
-              className="bg-white/90 text-red-600 px-8 py-4 rounded-xl font-bold text-xl hover:bg-white transition-all hover:scale-105 backdrop-blur-sm animate-pulse"
+              className="bg-white/90 text-red-600 px-8 py-4 rounded-xl font-bold text-xl hover:bg-white transition-all hover:scale-105 backdrop-blur-sm"
             >
               Keep Trying! 💪
             </button>
