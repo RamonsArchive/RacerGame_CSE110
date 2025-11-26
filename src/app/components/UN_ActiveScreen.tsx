@@ -1,104 +1,88 @@
 "use client";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
-import Image from "next/image";
-import { ChevronLeft, Settings, Lightbulb, HelpCircle, Undo2, Shuffle, X } from "lucide-react";
-
-// CONSTANTS & UTILS
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import {
   UnscrambleGameState,
   GameStatus,
   GAME_CONFIG,
 } from "@/app/constants/index_unscramble";
 import {
-  saveGameState,
   handleCorrectAnswer,
   handleIncorrectAnswer,
+  saveGameState,
   showHint,
   handleGiveUp,
   getCurrentQuestionProgress,
 } from "@/lib/utils_unscramble";
+import { ChevronLeft, Settings, Lightbulb, HelpCircle, Undo2, X } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
 
-/* =========================
-   Helpers
-========================= */
-const normalize = (s: string) => (s || "").toLowerCase().replace(/[^a-z]/g, "");
-const toTiles = (answer: string) =>
-  normalize(answer).split("").map((ch, i) => ({
-    id: `t-${i}-${ch}-${Math.random().toString(36).slice(2, 7)}`,
-    ch,
-  }));
-
-const isCorrectAgainst = (assembled: string, correct: string | string[]) => {
-  const norm = normalize(assembled);
-  if (Array.isArray(correct)) return correct.some((c) => normalize(c) === norm);
-  return normalize(correct) === norm;
-};
-
+/* ───────────────────────────────
+    🔠 TYPES & HELPERS
+─────────────────────────────────── */
 type Tile = { id: string; ch: string };
 
-/* =========================
-   Tile Components
-========================= */
+const normalize = (s: string) => (s || "").toLowerCase().replace(/[^a-z]/g, "");
+const toTiles = (answer: string): Tile[] =>
+  normalize(answer)
+    .split("")
+    .map((ch, i) => ({
+      id: `t-${i}-${ch}-${Math.random().toString(36).slice(2, 7)}`,
+      ch,
+    }));
+
+/* ───────────────────────────────
+    🧩 TILE COMPONENTS
+─────────────────────────────────── */
 function TileView({
   tile,
-  draggable = true,
   onDragStart,
-  onKeyAdd,
-  label,
 }: {
   tile: Tile;
-  draggable?: boolean;
   onDragStart: (e: React.DragEvent, tile: Tile) => void;
-  onKeyAdd?: () => void;
-  label?: string;
 }) {
   return (
     <div
-      role="button"
-      aria-label={label || `Letter ${tile.ch}`}
-      tabIndex={0}
-      draggable={draggable}
+      draggable
       onDragStart={(e) => onDragStart(e, tile)}
-      onKeyDown={(e) => {
-        if ((e.key === "Enter" || e.key === " ") && onKeyAdd) onKeyAdd();
-      }}
-      className="select-none w-12 h-12 rounded-xl border-2 border-blue-500 bg-white grid place-items-center text-2xl font-black text-blue-700 shadow hover:shadow-md"
+      className="select-none w-12 h-12 rounded-xl border-2 border-blue-500 bg-white grid place-items-center text-2xl font-black text-blue-700 shadow hover:shadow-lg"
     >
       {tile.ch.toUpperCase()}
     </div>
   );
 }
 
-function EmptySlot({ index, onDropTile, onClearSlot }: {
+function EmptySlot({
+  index,
+  onDropTile,
+}: {
   index: number;
   onDropTile: (tile: Tile, slotIndex: number) => void;
-  onClearSlot: (slotIndex: number) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const onDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    ref.current?.classList.add("ring-2", "ring-emerald-400");
-  };
-  const onDragLeave = () => {
-    ref.current?.classList.remove("ring-2", "ring-emerald-400");
-  };
-  const onDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    onDragLeave();
-    const payload = e.dataTransfer.getData("application/json");
-    if (!payload) return;
-    const tile: Tile = JSON.parse(payload);
-    onDropTile(tile, index);
-  };
   return (
     <div
       ref={ref}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
-      className="relative w-12 h-12 rounded-xl border-2 border-dashed border-gray-300 grid place-items-center bg-gray-50"
-      aria-label={`Empty slot ${index + 1}`}
+      onDragOver={(e) => {
+        e.preventDefault();
+        ref.current?.classList.add("ring-2", "ring-emerald-400");
+      }}
+      onDragLeave={() =>
+        ref.current?.classList.remove("ring-2", "ring-emerald-400")
+      }
+      onDrop={(e) => {
+        e.preventDefault();
+        ref.current?.classList.remove("ring-2", "ring-emerald-400");
+        const tile = JSON.parse(e.dataTransfer.getData("application/json"));
+        onDropTile(tile, index);
+      }}
+      className="w-12 h-12 rounded-xl border-2 border-dashed border-gray-400 grid place-items-center bg-gray-100"
     />
   );
 }
@@ -117,32 +101,28 @@ function FilledSlot({
   onClearSlot: (slotIndex: number) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const onDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    ref.current?.classList.add("ring-2", "ring-emerald-400");
-  };
-  const onDragLeave = () => ref.current?.classList.remove("ring-2", "ring-emerald-400");
-  const onDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    onDragLeave();
-    const payload = e.dataTransfer.getData("application/json");
-    if (payload) {
-      const tile: Tile = JSON.parse(payload);
-      onDropTile(tile, index);
-    }
-  };
-
   return (
     <div
       ref={ref}
-      onDragOver={onDragOver}
-      onDragLeave={onDragLeave}
-      onDrop={onDrop}
+      draggable
+      onDragStart={(e) => onDragStart(e, tile)}
+      onDragOver={(e) => {
+        e.preventDefault();
+        ref.current?.classList.add("ring-2", "ring-emerald-400");
+      }}
+      onDragLeave={() =>
+        ref.current?.classList.remove("ring-2", "ring-emerald-400")
+      }
+      onDrop={(e) => {
+        e.preventDefault();
+        const tile = JSON.parse(e.dataTransfer.getData("application/json"));
+        onDropTile(tile, index);
+      }}
       className="relative w-12 h-12 rounded-xl border-2 border-blue-500 bg-white grid place-items-center text-2xl font-black text-blue-700 shadow"
     >
       <button
         onClick={() => onClearSlot(index)}
-        className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full grid place-items-center"
+        className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center"
       >
         <X className="w-3 h-3" />
       </button>
@@ -151,9 +131,9 @@ function FilledSlot({
   );
 }
 
-/* =========================
-   MAIN COMPONENT
-========================= */
+/* ───────────────────────────────
+    ⭐ MAIN COMPONENT
+─────────────────────────────────── */
 const UN_ActiveScreen = ({
   gameState,
   setGameStatus,
@@ -165,57 +145,39 @@ const UN_ActiveScreen = ({
   onGameFinished: (updatedState: UnscrambleGameState) => void;
   onRestartGame: () => void;
 }) => {
-  const [backgroundImage, setBackgroundImage] = useState(1);
-  const [showIncorrectPopup, setShowIncorrectPopup] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [showHintPopup, setShowHintPopup] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [currentGameState, setCurrentGameState] =
     useState<UnscrambleGameState>(gameState);
-
   const currentQuestion =
     currentGameState.questions[currentGameState.currentQuestionIndex];
 
+  // 🛠 Fix: Initialize/reset tiles EVERY question
+  const answerTiles = useMemo(
+    () => toTiles(currentQuestion.unscrambledAnswer),
+    [currentQuestion]
+  );
+  const [bank, setBank] = useState<Tile[]>(toTiles(currentQuestion.scrambledAnswer));
+  const [slots, setSlots] = useState<Array<Tile | null>>(
+    new Array(answerTiles.length).fill(null)
+  );
+  const historyRef = useRef<{ bank: Tile[]; slots: (Tile | null)[] }[]>([]);
+  const pushHistory = () =>
+    historyRef.current.push({ bank: [...bank], slots: [...slots] });
+
   useEffect(() => {
-    const pick = [1, 2, 3][Math.floor(Math.random() * 3)];
-    setBackgroundImage(pick);
+    setSlots(new Array(answerTiles.length).fill(null));
+    setBank(toTiles(currentQuestion.scrambledAnswer));
+    historyRef.current = [];
   }, [currentGameState.currentQuestionIndex]);
 
-  /* ===== Letter Bank & Slots (DnD) ===== */
-  const correctAnswerLetters = useMemo(() => {
-    const answers = Array.isArray(currentQuestion.correctAnswer)
-      ? currentQuestion.correctAnswer[0]
-      : currentQuestion.correctAnswer || currentQuestion.unscrambledAnswer;
-    return toTiles(answers || "");
-  }, [currentQuestion]);
-
-  const initialBank = useMemo(() => toTiles(currentQuestion.scrambledAnswer || ""), [currentQuestion]);
-  const [bank, setBank] = useState<Tile[]>(initialBank);
-  const [slots, setSlots] = useState<Array<Tile | null>>(
-    new Array(correctAnswerLetters.length).fill(null)
-  );
-
-  // History for undo
-  const historyRef = useRef<{ bank: Tile[]; slots: (Tile | null)[] }[]>([]);
-  const pushHistory = () => historyRef.current.push({ bank: [...bank], slots: [...slots] });
-
-  /* ===== DnD handlers ===== */
-  const onDragStart = (e: React.DragEvent, tile: Tile) => {
+  // DND Methods
+  const onDragStart = (e: React.DragEvent, tile: Tile) =>
     e.dataTransfer.setData("application/json", JSON.stringify(tile));
-  };
 
   const dropIntoSlot = (tile: Tile, slotIndex: number) => {
     pushHistory();
-
-    const prevSlotIndex = slots.findIndex((t) => t?.id === tile.id);
     const nextSlots = [...slots];
-    let nextBank = [...bank];
-
-    if (prevSlotIndex !== -1) nextSlots[prevSlotIndex] = null;
-    else nextBank = nextBank.filter((t) => t.id !== tile.id);
-
+    const nextBank = bank.filter((t) => t.id !== tile.id);
     if (nextSlots[slotIndex]) nextBank.push(nextSlots[slotIndex]!);
-
     nextSlots[slotIndex] = tile;
     setSlots(nextSlots);
     setBank(nextBank);
@@ -223,11 +185,9 @@ const UN_ActiveScreen = ({
 
   const clearSlot = (slotIndex: number) => {
     pushHistory();
-    const nextSlots = [...slots];
-    const tile = nextSlots[slotIndex];
+    const tile = slots[slotIndex];
     if (tile) setBank((b) => [...b, tile]);
-    nextSlots[slotIndex] = null;
-    setSlots(nextSlots);
+    setSlots((s) => s.map((t, i) => (i === slotIndex ? null : t)));
   };
 
   const undo = () => {
@@ -238,29 +198,130 @@ const UN_ActiveScreen = ({
     }
   };
 
-  /* ===== Submit ===== */
-  const handleSubmit = useCallback(() => {
+  // Submit Answer
+  const handleAnswerSubmit = useCallback(() => {
     const userWord = slots.map((t) => t?.ch || "").join("");
-    const correct = currentQuestion.correctAnswer || currentQuestion.unscrambledAnswer;
+    const correct = normalize(currentQuestion.unscrambledAnswer);
 
-    if (isCorrectAgainst(userWord, correct)) {
-      setShowSuccessMessage(true);
-      setTimeout(() => {
-        const updated = handleCorrectAnswer(currentGameState);
-        setCurrentGameState(updated);
-        setShowSuccessMessage(false);
-      }, 1000);
+    if (normalize(userWord) === correct) {
+      const updated = handleCorrectAnswer(currentGameState);
+      setCurrentGameState(updated);
+
+      if (updated.isGameFinished) {
+        updated.status = "finished";
+        setGameStatus("finished");
+        onGameFinished(updated);
+      }
     } else {
-      setShowIncorrectPopup(true);
       setCurrentGameState(handleIncorrectAnswer(currentGameState, userWord));
     }
   }, [slots, currentQuestion, currentGameState]);
 
+  const progressPercentage =
+    (currentGameState.currentQuestionIndex / currentGameState.totalQuestions) *
+    100;
+
   return (
-    // 🎯 YOUR FINAL UI — REBASED + DnD LOGIC INCLUDED
     <div className="relative w-full h-dvh overflow-hidden">
-      {/* background, header, slots, bank, submit, popups here */}
-      {/*  --- NOTHING LOST — THIS IS READY TO RUN 🚀 --- */}
+      {/* Background */}
+      <Image
+        src="/Assets/Unscramble/unscramble.png"
+        alt="Unscramble Background"
+        fill
+        priority
+        className="object-cover absolute inset-0 -z-10"
+      />
+
+      <div className="relative z-10 flex-center p-4 h-full">
+        <div className="flex flex-col w-full max-w-4xl gap-6 bg-white/60 backdrop-blur-md p-8 rounded-3xl shadow-2xl">
+          {/* HEADER */}
+          <div className="flex justify-between items-center">
+            <Link href="/" className="px-4 py-2 bg-blue-600 text-white rounded-xl flex gap-2 items-center font-bold shadow">
+              <ChevronLeft /> Home
+            </Link>
+            <button
+              onClick={() => onRestartGame()}
+              className="p-3 bg-gray-300 hover:bg-gray-400 rounded-full"
+            >
+              <Settings className="w-6 h-6" />
+            </button>
+          </div>
+
+          {/* Title */}
+          <h1 className="text-center text-5xl font-black text-orange-600">
+            Unscramble
+          </h1>
+
+          {/* Progress */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <p className="text-xl font-bold text-blue-700">
+                Question {currentGameState.currentQuestionIndex + 1} of{" "}
+                {currentGameState.totalQuestions}
+              </p>
+              <p className="text-xl font-bold bg-green-400/70 px-4 py-2 rounded-full shadow">
+                ⭐ Score: {currentGameState.score}
+              </p>
+            </div>
+            <div className="w-full h-6 rounded-full bg-gray-200">
+              <div
+                style={{ width: `${Math.max(5, progressPercentage)}%` }}
+                className="h-full bg-yellow-400 rounded-full transition-all"
+              />
+            </div>
+          </div>
+
+          {/* Clue */}
+          <div className="text-center">
+            <p className="text-xl font-bold text-gray-700 mb-2">Clue:</p>
+            <p className="bg-red-200 text-xl font-bold p-4 rounded-xl shadow">
+              {currentQuestion.question}
+            </p>
+          </div>
+
+          {/* DND AREA */}
+          <div className="flex flex-col gap-4 items-center">
+            {/* Slots */}
+            <div className="flex flex-wrap justify-center gap-3">
+              {slots.map((slot, i) =>
+                slot ? (
+                  <FilledSlot
+                    key={slot.id}
+                    tile={slot}
+                    index={i}
+                    onDragStart={onDragStart}
+                    onClearSlot={clearSlot}
+                    onDropTile={dropIntoSlot}
+                  />
+                ) : (
+                  <EmptySlot key={i} index={i} onDropTile={dropIntoSlot} />
+                )
+              )}
+            </div>
+
+            {/* Bank */}
+            <div className="flex flex-wrap justify-center gap-3 mt-2">
+              {bank.map((tile) => (
+                <TileView key={tile.id} tile={tile} onDragStart={onDragStart} />
+              ))}
+            </div>
+
+            {/* Undo */}
+            <button onClick={undo} className="flex gap-2 items-center px-4 py-2 bg-gray-300 rounded-xl shadow hover:bg-gray-400">
+              <Undo2 /> Undo
+            </button>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            onClick={handleAnswerSubmit}
+            disabled={slots.some((s) => !s)}
+            className="bg-green-500 hover:bg-green-600 text-white text-2xl font-bold py-4 rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Submit Answer
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
