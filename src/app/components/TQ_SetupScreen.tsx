@@ -53,7 +53,7 @@ const TQ_SetupScreen = ({
   gameState,
 }: Props) => {
   // Local state for smooth typing (no parent re-renders)
-  const [gradeLevel, setGradeLevel] = useState<GradeLevel>("K");
+  const [gradeLevel, setGradeLevel] = useState<GradeLevel>("1-2");
   const [gameMode, setGameMode] = useState<GameMode>("solo");
   const [playerName, setPlayerName] = useState<string>("");
   const [leaderboardView, setLeaderboardView] = useState<boolean>(false);
@@ -223,9 +223,6 @@ const TQ_SetupScreen = ({
                     MozAppearance: "none",
                   }}
                 >
-                  <option value="K" className="bg-slate-900 text-white">
-                    K
-                  </option>
                   <option value="1-2" className="bg-slate-900 text-white">
                     1-2
                   </option>
