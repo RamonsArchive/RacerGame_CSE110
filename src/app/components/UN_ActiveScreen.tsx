@@ -186,7 +186,7 @@ const TH_ActiveScreen = ({
 
             <button
               onClick={() => setShowSettingsModal(true)}
-              className="p-3 bg-purple-500/70 hover:bg-purple-600/70 text-white rounded-full transition-all hover:scale-110 backdrop-blur-sm"
+              className="p-3 bg-blue-500/70 hover:bg-blue-600/70 text-white rounded-full transition-all hover:scale-110 backdrop-blur-sm"
               aria-label="Settings"
             >
               <Settings className="w-6 h-6" />
@@ -205,7 +205,7 @@ const TH_ActiveScreen = ({
                 Question {currentGameState.currentQuestionIndex + 1} of{" "}
                 {currentGameState.totalQuestions}
               </p>
-              <div className="flex items-center gap-2 px-4 py-2 bg-green-400 rounded-full">
+              <div className="flex items-center gap-2 px-4 py-2 bg-green-400/50 rounded-full backdrop-blur-sm">
                 <span className="text-2xl">⭐</span>
                 <p className="text-xl font-bold text-white">
                   Score: {currentGameState.score}
@@ -214,7 +214,7 @@ const TH_ActiveScreen = ({
             </div>
             <div className="w-full bg-gray-200 rounded-full h-8 overflow-hidden shadow-inner">
               <div
-                className="bg-linear-to-r from-yellow-400 via-orange-500 to-red-500 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2"
+                className="bg-yellow-200 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2"
                 style={{ width: `${Math.max(progressPercentage, 5)}%` }}
               >
                 {progressPercentage > 15 && (
@@ -314,8 +314,8 @@ const TH_ActiveScreen = ({
       {/* Hint Popup */}
       {showHintPopup && currentQuestion.hint && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
-          <div className="bg-linear-to-br from-yellow-400 to-orange-500 text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl">
-            <p className="text-4xl mb-4">💡 Hint!</p>
+          <div className="bg-linear-to-br from-yellow-400/50 to-orange-500/50 text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl backdrop-blur-sm">
+            <p className="text-6xl font-bold mb-4">💡 Hint!</p>
             <p className="text-xl mb-6">{currentQuestion.hint}</p>
             <button
               onClick={() => setShowHintPopup(false)}
