@@ -36,7 +36,7 @@ export interface UnscrambleQuestion {
   scrambledAnswer: string;
   unscrambledAnswer: string;
   gradeLevel: GradeLevel;
-  correctAnswer?: string | string[]; // 💡 KEEP THIS!
+  correctAnswer?: string | string[];
   hint?: string;
 }
 
@@ -80,8 +80,6 @@ export const UNSCRAMBLE_QUESTIONS_BANK: Record<
   GradeLevel,
   UnscrambleQuestion[]
 > = {
-  /* Your full question bank stays exactly as you have it — looks good */
-  // K / 1-2 / 3-4 / 5-6 data stays unchanged...
   K: [
     {
       id: "k-1",
