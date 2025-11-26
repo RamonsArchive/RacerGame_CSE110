@@ -19,7 +19,14 @@ import {
   handleGiveUp,
   getCurrentQuestionProgress,
 } from "@/lib/utils_unscramble";
-import { ChevronLeft, Settings, Lightbulb, HelpCircle, Undo2, X } from "lucide-react";
+import {
+  ChevronLeft,
+  Settings,
+  Lightbulb,
+  HelpCircle,
+  Undo2,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -155,7 +162,9 @@ const UN_ActiveScreen = ({
     () => toTiles(currentQuestion.unscrambledAnswer),
     [currentQuestion]
   );
-  const [bank, setBank] = useState<Tile[]>(toTiles(currentQuestion.scrambledAnswer));
+  const [bank, setBank] = useState<Tile[]>(
+    toTiles(currentQuestion.scrambledAnswer)
+  );
   const [slots, setSlots] = useState<Array<Tile | null>>(
     new Array(answerTiles.length).fill(null)
   );
@@ -236,7 +245,10 @@ const UN_ActiveScreen = ({
         <div className="flex flex-col w-full max-w-4xl gap-6 bg-white/60 backdrop-blur-md p-8 rounded-3xl shadow-2xl">
           {/* HEADER */}
           <div className="flex justify-between items-center">
-            <Link href="/" className="px-4 py-2 bg-blue-600 text-white rounded-xl flex gap-2 items-center font-bold shadow">
+            <Link
+              href="/"
+              className="px-4 py-2 bg-blue-600 text-white rounded-xl flex gap-2 items-center font-bold shadow"
+            >
               <ChevronLeft /> Home
             </Link>
             <button
@@ -307,7 +319,10 @@ const UN_ActiveScreen = ({
             </div>
 
             {/* Undo */}
-            <button onClick={undo} className="flex gap-2 items-center px-4 py-2 bg-gray-300 rounded-xl shadow hover:bg-gray-400">
+            <button
+              onClick={undo}
+              className="flex gap-2 items-center px-4 py-2 bg-gray-300 rounded-xl shadow hover:bg-gray-400"
+            >
               <Undo2 /> Undo
             </button>
           </div>
