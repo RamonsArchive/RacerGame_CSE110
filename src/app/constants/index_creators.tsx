@@ -37,7 +37,7 @@ export const CREATORS: CreatorType[] = [
   {
     id: "Ali",
     name: "Ali El Lahib",
-    year: "3rd year",
+    year: "4th year",
     major: "Computer Science",
     favorite_movie: "",
     project_focus: "Developed the Unscramble Game functionality",
