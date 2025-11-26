@@ -47,7 +47,7 @@ export const CREATORS: CreatorType[] = [
   {
     id: "srikar",
     name: "Srikar Eranky",
-    year: "3rd year",
+    year: "4th year",
     major: "Computer Science",
     favorite_movie: "",
     project_focus:
