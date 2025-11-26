@@ -8,7 +8,7 @@ export const CREATORS: CreatorType[] = [
       "Cognitive Science (Machine Learning & AI) with a minor in Computer Science",
     favorite_movie: "Karate Kid",
     project_focus:
-      "Developed the TypeQuest game functionality, including multiplayer, along with the architecture and project structure of the project. I also created the original Figma design.",
+      "Developed the TypeQuest game functionality, including multiplayer, along with project architecture, intial design, and file structure.",
     src: "/Assets/Creators/ramon.png",
     linkedin: "https://www.linkedin.com/in/ramonmnm100/",
   },
