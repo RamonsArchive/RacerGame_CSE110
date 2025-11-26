@@ -624,12 +624,8 @@ const TH_ActiveScreen = ({
           <div className="relative pointer-events-auto">
             <div className="bg-linear-to-br from-green-400/50 to-green-600/50 text-white p-10 rounded-3xl text-center shadow-2xl backdrop-blur-sm">
               <div className="mb-4">
-                <span className="text-6xl inline-block">
-                  🎉
-                </span>
-                <span className="text-6xl inline-block ml-2">
-                  💎
-                </span>
+                <span className="text-6xl inline-block">🎉</span>
+                <span className="text-6xl inline-block ml-2">💎</span>
               </div>
               <p className="text-5xl font-bold mb-4">Awesome!</p>
               <p className="text-2xl">Correct! Moving to next treasure...</p>
@@ -642,9 +638,7 @@ const TH_ActiveScreen = ({
       {showIncorrectPopup && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
           <div className="bg-linear-to-br from-red-400/50 to-red-600/50 backdrop-blur-md text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl">
-            <p className="text-4xl font-bold mb-4">
-              😅 Try Again!
-            </p>
+            <p className="text-4xl font-bold mb-4">😅 Try Again!</p>
             <p className="text-xl mb-6">
               Not quite right yet! Take another look and try again.
             </p>
