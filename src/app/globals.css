@@ -287,6 +287,29 @@ body {
   animation: shine-border 2s ease-in-out infinite;
 }
 
+/* Slow solid glow animation for creator button */
+@keyframes slow-solid-glow {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow:
+      0 0 20px rgba(0, 188, 212, 0.6),
+      0 0 40px rgba(156, 39, 176, 0.4),
+      0 0 60px rgba(255, 152, 0, 0.3);
+  }
+  50% {
+    opacity: 0.9;
+    box-shadow:
+      0 0 30px rgba(0, 188, 212, 0.8),
+      0 0 50px rgba(156, 39, 176, 0.6),
+      0 0 70px rgba(255, 152, 0, 0.5);
+  }
+}
+
+.animate-slow-solid-glow {
+  animation: slow-solid-glow 4s ease-in-out infinite;
+}
+
 /* Wave animation for Treasure Hunt progress bar */
 @keyframes wave {
   0% {
@@ -579,4 +602,14 @@ body {
 
 .animate-seagull-fly-2 {
   animation: seagull-fly-2 3.2s ease-in-out infinite;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hidden {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }

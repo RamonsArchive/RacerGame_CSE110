@@ -14,3 +14,14 @@ export type MultiplayerPlayer = {
   gradeLevel: string;
   gameMode: string;
 };
+
+export type CreatorType = {
+  id: string;
+  name: string;
+  year: string;
+  major: string;
+  favorite_movie?: string;
+  project_focus: string;
+  src: string;
+  linkedin?: string;
+};
