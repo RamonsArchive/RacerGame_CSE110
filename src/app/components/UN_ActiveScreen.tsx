@@ -70,7 +70,10 @@ function EmptySlot({
   onDropTile,
 }: {
   index: number;
-  onDropTile: (data: {tile: Tile, sourceIndex: number}, slotIndex: number) => void;
+  onDropTile: (
+    data: { tile: Tile; sourceIndex: number },
+    slotIndex: number
+  ) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   return (
@@ -104,7 +107,10 @@ function FilledSlot({
   index: number;
   tile: Tile;
   onDragStart: (e: React.DragEvent, tile: Tile, srcIndex: number) => void;
-  onDropTile: (data: {tile: Tile, sourceIndex: number}, slotIndex: number) => void;
+  onDropTile: (
+    data: { tile: Tile; sourceIndex: number },
+    slotIndex: number
+  ) => void;
   onClearSlot: (slotIndex: number) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -180,10 +186,16 @@ const UN_ActiveScreen = ({
 
   // DND Methods
   const onDragStart = (e: React.DragEvent, tile: Tile, sourceIndex: number) =>
-    e.dataTransfer.setData("application/json", JSON.stringify({tile, sourceIndex}));
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({ tile, sourceIndex })
+    );
 
-  const dropIntoSlot = ({tile, sourceIndex}:{tile: Tile, sourceIndex: number}, targetSlotIndex: number ) => {
-    if (sourceIndex == targetSlotIndex){
+  const dropIntoSlot = (
+    { tile, sourceIndex }: { tile: Tile; sourceIndex: number },
+    targetSlotIndex: number
+  ) => {
+    if (sourceIndex == targetSlotIndex) {
       return;
     }
 
@@ -191,16 +203,16 @@ const UN_ActiveScreen = ({
     const nextSlots = [...slots];
     let nextBank = [...bank];
     // if tile came from bank, remove from bank
-    if (sourceIndex === -1){
+    if (sourceIndex === -1) {
       nextBank = bank.filter((t) => t.id !== tile.id);
-    } else{
+    } else {
       // Otherwise came from another slot, so clear the answer slot
       nextSlots[sourceIndex] = null;
     }
-    
+
     // Handle if existing tile target is already there
-    const existingTileInTarget = nextSlots[targetSlotIndex]
-    if (existingTileInTarget){
+    const existingTileInTarget = nextSlots[targetSlotIndex];
+    if (existingTileInTarget) {
       nextBank.push(existingTileInTarget);
     }
     nextSlots[targetSlotIndex] = tile;

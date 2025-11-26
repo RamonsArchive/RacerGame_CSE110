@@ -199,7 +199,7 @@ export const UNSCRAMBLE_QUESTIONS_BANK: Record<
       gradeLevel: "1-2",
       hint: "Lives in the jungle",
     },
-        {
+    {
       id: "12-16",
       question: "A small pet that says meow.",
       scrambledAnswer: "tac",
