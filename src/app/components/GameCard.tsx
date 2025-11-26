@@ -32,7 +32,7 @@ const GameCard = ({ game }: { game: GameType }) => {
             <div className="flex">
               {type === "main" ? (
                 <div className="flex flex-center bg-linear-to-r from-primary-200 to-primary-300 text-white rounded-full px-3 py-1 shadow-md">
-                  <p className="text-sm font-bold">Main Game</p>
+                  <p className="text-base font-bold">Main Game</p>
                 </div>
               ) : (
                 <div className="flex flex-center bg-linear-to-r from-secondary-200 to-secondary-300 text-white rounded-full px-3 py-1 shadow-md">

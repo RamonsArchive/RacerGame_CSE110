@@ -163,23 +163,22 @@ const TH_ActiveScreen = ({
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
-          src={`/Assets/TreasureHunt/bg_${backgroundImage}.png`}
-          alt="Treasure Hunt Background"
+          src="/Assets/Unscramble/unscramble.png"
+          alt="Unscramble Background"
           fill
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-linear-to-b from-yellow-200/20 via-orange-300/30 to-blue-400/20" />
       </div>
 
       {/* Main Content */}
       <div className="relative z-10 flex-center w-full h-dvh p-4">
-        <div className="flex flex-col w-full max-w-4xl gap-6 bg-white/95 backdrop-blur-sm p-8 rounded-3xl shadow-2xl border-4 border-yellow-400">
+        <div className="flex flex-col w-full max-w-4xl gap-6 bg-white/50 backdrop-blur-md p-8 rounded-3xl shadow-2xl">
           {/* Header */}
           <div className="flex items-center justify-between">
             <Link
               href="/"
-              className="group flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-bold transition-all hover:scale-105"
+              className="group flex items-center gap-2 px-4 py-2 bg-blue-500/70 hover:bg-blue-600/70 text-white rounded-xl font-bold transition-all hover:scale-105 backdrop-blur-sm"
             >
               <ChevronLeft className="w-5 h-5" />
               <span>Home</span>
@@ -187,7 +186,7 @@ const TH_ActiveScreen = ({
 
             <button
               onClick={() => setShowSettingsModal(true)}
-              className="p-3 bg-purple-500 hover:bg-purple-600 text-white rounded-full transition-all hover:scale-110"
+              className="p-3 bg-blue-500/70 hover:bg-blue-600/70 text-white rounded-full transition-all hover:scale-110 backdrop-blur-sm"
               aria-label="Settings"
             >
               <Settings className="w-6 h-6" />
@@ -206,7 +205,7 @@ const TH_ActiveScreen = ({
                 Question {currentGameState.currentQuestionIndex + 1} of{" "}
                 {currentGameState.totalQuestions}
               </p>
-              <div className="flex items-center gap-2 px-4 py-2 bg-green-400 rounded-full">
+              <div className="flex items-center gap-2 px-4 py-2 bg-green-400/50 rounded-full backdrop-blur-sm">
                 <span className="text-2xl">⭐</span>
                 <p className="text-xl font-bold text-white">
                   Score: {currentGameState.score}
@@ -215,7 +214,7 @@ const TH_ActiveScreen = ({
             </div>
             <div className="w-full bg-gray-200 rounded-full h-8 overflow-hidden shadow-inner">
               <div
-                className="bg-linear-to-r from-yellow-400 via-orange-500 to-red-500 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2"
+                className="bg-yellow-200 h-full rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2"
                 style={{ width: `${Math.max(progressPercentage, 5)}%` }}
               >
                 {progressPercentage > 15 && (
@@ -232,7 +231,7 @@ const TH_ActiveScreen = ({
             <p className="text-xl font-bold text-gray-700 mb-4">
               Clue {currentQuestion.question}
             </p>
-            <div className="bg-red-100 border-4 border-red-500 p-6 rounded-2xl shadow-lg">
+            <div className="bg-red-100/60 p-6 rounded-2xl shadow-lg backdrop-blur-sm">
               <p className="text-2xl md:text-3xl font-bold text-red-700 leading-relaxed">
                 {currentQuestion.scrambledAnswer}
               </p>
@@ -246,7 +245,7 @@ const TH_ActiveScreen = ({
               onChange={(e) => setUserInput(e.target.value)}
               onKeyDown={handleKeyPress}
               placeholder="Type the correct sentence here..."
-              className="w-full text-xl px-6 py-5 rounded-2xl border-4 border-blue-400 bg-white text-gray-900 outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-200 transition-all min-h-[120px] resize-y font-nunito shadow-lg"
+              className="w-full text-xl px-6 py-5 rounded-2xl bg-white text-gray-900 outline-none focus:ring-4 focus:ring-blue-200 transition-all min-h-[120px] resize-y font-nunito shadow-lg"
               rows={3}
             />
 
@@ -287,7 +286,7 @@ const TH_ActiveScreen = ({
       {/* Success Message */}
       {showSuccessMessage && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
-          <div className="bg-linear-to-br from-green-400 to-green-600 text-white p-10 rounded-3xl text-center shadow-2xl border-4 border-white animate-bounce">
+          <div className="bg-linear-to-br from-green-400/50 to-green-600/50 text-white p-10 rounded-3xl text-center shadow-2xl backdrop-blur-sm">
             <p className="text-5xl font-bold mb-4">🎉 Awesome! 🎉</p>
             <p className="text-2xl">Correct! You unscrambled it!</p>
           </div>
@@ -297,7 +296,7 @@ const TH_ActiveScreen = ({
       {/* Incorrect Answer Popup */}
       {showIncorrectPopup && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
-          <div className="bg-linear-to-br from-red-400 to-red-600 text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl border-4 border-white">
+          <div className="bg-linear-to-br from-red-400/50 to-red-600/50 text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl backdrop-blur-sm">
             <p className="text-4xl font-bold mb-4">😅 Try Again!</p>
             <p className="text-xl mb-6">
               Not quite right yet! Take another look and try again.
@@ -315,8 +314,8 @@ const TH_ActiveScreen = ({
       {/* Hint Popup */}
       {showHintPopup && currentQuestion.hint && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
-          <div className="bg-linear-to-br from-yellow-400 to-orange-500 text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl border-4 border-white">
-            <p className="text-4xl mb-4">💡 Hint!</p>
+          <div className="bg-linear-to-br from-yellow-400/50 to-orange-500/50 text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl backdrop-blur-sm">
+            <p className="text-6xl font-bold mb-4">💡 Hint!</p>
             <p className="text-xl mb-6">{currentQuestion.hint}</p>
             <button
               onClick={() => setShowHintPopup(false)}
@@ -331,7 +330,7 @@ const TH_ActiveScreen = ({
       {/* Settings Modal */}
       {showSettingsModal && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
-          <div className="bg-white p-8 rounded-3xl max-w-md mx-4 shadow-2xl border-4 border-purple-400">
+          <div className="bg-white p-8 rounded-3xl max-w-md mx-4 shadow-2xl">
             <h2 className="text-3xl font-bold text-center mb-6 text-purple-600">
               ⚙️ Settings
             </h2>

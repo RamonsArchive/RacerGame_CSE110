@@ -24,7 +24,7 @@ export const GAMES: GameType[] = [
     title: "Unscramble",
     description:
       "Unscramble the words to reveal the hidden message by finding the correct words to the solution.",
-    image_path: "/Assets/Unscramble/unscramble.png",
+    image_path: "/Assets/Unscramble/us_gamePic.png",
     href: "/unscramble",
     type: "mini",
   },

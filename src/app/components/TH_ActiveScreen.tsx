@@ -397,14 +397,15 @@ const TH_ActiveScreen = ({
 
   return (
     <div className="relative w-full h-dvh overflow-hidden">
-      {/* Background Image */}
+      {/* Background Video */}
       <div className="absolute inset-0 z-0">
-        <Image
-          src="/Assets/TreasureHunt/TH.png"
-          alt="Treasure Hunt Background"
-          fill
-          className="object-cover"
-          priority
+        <video
+          src="/Assets/TreasureHunt/TH.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="w-full h-full object-cover"
         />
       </div>
 
@@ -683,19 +684,18 @@ const TH_ActiveScreen = ({
           </div>
         </div>
       </div>
+
       {/* Incorrect Answer Popup with shake animation */}
       {showIncorrectPopup && (
         <div className="fixed inset-0 bg-black/60 flex-center z-50">
-          <div className="bg-linear-to-br from-red-400/80 to-red-600/80 backdrop-blur-md text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl border-4 border-white/60 animate-bounce">
-            <p className="text-4xl font-bold mb-4 animate-pulse">
-              😅 Try Again!
-            </p>
+          <div className="bg-linear-to-br from-red-400/50 to-red-600/50 backdrop-blur-md text-white p-10 rounded-3xl text-center max-w-md mx-4 shadow-2xl">
+            <p className="text-4xl font-bold mb-4">😅 Try Again!</p>
             <p className="text-xl mb-6">
               Not quite right yet! Take another look and try again.
             </p>
             <button
               onClick={handleTryAgain}
-              className="bg-white/90 text-red-600 px-8 py-4 rounded-xl font-bold text-xl hover:bg-white transition-all hover:scale-105 backdrop-blur-sm animate-pulse"
+              className="bg-white/90 text-red-600 px-8 py-4 rounded-xl font-bold text-xl hover:bg-white transition-all hover:scale-105 backdrop-blur-sm"
             >
               Keep Trying! 💪
             </button>
