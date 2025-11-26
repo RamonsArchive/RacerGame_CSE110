@@ -17,15 +17,13 @@ const CreatorCard = ({ creator }: { creator: CreatorType }) => {
   return (
     <div className="flex flex-col w-full p-6 rounded-xl border-2 border-tertiary-200 shadow-lg bg-white/80 backdrop-blur-sm hover:scale-105 hover:shadow-xl hover:bg-white/90 hover:border-tertiary-300 transition-all duration-300 ease-in-out">
       <div className="flex flex-row w-full gap-5">
-        <div className="flex items-center justify-center shrink-0">
-          <div className="relative w-24 h-24">
-            <Image
-              src={src}
-              alt={name}
-              fill
-              className="object-cover rounded-full shadow-md border-2 border-tertiary-200"
-            />
-          </div>
+        <div className="relative aspect-square w-[50%] min-w-[120px]">
+          <Image
+            src={src}
+            alt={name}
+            fill
+            className="object-cover rounded-lg shadow-md border-2 border-tertiary-200"
+          />
         </div>
         <div className="flex flex-col flex-1 gap-3">
           <div className="flex flex-col gap-2">
