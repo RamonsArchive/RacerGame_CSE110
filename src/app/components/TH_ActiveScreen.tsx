@@ -431,8 +431,8 @@ const TH_ActiveScreen = ({
       </div>
 
       {/* Main Content */}
-      <div className="relative z-14 flex items-center justify-center w-full h-dvh p-8 gap-8">
-        {/* Player Progress Card - Left Side */}
+      <div className="relative z-14 flex items-center justify-start w-full h-dvh p-8">
+        {/* Player Progress Card */}
         <div className="flex flex-col w-full max-w-2xl gap-6 bg-white/40 backdrop-blur-sm p-8 rounded-3xl shadow-2xl">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -525,91 +525,13 @@ const TH_ActiveScreen = ({
             </div>
           </div>
 
-          {/* Incorrect Sentence Display */}
-          <div className="text-center">
-            <p className="text-xl font-bold text-gray-700 mb-4">
-              ✏️ Fix this sentence:
-            </p>
-            <div className="bg-red-100/50 backdrop-blur-sm p-6 rounded-2xl shadow-lg">
-              <p className="text-2xl md:text-3xl font-bold text-red-700 leading-relaxed">
-                {getSentencePartsWithUnderline(
-                  currentQuestion.incorrectSentence,
-                  currentQuestion.wordToUnderline
-                ).map((part, index) =>
-                  part.shouldUnderline ? (
-                    <span
-                      key={index}
-                      className="underline decoration-red-500 decoration-2 underline-offset-2 animate-bounce"
-                    >
-                      {part.text}
-                    </span>
-                  ) : (
-                    <span key={index}>{part.text}</span>
-                  )
-                )}
-              </p>
-            </div>
-          </div>
-
-          {/* Input Area */}
-          <div className="flex flex-col gap-4">
-            <textarea
-              className="w-full text-xl px-6 py-5 rounded-2xl bg-white/50 backdrop-blur-sm text-gray-900 outline-none focus:ring-4 focus:ring-blue-200 transition-all min-h-[120px] resize-y font-nunito shadow-lg"
-              value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder="Type the correct sentence here..."
-              rows={3}
-            />
-
-            {/* Action Buttons */}
-            <div className="flex flex-col md:flex-row gap-3">
-              <button
-                onClick={handleAnswerSubmit}
-                disabled={!userInput.trim()}
-                className="flex-1 bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-2xl px-8 py-5 rounded-2xl transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
-              >
-                ✅ Submit Answer
-              </button>
-
-              {canShowHint && (
-                <button
-                  onClick={handleShowHint}
-                  className="flex items-center justify-center gap-2 bg-linear-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold text-lg px-6 py-5 rounded-2xl transition-all hover:scale-105 shadow-lg"
-                >
-                  <Lightbulb className="w-6 h-6" />
-                  💡 See Hint
-                </button>
-              )}
-
-              {canGiveUp && (
-                <button
-                  onClick={handleGiveUpClick}
-                  className="flex items-center justify-center gap-2 bg-linear-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-bold text-lg px-6 py-5 rounded-2xl transition-all hover:scale-105 shadow-lg"
-                >
-                  <HelpCircle className="w-6 h-6" />
-                  Give Up
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* CPU/Opponent Progress Card - Right Side */}
-        {opponent && (
-          <div className="flex flex-col w-full max-w-2xl gap-6 bg-white/40 backdrop-blur-sm p-8 rounded-3xl shadow-2xl">
-            {/* Header */}
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-purple-700">
-                {opponent.playerName || "CPU"}
-              </h2>
-            </div>
-
-            {/* Progress Bar */}
+          {/* CPU/Opponent Progress Bar - Below Player Progress */}
+          {opponent && (
             <div className="flex flex-col gap-3">
               <div className="flex justify-between items-center">
                 <p className="text-xl font-bold text-purple-700">
-                  Question {opponent.currentQuestionIndex + 1} of{" "}
+                  {opponent.playerName || "CPU"} - Question{" "}
+                  {opponent.currentQuestionIndex + 1} of{" "}
                   {currentGameState.totalQuestions}
                 </p>
                 <div className="flex items-center gap-2 px-4 py-2 bg-purple-400/60 backdrop-blur-sm rounded-full">
@@ -681,25 +603,85 @@ const TH_ActiveScreen = ({
                   />
                 </div>
               </div>
-            </div>
-
-            {/* Status Display */}
-            <div className="text-center">
-              <p className="text-xl font-bold text-gray-700 mb-4">
-                {opponent.isFinished
-                  ? "🏁 Finished!"
-                  : "⏳ Working on question..."}
-              </p>
               {opponent.isFinished && (
-                <div className="bg-purple-100/50 backdrop-blur-sm p-4 rounded-2xl shadow-lg">
+                <div className="text-center">
                   <p className="text-lg font-semibold text-purple-700">
-                    Completed all questions!
+                    🏁 {opponent.playerName || "CPU"} has finished!
                   </p>
                 </div>
               )}
             </div>
+          )}
+
+          {/* Incorrect Sentence Display */}
+          <div className="text-center">
+            <p className="text-xl font-bold text-gray-700 mb-4">
+              ✏️ Fix this sentence:
+            </p>
+            <div className="bg-red-100/50 backdrop-blur-sm p-6 rounded-2xl shadow-lg">
+              <p className="text-2xl md:text-3xl font-bold text-red-700 leading-relaxed">
+                {getSentencePartsWithUnderline(
+                  currentQuestion.incorrectSentence,
+                  currentQuestion.wordToUnderline
+                ).map((part, index) =>
+                  part.shouldUnderline ? (
+                    <span
+                      key={index}
+                      className="underline decoration-red-500 decoration-2 underline-offset-2 animate-bounce"
+                    >
+                      {part.text}
+                    </span>
+                  ) : (
+                    <span key={index}>{part.text}</span>
+                  )
+                )}
+              </p>
+            </div>
           </div>
-        )}
+
+          {/* Input Area */}
+          <div className="flex flex-col gap-4">
+            <textarea
+              className="w-full text-xl px-6 py-5 rounded-2xl bg-white/50 backdrop-blur-sm text-gray-900 outline-none focus:ring-4 focus:ring-blue-200 transition-all min-h-[120px] resize-y font-nunito shadow-lg"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyDown={handleKeyPress}
+              placeholder="Type the correct sentence here..."
+              rows={3}
+            />
+
+            {/* Action Buttons */}
+            <div className="flex flex-col md:flex-row gap-3">
+              <button
+                onClick={handleAnswerSubmit}
+                disabled={!userInput.trim()}
+                className="flex-1 bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-2xl px-8 py-5 rounded-2xl transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
+              >
+                ✅ Submit Answer
+              </button>
+
+              {canShowHint && (
+                <button
+                  onClick={handleShowHint}
+                  className="flex items-center justify-center gap-2 bg-linear-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white font-bold text-lg px-6 py-5 rounded-2xl transition-all hover:scale-105 shadow-lg"
+                >
+                  <Lightbulb className="w-6 h-6" />
+                  💡 See Hint
+                </button>
+              )}
+
+              {canGiveUp && (
+                <button
+                  onClick={handleGiveUpClick}
+                  className="flex items-center justify-center gap-2 bg-linear-to-r from-red-400 to-red-500 hover:from-red-500 hover:to-red-600 text-white font-bold text-lg px-6 py-5 rounded-2xl transition-all hover:scale-105 shadow-lg"
+                >
+                  <HelpCircle className="w-6 h-6" />
+                  Give Up
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
       {/* Incorrect Answer Popup with shake animation */}
       {showIncorrectPopup && (
