@@ -31,7 +31,7 @@ const TQ_Leaderboard = ({
   const [isLoading, setIsLoading] = useState(false);
   const [currentMode, setCurrentMode] = useState<GameMode>(mode || "solo");
   const [currentGradeLevel, setCurrentGradeLevel] = useState<GradeLevel>(
-    gradeLevel || "K"
+    gradeLevel || "1-2"
   );
 
   /**

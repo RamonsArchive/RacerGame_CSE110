@@ -915,10 +915,10 @@ export const shuffle = (array: string[]): string[] => {
 
 // Helper to get all grade levels for UI
 export const getAllGradeLevels = (): GradeLevel[] => {
-  return ["K", "1-2", "3-4", "5-6"];
+  return ["1-2", "3-4", "5-6"];
 };
 
 // Helper to check if a grade level exists
 export const isValidGradeLevel = (level: string): level is GradeLevel => {
-  return ["K", "1-2", "3-4", "5-6"].includes(level);
+  return ["1-2", "3-4", "5-6"].includes(level);
 };

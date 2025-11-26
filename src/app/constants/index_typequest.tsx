@@ -1,16 +1,14 @@
 // constants/index_typequest.tsx
 
-export type GradeLevel = "K" | "1-2" | "3-4" | "5-6";
+export type GradeLevel = "1-2" | "3-4" | "5-6";
 
 export const GRADE_LEVEL_LABELS: Record<GradeLevel, string> = {
-  K: "Kindergarten",
   "1-2": "Grades 1-2",
   "3-4": "Grades 3-4",
   "5-6": "Grades 5-6",
 };
 
 export const GRADE_LEVEL_DESCRIPTIONS: Record<GradeLevel, string> = {
-  K: "Simple 3-4 letter words",
   "1-2": "Basic spelling and sight words",
   "3-4": "Intermediate vocabulary",
   "5-6": "Advanced spelling and vocabulary",
@@ -132,7 +130,6 @@ export const GAME_CONFIG = {
 
   // Target times by grade band (seconds per question)
   TARGET_TIMES: {
-    K: 8,
     "1-2": 8,
     "3-4": 10,
     "5-6": 8,
@@ -192,142 +189,6 @@ export const getQuestionsByDifficulty = (
 
 // Complete word bank organized by grade bands
 export const WORD_BANK: Record<GradeLevel, Question[]> = {
-  K: [
-    // ========== SPELLING (clue-based) ==========
-    {
-      id: "k-s1",
-      prompt: "Spell the word that barks",
-      correctAnswer: "dog",
-      gradeLevel: "K",
-      category: "spelling",
-      basePoints: 80,
-      choices: ["dog", "god", "dig", "dug"],
-    },
-    {
-      id: "k-s2",
-      prompt: "Spell the word that says 'meow'",
-      correctAnswer: "cat",
-      gradeLevel: "K",
-      category: "spelling",
-      basePoints: 80,
-      choices: ["cat", "cot", "cut", "bat"],
-    },
-    {
-      id: "k-s3",
-      prompt: "Spell the word you wear on your head",
-      correctAnswer: "hat",
-      gradeLevel: "K",
-      category: "spelling",
-      basePoints: 80,
-      choices: ["hat", "hot", "hit", "bat"],
-    },
-    {
-      id: "k-s4",
-      prompt: "Spell the word that shines in the sky",
-      correctAnswer: "sun",
-      gradeLevel: "K",
-      category: "spelling",
-      basePoints: 80,
-      choices: ["sun", "son", "fun", "run"],
-    },
-    {
-      id: "k-s5",
-      prompt: "Spell the color of an apple",
-      correctAnswer: "red",
-      gradeLevel: "K",
-      category: "spelling",
-      basePoints: 80,
-      choices: ["red", "rad", "bed", "rod"],
-    },
-
-    // ========== VOCABULARY (fill in the blank) ==========
-    {
-      id: "k-v1",
-      prompt: "I ___ happy today (am/is)",
-      correctAnswer: "am",
-      gradeLevel: "K",
-      category: "vocabulary",
-      basePoints: 70,
-      choices: ["am", "is", "are", "be"],
-    },
-    {
-      id: "k-v2",
-      prompt: "The ball is ___ (big/little)",
-      correctAnswer: "big",
-      gradeLevel: "K",
-      category: "vocabulary",
-      basePoints: 70,
-      choices: ["big", "small", "tiny", "huge"],
-    },
-    {
-      id: "k-v3",
-      prompt: "I can ___ fast (run/walk)",
-      correctAnswer: "run",
-      gradeLevel: "K",
-      category: "vocabulary",
-      basePoints: 70,
-      choices: ["run", "walk", "jump", "hop"],
-    },
-
-    // ========== GRAMMAR (punctuation/capitalization) ==========
-    {
-      id: "k-g1",
-      prompt: "Add the missing punctuation: I like dogs___",
-      correctAnswer: ".",
-      gradeLevel: "K",
-      category: "sentence",
-      basePoints: 60,
-      choices: [".", "?", "!", ","],
-    },
-    {
-      id: "k-g2",
-      prompt: "Which word should be capitalized: 'my name is tom'",
-      correctAnswer: "Tom",
-      gradeLevel: "K",
-      category: "sentence",
-      basePoints: 70,
-      choices: ["Tom", "my", "name", "is"],
-    },
-
-    // ========== MATH WORD PROBLEMS ==========
-    {
-      id: "k-m1",
-      prompt: "1 + 1 = ?",
-      correctAnswer: "2",
-      gradeLevel: "K",
-      category: "math-word",
-      basePoints: 50,
-      choices: ["1", "2", "3", "4"],
-    },
-    {
-      id: "k-m2",
-      prompt: "2 + 2 = ?",
-      correctAnswer: "4",
-      gradeLevel: "K",
-      category: "math-word",
-      basePoints: 50,
-      choices: ["3", "4", "5", "6"],
-    },
-    {
-      id: "k-m3",
-      prompt: "5 - 2 = ?",
-      correctAnswer: "3",
-      gradeLevel: "K",
-      category: "math-word",
-      basePoints: 60,
-      choices: ["2", "3", "4", "5"],
-    },
-    {
-      id: "k-m4",
-      prompt: "3 + 3 = ?",
-      correctAnswer: "6",
-      gradeLevel: "K",
-      category: "math-word",
-      basePoints: 60,
-      choices: ["5", "6", "7", "8"],
-    },
-  ],
-
   "1-2": [
     // ========== SPELLING (clue-based) ==========
     {
