@@ -22,7 +22,7 @@ const UN_SetupScreen = ({
   handleGameStart: (gradeLevel: GradeLevel, questionCount: number) => void;
 }) => {
   const [gradeLevel, setGradeLevel] = useState<GradeLevel>(
-    gameState?.gradeLevel || "K"
+    gameState?.gradeLevel || "1-2"
   );
   const [questionCount, setQuestionCount] = useState<number>(
     gameState?.totalQuestions || 10
@@ -63,7 +63,6 @@ const UN_SetupScreen = ({
               onChange={(e) => setGradeLevel(e.target.value as GradeLevel)}
               className="bg-slate-100 text-slate-900 p-3 rounded-lg text-lg font-nunito focus:outline-none focus:ring-2 focus:ring-green-400 transition-all duration-300"
             >
-              <option value="K">{GRADE_LEVEL_LABELS.K}</option>
               <option value="1-2">{GRADE_LEVEL_LABELS["1-2"]}</option>
               <option value="3-4">{GRADE_LEVEL_LABELS["3-4"]}</option>
               <option value="5-6">{GRADE_LEVEL_LABELS["5-6"]}</option>
@@ -104,7 +103,7 @@ const UN_SetupScreen = ({
               <strong className="text-green-400">How to play:</strong>{" "}
               Unscramble the letters to find the word that matches the clue! Try
               rearranging the letters by dragging them around. Once you have
-              your answer, type it and press Enter!
+              your answer, press Submit Answer!
             </p>
           </div>
         </div>

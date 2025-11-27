@@ -52,12 +52,12 @@ function TileView({
   onDragStart,
 }: {
   tile: Tile;
-  onDragStart: (e: React.DragEvent, tile: Tile) => void;
+  onDragStart: (e: React.DragEvent, tile: Tile, srcIndex: number) => void;
 }) {
   return (
     <div
       draggable
-      onDragStart={(e) => onDragStart(e, tile)}
+      onDragStart={(e) => onDragStart(e, tile, -1)}
       className="select-none w-12 h-12 rounded-xl border-2 border-blue-500 bg-white grid place-items-center text-2xl font-black text-blue-700 shadow hover:shadow-lg"
     >
       {tile.ch.toUpperCase()}
@@ -70,7 +70,10 @@ function EmptySlot({
   onDropTile,
 }: {
   index: number;
-  onDropTile: (tile: Tile, slotIndex: number) => void;
+  onDropTile: (
+    data: { tile: Tile; sourceIndex: number },
+    slotIndex: number
+  ) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   return (
@@ -86,8 +89,8 @@ function EmptySlot({
       onDrop={(e) => {
         e.preventDefault();
         ref.current?.classList.remove("ring-2", "ring-emerald-400");
-        const tile = JSON.parse(e.dataTransfer.getData("application/json"));
-        onDropTile(tile, index);
+        const data = JSON.parse(e.dataTransfer.getData("application/json"));
+        onDropTile(data, index);
       }}
       className="w-12 h-12 rounded-xl border-2 border-dashed border-gray-400 grid place-items-center bg-gray-100"
     />
@@ -103,8 +106,11 @@ function FilledSlot({
 }: {
   index: number;
   tile: Tile;
-  onDragStart: (e: React.DragEvent, tile: Tile) => void;
-  onDropTile: (tile: Tile, slotIndex: number) => void;
+  onDragStart: (e: React.DragEvent, tile: Tile, srcIndex: number) => void;
+  onDropTile: (
+    data: { tile: Tile; sourceIndex: number },
+    slotIndex: number
+  ) => void;
   onClearSlot: (slotIndex: number) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -112,7 +118,7 @@ function FilledSlot({
     <div
       ref={ref}
       draggable
-      onDragStart={(e) => onDragStart(e, tile)}
+      onDragStart={(e) => onDragStart(e, tile, index)}
       onDragOver={(e) => {
         e.preventDefault();
         ref.current?.classList.add("ring-2", "ring-emerald-400");
@@ -122,8 +128,8 @@ function FilledSlot({
       }
       onDrop={(e) => {
         e.preventDefault();
-        const tile = JSON.parse(e.dataTransfer.getData("application/json"));
-        onDropTile(tile, index);
+        const data = JSON.parse(e.dataTransfer.getData("application/json"));
+        onDropTile(data, index);
       }}
       className="relative w-12 h-12 rounded-xl border-2 border-blue-500 bg-white grid place-items-center text-2xl font-black text-blue-700 shadow"
     >
@@ -179,15 +185,37 @@ const UN_ActiveScreen = ({
   }, [currentGameState.currentQuestionIndex]);
 
   // DND Methods
-  const onDragStart = (e: React.DragEvent, tile: Tile) =>
-    e.dataTransfer.setData("application/json", JSON.stringify(tile));
+  const onDragStart = (e: React.DragEvent, tile: Tile, sourceIndex: number) =>
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({ tile, sourceIndex })
+    );
 
-  const dropIntoSlot = (tile: Tile, slotIndex: number) => {
+  const dropIntoSlot = (
+    { tile, sourceIndex }: { tile: Tile; sourceIndex: number },
+    targetSlotIndex: number
+  ) => {
+    if (sourceIndex == targetSlotIndex) {
+      return;
+    }
+
     pushHistory();
     const nextSlots = [...slots];
-    const nextBank = bank.filter((t) => t.id !== tile.id);
-    if (nextSlots[slotIndex]) nextBank.push(nextSlots[slotIndex]!);
-    nextSlots[slotIndex] = tile;
+    let nextBank = [...bank];
+    // if tile came from bank, remove from bank
+    if (sourceIndex === -1) {
+      nextBank = bank.filter((t) => t.id !== tile.id);
+    } else {
+      // Otherwise came from another slot, so clear the answer slot
+      nextSlots[sourceIndex] = null;
+    }
+
+    // Handle if existing tile target is already there
+    const existingTileInTarget = nextSlots[targetSlotIndex];
+    if (existingTileInTarget) {
+      nextBank.push(existingTileInTarget);
+    }
+    nextSlots[targetSlotIndex] = tile;
     setSlots(nextSlots);
     setBank(nextBank);
   };
