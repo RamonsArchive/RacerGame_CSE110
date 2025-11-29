@@ -4,7 +4,7 @@ import { GameState } from "../constants/index_typequest";
 import BackTo from "./BackTo";
 import { getProgressPercentage } from "@/lib/utils_typequest";
 import Image from "next/image";
-
+import GameMusic from "./GameMusic";
 const TQ_ActiveScreen = ({
   gameState,
   onAnswerSubmit,
@@ -79,6 +79,16 @@ const TQ_ActiveScreen = ({
   useEffect(() => {
     if (errorClick) {
       errorTimeoutRef.current = setTimeout(() => {
+        // playsound effect
+        const audio = new Audio("/Assets/TypeQuest/honk.mp3");
+        audio.volume = 0.4;
+        audio.play();
+
+        // shake the screen
+        document.body.classList.add("shake");
+        setTimeout(() => {
+          document.body.classList.remove("shake");
+        }, 1000);
         setErrorClick(false);
       }, 4000);
 
@@ -89,6 +99,25 @@ const TQ_ActiveScreen = ({
       };
     }
   }, [errorClick]);
+
+  useEffect(() => {
+    if (isCorrectAnswer === 1) {
+      // playsound effect
+      const audio = new Audio("/Assets/TypeQuest/accelerate.mov");
+      audio.volume = 0.4;
+      audio.play();
+    } else if (isCorrectAnswer === -1) {
+      // playsound effect
+      const audio = new Audio("/Assets/TypeQuest/screech.mov");
+      audio.volume = 0.4;
+      audio.play();
+      // shake the screen
+      document.body.classList.add("shake");
+      setTimeout(() => {
+        document.body.classList.remove("shake");
+      }, 1000);
+    }
+  }, [isCorrectAnswer]);
 
   console.log("isCorrectAnswer", isCorrectAnswer);
   return (

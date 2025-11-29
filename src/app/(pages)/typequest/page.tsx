@@ -25,6 +25,7 @@ import {
 import TQ_SetupScreen from "@/app/components/TQ_SetupScreen";
 import TQ_ActiveScreen from "@/app/components/TQ_ActiveScreen";
 import TQ_FinishedScreen from "@/app/components/TQ_FinishedScreen";
+import GameMusic from "@/app/components/GameMusic";
 import { flushSync } from "react-dom";
 import { MultiplayerPlayer } from "@/lib/GlobalTypes";
 
@@ -1185,6 +1186,11 @@ const TypeQuestPage = () => {
 
   return (
     <div className="w-full h-dvh bg-linear-to-br from-primary-800 via-secondary-800 to-tertiary-700">
+      <GameMusic
+        src="/Assets/TypeQuest/TQ_bgmusic.mov"
+        volume={0.4}
+        enabled={gameStatus === "active"}
+      />
       {gameStatus === "setup" && (
         <TQ_SetupScreen
           gameStatus={gameStatus}

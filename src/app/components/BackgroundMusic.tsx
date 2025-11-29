@@ -1,43 +1,24 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+import { useAudio } from "../contexts/AudioContext";
 
 export default function BackgroundMusic() {
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const { registerAudio } = useAudio();
 
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    // Register background music with low priority (will be overridden by game music)
+    const unregister = registerAudio({
+      id: "background-music",
+      src: "/Assets/bgm.mp3",
+      volume: 0.3,
+      loop: true,
+      priority: 1, // Low priority - can be overridden
+    });
 
-    audio.loop = true;
-    audio.volume = 0.3;
+    return unregister;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // registerAudio is stable, no need to include it
 
-    const playAudio = async () => {
-      try {
-        await audio.play();
-      } catch (error) {
-        console.log("Autoplay blocked by browser");
-      }
-    };
-
-    playAudio();
-
-    const handleUserInteraction = async () => {
-      try {
-        await audio.play();
-      } catch (error) {
-        console.log("Playback failed", error);
-      }
-    };
-
-    document.addEventListener("click", handleUserInteraction, { once: true });
-    document.addEventListener("keydown", handleUserInteraction, { once: true });
-
-    return () => {
-      document.removeEventListener("click", handleUserInteraction);
-      document.removeEventListener("keydown", handleUserInteraction);
-    };
-  }, []);
-
-  return <audio ref={audioRef} src="/Assets/bgm.mp3" preload="auto" />;
+  return null;
 }
