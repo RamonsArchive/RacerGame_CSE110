@@ -130,9 +130,9 @@ export const GAME_CONFIG = {
 
   // Target times by grade band (seconds per question)
   TARGET_TIMES: {
-    "1-2": 8,
-    "3-4": 10,
-    "5-6": 8,
+    "1-2": 14,
+    "3-4": 12,
+    "5-6": 10,
   } as Record<GradeLevel, number>,
 
   // CPU difficulty settings

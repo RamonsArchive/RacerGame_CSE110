@@ -106,7 +106,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
           try {
             await audio.play();
           } catch (error) {
-            console.log("Playback failed", error);
+            console.error("Error playing audio", error);
           }
         }
       }

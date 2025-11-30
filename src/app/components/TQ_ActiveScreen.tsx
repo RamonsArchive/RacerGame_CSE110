@@ -119,7 +119,6 @@ const TQ_ActiveScreen = ({
     }
   }, [isCorrectAnswer]);
 
-  console.log("isCorrectAnswer", isCorrectAnswer);
   return (
     <div className="flex w-full h-dvh flex-col gap-5 p-10 relative overflow-hidden">
       {/* Background Video */}
