@@ -2,11 +2,26 @@
 import { GAMES } from "./constants/index_home";
 import GameCard from "./components/GameCard";
 import Link from "next/link";
+import { useState } from "react";
+import { useAudio } from "./contexts/AudioContext";
 
 export default function Home() {
   const typeQuestGame = GAMES[0];
   const treasureHuntGame = GAMES[1];
   const unscrambleGame = GAMES[2];
+
+  const { isMuted, toggleMute, toggleUnmute } = useAudio();
+  const [mutedState, setMutedState] = useState(() => isMuted());
+
+  const handleToggleMuteButton = () => {
+    if (isMuted()) {
+      toggleUnmute();
+      setMutedState(false);
+    } else {
+      toggleMute();
+      setMutedState(true);
+    }
+  };
   return (
     <div className="flex flex-col w-full h-dvh overflow-hidden relative">
       {/* Background Video */}
@@ -22,6 +37,17 @@ export default function Home() {
       </div>
       <div className="flex flex-col w-full h-full gap-15 p-10 max-w-7xl mx-auto relative z-10">
         <div className="relative flex flex-row w-full items-center">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10">
+            <button
+              className="flex items-center justify-center bg-linear-to-r from-primary-500 via-secondary-500 to-tertiary-500 hover:from-primary-600 hover:via-secondary-600 hover:to-tertiary-600 text-white rounded-full px-6 py-3 shadow-lg hover:shadow-xl border-2 border-white/80 hover:border-white transition-all duration-300 ease-in-out hover:scale-110 font-bold text-base backdrop-blur-sm cursor-pointer"
+              onClick={handleToggleMuteButton}
+            >
+              <span className="text-xl mr-2">{mutedState ? "🔇" : "🔊"}</span>
+              <span className="drop-shadow-lg">
+                {mutedState ? "Unmute" : "Mute"}
+              </span>
+            </button>
+          </div>
           <h1 className="flex-1 text-8xl font-black text-center bg-linear-to-r from-tertiary-600 via-tertiary-700 to-secondary-600 bg-clip-text text-transparent drop-shadow-2xl">
             Type Quest
           </h1>

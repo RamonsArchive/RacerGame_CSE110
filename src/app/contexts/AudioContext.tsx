@@ -13,6 +13,9 @@ type AudioTrack = {
 type AudioContextType = {
   registerAudio: (track: AudioTrack) => () => void;
   isPlaying: (id: string) => boolean;
+  toggleMute: () => void;
+  toggleUnmute: () => void;
+  isMuted: () => boolean;
 };
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
@@ -21,6 +24,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
   const audioInstancesRef = useRef<Map<string, HTMLAudioElement>>(new Map());
   const tracksRef = useRef<Map<string, AudioTrack>>(new Map());
   const activeTrackRef = useRef<string | null>(null);
+  const isMutedRef = useRef<boolean>(false);
 
   // Determine which track should be playing based on priority
   const updateActiveTrack = useRef(async () => {
@@ -72,6 +76,8 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     audio.loop = track.loop ?? true;
     audio.volume = track.volume ?? 0.3;
     audio.preload = "auto";
+    // ✅ Apply global mute state to new audio instances
+    audio.muted = isMutedRef.current;
 
     audioInstancesRef.current.set(track.id, audio);
     tracksRef.current.set(track.id, track);
@@ -128,8 +134,31 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  // ✅ Global mute/unmute - affects ALL audio instances
+  const toggleMute = () => {
+    isMutedRef.current = true;
+    // Mute all audio instances
+    audioInstancesRef.current.forEach((audio) => {
+      audio.muted = true;
+    });
+  };
+
+  const toggleUnmute = () => {
+    isMutedRef.current = false;
+    // Unmute all audio instances
+    audioInstancesRef.current.forEach((audio) => {
+      audio.muted = false;
+    });
+  };
+
+  const isMuted = () => {
+    return isMutedRef.current;
+  };
+
   return (
-    <AudioContext.Provider value={{ registerAudio, isPlaying }}>
+    <AudioContext.Provider
+      value={{ registerAudio, isPlaying, toggleMute, toggleUnmute, isMuted }}
+    >
       {children}
     </AudioContext.Provider>
   );
