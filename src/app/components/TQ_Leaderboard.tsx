@@ -245,9 +245,6 @@ const TQ_Leaderboard = ({
                   MozAppearance: "none",
                 }}
               >
-                <option value="K" className="bg-slate-900 text-white">
-                  K
-                </option>
                 <option value="1-2" className="bg-slate-900 text-white">
                   1-2
                 </option>
