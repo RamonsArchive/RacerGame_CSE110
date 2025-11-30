@@ -277,14 +277,16 @@ const UN_ActiveScreen = ({
 
       <div className="relative z-10 flex-center p-4 h-full">
         <div className="flex flex-col w-full max-w-4xl gap-6 bg-white/60 backdrop-blur-md p-8 rounded-3xl shadow-2xl">
-
           {/* HEADER */}
           <div className="flex justify-between items-center">
-            <Link href="/" className="bg-blue-600 text-white px-4 py-2 rounded-xl flex gap-2 items-center font-bold">
+            <Link
+              href="/"
+              className="bg-blue-600 text-white px-4 py-2 rounded-xl flex gap-2 items-center font-bold"
+            >
               <ChevronLeft /> Home
             </Link>
             <button
-             onClick={() => setShowSettingsModal(true)}
+              onClick={() => setShowSettingsModal(true)}
               className="p-3 bg-gray-300 hover:bg-gray-400 rounded-full"
             >
               <Settings className="w-6 h-6" />
