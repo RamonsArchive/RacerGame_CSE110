@@ -224,6 +224,30 @@ npm run test:coverage
 - Uses `@testing-library/react` for component testing
 - Test setup configuration in `src/test/setup.ts`
 
+## Credits
+
+### Music
+
+**TypeQuest Main Game Music:**
+
+- **Song:** "Awakening"
+- **Artist:** Oztroja · Zeruel
+- **Label:** Rise Records
+- **Release Date:** 2024-01-19
+- **Copyright:** ℗ 2024 14th Angel, LLC / AVAD International under exclusive license to Rise Records
+
+**Credits:**
+
+- Producer, Vocals, Sound Engineer: Braydon Mehki Hill
+- Producer: Timur Pankov
+- Executive Producer: Dwayne Hill
+- Executive Producer: Chris Washington
+- Executive Producer: Julian Haffner
+- Lyricist, Composer: Braydon Mehki Hill
+- Lyricist, Composer: Timur Pankov
+
+_Provided to YouTube by Rise Records_
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed contribution guidelines.

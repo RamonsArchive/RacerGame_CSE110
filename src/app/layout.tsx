@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import LocalFont from "next/font/local";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import { AudioProvider } from "./contexts/AudioContext";
 import BackgroundMusic from "./components/BackgroundMusic";
 
 export const Nunito = LocalFont({
@@ -66,8 +67,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${Nunito.variable} antialiased`}>
-        <BackgroundMusic />
-        {children}
+        <AudioProvider>
+          <BackgroundMusic />
+          {children}
+        </AudioProvider>
       </body>
       <Analytics />
     </html>

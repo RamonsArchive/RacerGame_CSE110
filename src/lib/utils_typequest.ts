@@ -842,8 +842,10 @@ export const simulateCPUAnswer = (
   difficulty: "easy" | "medium" | "hard" = "medium"
 ): { timeSpent: number; mistakes: number; correct: boolean } => {
   const config = GAME_CONFIG.CPU_DIFFICULTY[difficulty];
-  // const baseTimePerChar = 0.3; // Not used currently
+
+  // ✅ Use provided actualTimeSpent if available (from scheduled delay), otherwise calculate from questionStartTime
   const timeSpent = (Date.now() - opponent.questionStartTime!) / 1000;
+
   const willMakeMistake = Math.random() < config.mistakeRate;
   const mistakes = willMakeMistake ? Math.floor(Math.random() * 2) + 1 : 0;
 

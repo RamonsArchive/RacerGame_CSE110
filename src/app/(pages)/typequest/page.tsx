@@ -25,6 +25,7 @@ import {
 import TQ_SetupScreen from "@/app/components/TQ_SetupScreen";
 import TQ_ActiveScreen from "@/app/components/TQ_ActiveScreen";
 import TQ_FinishedScreen from "@/app/components/TQ_FinishedScreen";
+import GameMusic from "@/app/components/GameMusic";
 import { flushSync } from "react-dom";
 import { MultiplayerPlayer } from "@/lib/GlobalTypes";
 
@@ -36,8 +37,11 @@ const TypeQuestPage = () => {
   const [opponentLeftGame, setOpponentLeftGame] = useState(false); // Track if opponent quit
   const [isCorrectAnswer, setIsCorrectAnswer] = useState(0); // 0 is defaul state no awnswer given, 1 is correct, -1 is incorrect
   const cpuTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const hasResetRef = useRef(false); // Add this
+  const currentGameStartTimeRef = useRef<number | null>(null); // Track which game instance this timer belongs to
+  const isCPUProcessingRef = useRef(false); // Prevent multiple simultaneous CPU processing
+  const hasResetRef = useRef(false);
   const feedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hasScheduledInitialCPU = useRef(false);
 
   /* ****************************************************** */
   /* MULTIPLAYER VARIABLES */
@@ -218,11 +222,39 @@ const TypeQuestPage = () => {
         currentGameState.opponent,
         "medium"
       );
-      const cpuPoints = calculateQuestionPoints(
-        cpuResult.timeSpent,
-        cpuResult.mistakes,
-        GAME_CONFIG.TARGET_TIMES[currentGameState.gradeLevel],
-        currentQuestion.basePoints || GAME_CONFIG.BASE_POINTS
+
+      // ✅ Calculate CPU points with enhanced speed bonus for faster times
+      const difficultyConfig = GAME_CONFIG.CPU_DIFFICULTY["medium"];
+      const targetTime = GAME_CONFIG.TARGET_TIMES[currentGameState.gradeLevel];
+      const basePoints = currentQuestion.basePoints || GAME_CONFIG.BASE_POINTS;
+
+      // Calculate speed bonus with CPU time bonus multiplier (rewards faster times more)
+      const timeDiff = targetTime - cpuResult.timeSpent;
+      const speedBonus =
+        timeDiff > 0
+          ? Math.round(
+              timeDiff *
+                GAME_CONFIG.SPEED_BONUS_MULTIPLIER *
+                difficultyConfig.timeBonusMultiplier
+            )
+          : Math.round(
+              timeDiff *
+                GAME_CONFIG.SPEED_BONUS_MULTIPLIER *
+                difficultyConfig.timeBonusMultiplier
+            ) / 2;
+
+      // Mistake penalty
+      const mistakePenalty = cpuResult.mistakes * GAME_CONFIG.MISTAKE_PENALTY;
+
+      // Base points calculation
+      const baseCpuPoints = Math.max(
+        0,
+        basePoints + speedBonus - mistakePenalty
+      );
+
+      // ✅ Apply CPU difficulty points multiplier to reward faster times proportionally
+      const cpuPoints = Math.round(
+        baseCpuPoints * difficultyConfig.pointsMultiplier
       );
 
       // simulate answer mistakes
@@ -295,11 +327,25 @@ const TypeQuestPage = () => {
   // ✅ FIXED: CPU scheduling logic separated completely
   const scheduleCPUAnswer = useCallback(
     (difficulty: "easy" | "medium" | "hard") => {
-      // Clear any existing timer
-      if (cpuTimerRef.current) {
-        clearTimeout(cpuTimerRef.current);
-        cpuTimerRef.current = null;
+      // Don't schedule if game is resetting, CPU is already processing, or timer already exists
+      if (
+        hasResetRef.current ||
+        isCPUProcessingRef.current ||
+        cpuTimerRef.current
+      ) {
+        console.log(
+          "Skipping scheduleCPUAnswer - reset:",
+          hasResetRef.current,
+          "processing:",
+          isCPUProcessingRef.current,
+          "timer exists:",
+          !!cpuTimerRef.current
+        );
+        return;
       }
+
+      // Prevent multiple simultaneous calls - set flag BEFORE scheduling
+      isCPUProcessingRef.current = true;
 
       // Get latest state to calculate delay
       setGameState((prevState) => {
@@ -315,15 +361,24 @@ const TypeQuestPage = () => {
           return prevState;
         }
 
+        // Store the game's startTime to validate timer belongs to this game instance
+        const gameStartTime = prevState.startTime;
+        if (!gameStartTime) {
+          return prevState;
+        }
+
+        // Update current game reference
+        currentGameStartTimeRef.current = gameStartTime;
+
         const currentQuestion =
           prevState.questions[prevState.opponent.currentQuestionIndex];
 
         // ✅ ADD THINKING TIME: Time to read/understand the question
         const wordCount = currentQuestion.prompt.split(" ").length;
         const thinkingTime = {
-          easy: 5500 + wordCount * 150, // ~5500-7000ms base thinking
-          medium: 11000 + wordCount * 100, // ~11000-12500ms base thinking
-          hard: 12000 + wordCount * 100, // ~12000-13500ms base thinking
+          easy: 5500 + wordCount * 150,
+          medium: 9000 + wordCount * 100,
+          hard: 10000 + wordCount * 100,
         }[difficulty];
 
         const thinkingVaraince = 0.8 + Math.random() * 0.7;
@@ -332,43 +387,83 @@ const TypeQuestPage = () => {
         // Calculate delay
         const baseTimePerChar = 300;
         const typingTime =
-          currentQuestion.correctAnswer.length * baseTimePerChar; // larger delay for longer words
+          currentQuestion.correctAnswer.length * baseTimePerChar;
         const difficultyConfig = GAME_CONFIG.CPU_DIFFICULTY[difficulty];
         const adjustedTypingTime =
           typingTime / difficultyConfig.speedMultiplier;
 
-        const typingVariance = 0.9 + Math.random() * 0.5;
+        const typingVariance = 0.9 + Math.random() * 0.7;
         const actualTypingTime = adjustedTypingTime * typingVariance;
 
         const totalDelay = actualThinkingTime + actualTypingTime;
+        console.log("totalDelay", totalDelay, "gameStartTime", gameStartTime);
 
-        // ✅ KEY FIX: Schedule timer but DON'T modify state here
+        // ✅ Schedule timer with game instance validation
+        // Only ONE timer should be active at a time
         cpuTimerRef.current = setTimeout(() => {
+          // Clear the timer ref immediately so another can be scheduled
+          cpuTimerRef.current = null;
+
+          // Validate this timer belongs to the current game instance
+          if (
+            hasResetRef.current ||
+            currentGameStartTimeRef.current !== gameStartTime
+          ) {
+            // Timer belongs to old game - ignore it
+            console.log("Timer ignored - old game instance");
+            isCPUProcessingRef.current = false;
+            return;
+          }
+
           // Update CPU progress
           setGameState((currentState) => {
-            if (!currentState) return null;
-
-            // ✅ ADD THIS CHECK: Don't update if game was reset
-            if (!currentState || currentState.status !== "active") {
-              return currentState;
+            if (!currentState) {
+              isCPUProcessingRef.current = false;
+              return null;
             }
 
-            // ✅ Check if we're resetting
-            if (hasResetRef.current) {
-              return null;
+            // Validate game is still active and this timer belongs to current game
+            if (
+              !currentState ||
+              currentState.status !== "active" ||
+              hasResetRef.current ||
+              currentState.startTime !== gameStartTime
+            ) {
+              isCPUProcessingRef.current = false;
+              return currentState;
             }
 
             const updatedState = updateCPUProgress(currentState);
 
             if (updatedState.status === "finished") {
               setGameStatus("finished");
+              isCPUProcessingRef.current = false;
+              // Game finished - don't schedule next answer
             } else if (
               updatedState.opponent &&
               !updatedState.opponent.isFinished &&
-              !updatedState.currentPlayer.isFinished
+              !updatedState.currentPlayer.isFinished &&
+              !hasResetRef.current &&
+              updatedState.status === "active" &&
+              updatedState.startTime === gameStartTime
             ) {
-              // Schedule next CPU answer AFTER state update
-              setTimeout(() => scheduleCPUAnswer(difficulty), 0);
+              // Reset processing flag and schedule next answer
+              // Use a small delay to ensure state update completes before scheduling next
+              isCPUProcessingRef.current = false;
+
+              // Schedule next CPU answer with a small delay to ensure sequential execution
+              setTimeout(() => {
+                // Final validation before scheduling - ensure no timer is active
+                if (
+                  !hasResetRef.current &&
+                  currentGameStartTimeRef.current === gameStartTime &&
+                  !cpuTimerRef.current // Critical: only schedule if no timer exists
+                ) {
+                  scheduleCPUAnswer(difficulty);
+                }
+              }, 100); // Small delay to ensure state update completes
+            } else {
+              isCPUProcessingRef.current = false;
             }
 
             return updatedState;
@@ -387,15 +482,31 @@ const TypeQuestPage = () => {
       gameState?.status === "active" &&
       gameState.mode === "solo" &&
       gameState.opponent &&
-      !gameState.opponent.isFinished
+      !gameState.opponent.isFinished &&
+      !hasScheduledInitialCPU.current
     ) {
-      // Only schedule if there's no active timer
-      if (!cpuTimerRef.current) {
+      // Only schedule if we haven't already scheduled the initial CPU answer
+      // AND reset flag is false (game is not resetting)
+      console.log("cpuTimerRef.current", cpuTimerRef.current);
+      console.log(
+        "hasScheduledInitialCPU.current",
+        hasScheduledInitialCPU.current
+      );
+      console.log("hasResetRef.current", hasResetRef.current);
+      console.log("opponent.isFinished", gameState.opponent.isFinished);
+      console.log("status", gameState.status);
+      if (
+        !cpuTimerRef.current &&
+        !hasScheduledInitialCPU.current &&
+        !hasResetRef.current
+      ) {
+        console.log("scheduling CPU answer initial");
+        hasScheduledInitialCPU.current = true;
         scheduleCPUAnswer("medium");
       }
     }
 
-    // Cleanup on unmount
+    // Cleanup on unmount or when game ends
     return () => {
       if (cpuTimerRef.current) {
         clearTimeout(cpuTimerRef.current);
@@ -407,7 +518,7 @@ const TypeQuestPage = () => {
     gameState?.mode,
     gameState?.opponent,
     scheduleCPUAnswer,
-  ]); // ✅ Include all dependencies
+  ]);
 
   // save game result for leaderboard
   useEffect(() => {
@@ -486,6 +597,13 @@ const TypeQuestPage = () => {
       cpuTimerRef.current = null;
     }
 
+    // Invalidate current game instance - any timers that fire will be ignored
+    currentGameStartTimeRef.current = null;
+
+    // Reset all CPU-related flags
+    hasScheduledInitialCPU.current = false;
+    isCPUProcessingRef.current = false;
+
     hasResetRef.current = true;
     clearGameState();
     flushSync(() => {
@@ -495,9 +613,8 @@ const TypeQuestPage = () => {
       setOpponentLeftGame(false); // Reset opponent left flag
     });
 
-    setTimeout(() => {
-      hasResetRef.current = false;
-    }, 100);
+    // Note: hasResetRef and hasScheduledInitialCPU are reset in handleGameStart
+    // to ensure they're false when the new game starts
   }, [gameState]);
 
   const handleGameStart = useCallback(
@@ -511,6 +628,14 @@ const TypeQuestPage = () => {
       if (newGameState.opponent) {
         newGameState.opponent.questionStartTime = Date.now();
       }
+
+      // Reset CPU scheduling flag and reset flag for new game
+      // Do this BEFORE setting game state to ensure useEffect can run
+      hasScheduledInitialCPU.current = false;
+      hasResetRef.current = false;
+
+      // Update current game reference to new game's startTime
+      currentGameStartTimeRef.current = newGameState.startTime;
 
       setGameState(newGameState);
       setGameStatus("active");
@@ -1185,6 +1310,11 @@ const TypeQuestPage = () => {
 
   return (
     <div className="w-full h-dvh bg-linear-to-br from-primary-800 via-secondary-800 to-tertiary-700">
+      <GameMusic
+        src="/Assets/TypeQuest/TQ_bgmusic.mov"
+        volume={0.4}
+        enabled={gameStatus === "active"}
+      />
       {gameStatus === "setup" && (
         <TQ_SetupScreen
           gameStatus={gameStatus}
