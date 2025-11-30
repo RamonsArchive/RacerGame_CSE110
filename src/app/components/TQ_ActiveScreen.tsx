@@ -78,17 +78,11 @@ const TQ_ActiveScreen = ({
 
   useEffect(() => {
     if (errorClick) {
+      // playsound effect
+      const audio = new Audio("/Assets/TypeQuest/honk.mp3");
+      audio.volume = 0.4;
+      audio.play();
       errorTimeoutRef.current = setTimeout(() => {
-        // playsound effect
-        const audio = new Audio("/Assets/TypeQuest/honk.mp3");
-        audio.volume = 0.4;
-        audio.play();
-
-        // shake the screen
-        document.body.classList.add("shake");
-        setTimeout(() => {
-          document.body.classList.remove("shake");
-        }, 1000);
         setErrorClick(false);
       }, 4000);
 

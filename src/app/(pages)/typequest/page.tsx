@@ -377,8 +377,8 @@ const TypeQuestPage = () => {
         const wordCount = currentQuestion.prompt.split(" ").length;
         const thinkingTime = {
           easy: 5500 + wordCount * 150,
-          medium: 10000 + wordCount * 100,
-          hard: 12000 + wordCount * 100,
+          medium: 9000 + wordCount * 100,
+          hard: 10000 + wordCount * 100,
         }[difficulty];
 
         const thinkingVaraince = 0.8 + Math.random() * 0.7;
