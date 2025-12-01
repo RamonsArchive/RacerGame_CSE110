@@ -198,8 +198,8 @@ const TH_SetupScreen = ({
 
             <div className="bg-white/60 backdrop-blur-sm p-4 rounded-lg">
               <p className="font-nunito text-sm text-gray-800">
-                <strong className="text-green-600">How to play:</strong>{" "}
-                Type the full corrected sentence to advance. Edit the underlined
+                <strong className="text-green-600">How to play:</strong> Type
+                the full corrected sentence to advance. Edit the underlined
                 portion as needed, then submit the complete corrected sentence
                 (not just the word) to move on through the Treasure Hunt.
               </p>

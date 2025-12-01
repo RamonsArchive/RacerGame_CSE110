@@ -109,91 +109,94 @@ const TH_ActiveScreen = ({
     }
   }, [currentGameState]);
 
-  const scheduleCPUAnswer = useCallback((difficulty: "easy" | "medium") => {
-    console.log("Scheduling CPU answer...");
+  const scheduleCPUAnswer = useCallback(
+    (difficulty: "easy" | "medium") => {
+      console.log("Scheduling CPU answer...");
 
-    if (cpuTimerRef.current) {
-      console.log("Clearing existing CPU timer");
-      clearTimeout(cpuTimerRef.current);
-      cpuTimerRef.current = null;
-    }
+      if (cpuTimerRef.current) {
+        console.log("Clearing existing CPU timer");
+        clearTimeout(cpuTimerRef.current);
+        cpuTimerRef.current = null;
+      }
 
-    // random delay based on difficulty and current question
-    const baseThinkTime = 6000; // Base thinking time of 2 seconds
-    const randomThinkTime = Math.random() * 2000;
-    const difficultyMultiplier = difficulty === "easy" ? 1.5 : 1; // Easy mode is slower
+      // random delay based on difficulty and current question
+      const baseThinkTime = 6000; // Base thinking time of 2 seconds
+      const randomThinkTime = Math.random() * 2000;
+      const difficultyMultiplier = difficulty === "easy" ? 1.5 : 1; // Easy mode is slower
 
-    // Add some randomness based on question length
-    const questionLength = currentQuestion?.incorrectSentence.length || 20;
-    const lengthFactor = Math.min(questionLength / 20, 2); // Cap at 2x for very long sentences
+      // Add some randomness based on question length
+      const questionLength = currentQuestion?.incorrectSentence.length || 20;
+      const lengthFactor = Math.min(questionLength / 20, 2); // Cap at 2x for very long sentences
 
-    const totalDelay =
-      (baseThinkTime + randomThinkTime) * difficultyMultiplier * lengthFactor;
+      const totalDelay =
+        (baseThinkTime + randomThinkTime) * difficultyMultiplier * lengthFactor;
 
-    console.log("Setting timer for", {
-      baseThinkTime,
-      randomThinkTime,
-      difficultyMultiplier,
-      questionLength,
-      lengthFactor,
-      totalDelay: Math.round(totalDelay),
-    });
-
-    cpuTimerRef.current = setTimeout(() => {
-      console.log("CPU timer triggered, updating state");
-      setCurrentGameState((prevState) => {
-        if (
-          !prevState?.opponent ||
-          prevState.opponent.isFinished ||
-          prevState.status !== "active"
-        ) {
-          console.log(
-            "CPU skipping move - game not active or opponent finished",
-            {
-              hasOpponent: !!prevState?.opponent,
-              opponentFinished: prevState?.opponent?.isFinished,
-              gameStatus: prevState?.status,
-            }
-          );
-          return prevState;
-        }
-
-        console.log("CPU making move", {
-          currentQuestion: prevState.opponent.currentQuestionIndex,
-          questionsAnswered: prevState.opponent.questionsAnswered,
-        });
-
-        const updatedState = updateCPUProgress(prevState, difficulty);
-
-        console.log("CPU move complete", {
-          newQuestion: updatedState.opponent?.currentQuestionIndex,
-          totalAnswered: updatedState.opponent?.questionsAnswered,
-        });
-
-        return updatedState;
+      console.log("Setting timer for", {
+        baseThinkTime,
+        randomThinkTime,
+        difficultyMultiplier,
+        questionLength,
+        lengthFactor,
+        totalDelay: Math.round(totalDelay),
       });
 
-      // Schedule next move after state update
-      setTimeout(() => {
+      cpuTimerRef.current = setTimeout(() => {
+        console.log("CPU timer triggered, updating state");
         setCurrentGameState((prevState) => {
           if (
-            prevState?.status === "active" &&
-            prevState.opponent &&
-            !prevState.opponent.isFinished
+            !prevState?.opponent ||
+            prevState.opponent.isFinished ||
+            prevState.status !== "active"
           ) {
-            console.log("Scheduling next CPU move");
-            scheduleCPUAnswer(difficulty);
-          } else {
-            console.log("CPU finished or game ended", {
-              gameStatus: prevState?.status,
-              opponentFinished: prevState?.opponent?.isFinished,
-            });
+            console.log(
+              "CPU skipping move - game not active or opponent finished",
+              {
+                hasOpponent: !!prevState?.opponent,
+                opponentFinished: prevState?.opponent?.isFinished,
+                gameStatus: prevState?.status,
+              }
+            );
+            return prevState;
           }
-          return prevState;
+
+          console.log("CPU making move", {
+            currentQuestion: prevState.opponent.currentQuestionIndex,
+            questionsAnswered: prevState.opponent.questionsAnswered,
+          });
+
+          const updatedState = updateCPUProgress(prevState, difficulty);
+
+          console.log("CPU move complete", {
+            newQuestion: updatedState.opponent?.currentQuestionIndex,
+            totalAnswered: updatedState.opponent?.questionsAnswered,
+          });
+
+          return updatedState;
         });
-      }, 0);
-    }, totalDelay);
-  }, [currentQuestion, updateCPUProgress]);
+
+        // Schedule next move after state update
+        setTimeout(() => {
+          setCurrentGameState((prevState) => {
+            if (
+              prevState?.status === "active" &&
+              prevState.opponent &&
+              !prevState.opponent.isFinished
+            ) {
+              console.log("Scheduling next CPU move");
+              scheduleCPUAnswer(difficulty);
+            } else {
+              console.log("CPU finished or game ended", {
+                gameStatus: prevState?.status,
+                opponentFinished: prevState?.opponent?.isFinished,
+              });
+            }
+            return prevState;
+          });
+        }, 0);
+      }, totalDelay);
+    },
+    [currentQuestion, updateCPUProgress]
+  );
 
   // Separate effect to handle game status updates to avoid setState during render
   useEffect(() => {
@@ -412,7 +415,13 @@ const TH_ActiveScreen = ({
         handleAnswerSubmit();
       }
     },
-    [handleAnswerSubmit, showIncorrectPopup, showHintPopup, showSettingsModal, handleTryAgain]
+    [
+      handleAnswerSubmit,
+      showIncorrectPopup,
+      showHintPopup,
+      showSettingsModal,
+      handleTryAgain,
+    ]
   );
 
   // Helper function to calculate progress percentage
@@ -647,9 +656,9 @@ const TH_ActiveScreen = ({
 
           {/* Incorrect Sentence Display */}
           <div className="text-center">
-              <p className="text-xl font-bold text-gray-700 mb-4">
-                ✏️ Type the full corrected sentence:
-              </p>
+            <p className="text-xl font-bold text-gray-700 mb-4">
+              ✏️ Type the full corrected sentence:
+            </p>
             <div className="bg-red-100/50 backdrop-blur-sm p-6 rounded-2xl shadow-lg">
               <p className="text-2xl md:text-3xl font-bold text-red-700 leading-relaxed">
                 {getSentencePartsWithUnderline(
@@ -686,7 +695,12 @@ const TH_ActiveScreen = ({
             <div className="flex flex-col md:flex-row gap-3">
               <button
                 onClick={handleAnswerSubmit}
-                disabled={!userInput.trim() || showIncorrectPopup || showHintPopup || showSettingsModal}
+                disabled={
+                  !userInput.trim() ||
+                  showIncorrectPopup ||
+                  showHintPopup ||
+                  showSettingsModal
+                }
                 className="flex-1 bg-linear-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-2xl px-8 py-5 rounded-2xl transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
               >
                 ✅ Submit Answer
