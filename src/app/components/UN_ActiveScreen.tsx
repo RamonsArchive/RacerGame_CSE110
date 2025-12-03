@@ -34,7 +34,6 @@ import Image from "next/image";
     🔠 TYPES & HELPERS
 ─────────────────────────────────── */
 type Tile = { id: string; ch: string };
-
 const normalize = (s: string) => (s || "").toLowerCase().replace(/[^a-z]/g, "");
 const toTiles = (answer: string): Tile[] =>
   normalize(answer)
@@ -163,7 +162,7 @@ const UN_ActiveScreen = ({
   const currentQuestion =
     currentGameState.questions[currentGameState.currentQuestionIndex];
 
-  // 🛠 Fix: Initialize/reset tiles EVERY question
+  /* RESET TILES EVERY QUESTION */
   const answerTiles = useMemo(
     () => toTiles(currentQuestion.unscrambledAnswer),
     [currentQuestion]
@@ -175,8 +174,6 @@ const UN_ActiveScreen = ({
     new Array(answerTiles.length).fill(null)
   );
   const historyRef = useRef<{ bank: Tile[]; slots: (Tile | null)[] }[]>([]);
-  const pushHistory = () =>
-    historyRef.current.push({ bank: [...bank], slots: [...slots] });
 
   useEffect(() => {
     setSlots(new Array(answerTiles.length).fill(null));
@@ -184,7 +181,9 @@ const UN_ActiveScreen = ({
     historyRef.current = [];
   }, [currentGameState.currentQuestionIndex]);
 
-  // DND Methods
+  /* ───────────────────────────────
+      DRAG & DROP LOGIC
+  ─────────────────────────────── */
   const onDragStart = (e: React.DragEvent, tile: Tile, sourceIndex: number) =>
     e.dataTransfer.setData(
       "application/json",
@@ -195,33 +194,24 @@ const UN_ActiveScreen = ({
     { tile, sourceIndex }: { tile: Tile; sourceIndex: number },
     targetSlotIndex: number
   ) => {
-    if (sourceIndex == targetSlotIndex) {
-      return;
-    }
+    if (sourceIndex === targetSlotIndex) return;
+    historyRef.current.push({ bank: [...bank], slots: [...slots] });
 
-    pushHistory();
     const nextSlots = [...slots];
     let nextBank = [...bank];
-    // if tile came from bank, remove from bank
-    if (sourceIndex === -1) {
-      nextBank = bank.filter((t) => t.id !== tile.id);
-    } else {
-      // Otherwise came from another slot, so clear the answer slot
-      nextSlots[sourceIndex] = null;
-    }
+    if (sourceIndex === -1) nextBank = bank.filter((t) => t.id !== tile.id);
+    else nextSlots[sourceIndex] = null;
 
-    // Handle if existing tile target is already there
-    const existingTileInTarget = nextSlots[targetSlotIndex];
-    if (existingTileInTarget) {
-      nextBank.push(existingTileInTarget);
-    }
+    const existing = nextSlots[targetSlotIndex];
+    if (existing) nextBank.push(existing);
+
     nextSlots[targetSlotIndex] = tile;
     setSlots(nextSlots);
     setBank(nextBank);
   };
 
   const clearSlot = (slotIndex: number) => {
-    pushHistory();
+    historyRef.current.push({ bank: [...bank], slots: [...slots] });
     const tile = slots[slotIndex];
     if (tile) setBank((b) => [...b, tile]);
     setSlots((s) => s.map((t, i) => (i === slotIndex ? null : t)));
@@ -235,38 +225,54 @@ const UN_ActiveScreen = ({
     }
   };
 
-  // Submit Answer
-  const handleAnswerSubmit = useCallback(() => {
+  /* ───────────────────────────────
+      UI / HINTS / GIVE UP
+  ─────────────────────────────── */
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showIncorrect, setShowIncorrect] = useState(false);
+  const [showHintModal, setShowHintModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+
+  const questionProgress = getCurrentQuestionProgress(currentGameState);
+  const canShowHint =
+    questionProgress &&
+    questionProgress.mistakes >= GAME_CONFIG.HINT_MISTAKE_THRESHOLD &&
+    !questionProgress.hintShown;
+
+  const canGiveUp =
+    questionProgress &&
+    questionProgress.mistakes >= GAME_CONFIG.GIVE_UP_MISTAKE_THRESHOLD;
+
+  const handleSubmit = () => {
     const userWord = slots.map((t) => t?.ch || "").join("");
     const correct = normalize(currentQuestion.unscrambledAnswer);
 
     if (normalize(userWord) === correct) {
-      const updated = handleCorrectAnswer(currentGameState);
-      setCurrentGameState(updated);
-
-      if (updated.isGameFinished) {
-        updated.status = "finished";
-        setGameStatus("finished");
-        onGameFinished(updated);
-      }
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+        const updated = handleCorrectAnswer(currentGameState);
+        setCurrentGameState(updated);
+        if (updated.isGameFinished) {
+          updated.status = "finished";
+          setGameStatus("finished");
+          onGameFinished(updated);
+        }
+      }, 1500);
     } else {
+      setShowIncorrect(true);
       setCurrentGameState(handleIncorrectAnswer(currentGameState, userWord));
     }
-  }, [slots, currentQuestion, currentGameState]);
-
-  const progressPercentage =
-    (currentGameState.currentQuestionIndex / currentGameState.totalQuestions) *
-    100;
+  };
 
   return (
     <div className="relative w-full h-dvh overflow-hidden">
-      {/* Background */}
       <Image
         src="/Assets/Unscramble/unscramble.png"
-        alt="Unscramble Background"
+        alt="Background"
         fill
         priority
-        className="object-cover absolute inset-0 -z-10"
+        className="absolute inset-0 -z-10 object-cover"
       />
 
       <div className="relative z-10 flex-center p-4 h-full">
@@ -275,54 +281,29 @@ const UN_ActiveScreen = ({
           <div className="flex justify-between items-center">
             <Link
               href="/"
-              className="px-4 py-2 bg-blue-600 text-white rounded-xl flex gap-2 items-center font-bold shadow"
+              className="bg-blue-600 text-white px-4 py-2 rounded-xl flex gap-2 items-center font-bold"
             >
               <ChevronLeft /> Home
             </Link>
             <button
-              onClick={() => onRestartGame()}
+              onClick={() => setShowSettingsModal(true)}
               className="p-3 bg-gray-300 hover:bg-gray-400 rounded-full"
             >
               <Settings className="w-6 h-6" />
             </button>
           </div>
 
-          {/* Title */}
-          <h1 className="text-center text-5xl font-black text-orange-600">
-            Unscramble
-          </h1>
-
-          {/* Progress */}
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <p className="text-xl font-bold text-blue-700">
-                Question {currentGameState.currentQuestionIndex + 1} of{" "}
-                {currentGameState.totalQuestions}
-              </p>
-              <p className="text-xl font-bold bg-green-400/70 px-4 py-2 rounded-full shadow">
-                ⭐ Score: {currentGameState.score}
-              </p>
-            </div>
-            <div className="w-full h-6 rounded-full bg-gray-200">
-              <div
-                style={{ width: `${Math.max(5, progressPercentage)}%` }}
-                className="h-full bg-yellow-400 rounded-full transition-all"
-              />
-            </div>
-          </div>
-
-          {/* Clue */}
+          {/* CLUE */}
           <div className="text-center">
-            <p className="text-xl font-bold text-gray-700 mb-2">Clue:</p>
-            <p className="bg-red-200 text-xl font-bold p-4 rounded-xl shadow">
+            <p className="text-xl font-bold mb-2 text-gray-700">Clue:</p>
+            <p className="bg-red-200 text-2xl font-bold p-4 rounded-xl shadow">
               {currentQuestion.question}
             </p>
           </div>
 
-          {/* DND AREA */}
+          {/* DND SECTION */}
           <div className="flex flex-col gap-4 items-center">
-            {/* Slots */}
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex flex-wrap gap-3 justify-center">
               {slots.map((slot, i) =>
                 slot ? (
                   <FilledSlot
@@ -330,8 +311,8 @@ const UN_ActiveScreen = ({
                     tile={slot}
                     index={i}
                     onDragStart={onDragStart}
-                    onClearSlot={clearSlot}
                     onDropTile={dropIntoSlot}
+                    onClearSlot={clearSlot}
                   />
                 ) : (
                   <EmptySlot key={i} index={i} onDropTile={dropIntoSlot} />
@@ -339,32 +320,119 @@ const UN_ActiveScreen = ({
               )}
             </div>
 
-            {/* Bank */}
-            <div className="flex flex-wrap justify-center gap-3 mt-2">
+            <div className="flex flex-wrap gap-3 justify-center mt-2">
               {bank.map((tile) => (
                 <TileView key={tile.id} tile={tile} onDragStart={onDragStart} />
               ))}
             </div>
 
-            {/* Undo */}
             <button
               onClick={undo}
-              className="flex gap-2 items-center px-4 py-2 bg-gray-300 rounded-xl shadow hover:bg-gray-400"
+              className="flex items-center gap-2 px-4 py-2 bg-gray-300 rounded-xl shadow hover:bg-gray-400"
             >
               <Undo2 /> Undo
             </button>
           </div>
 
-          {/* Submit Button */}
-          <button
-            onClick={handleAnswerSubmit}
-            disabled={slots.some((s) => !s)}
-            className="bg-green-500 hover:bg-green-600 text-white text-2xl font-bold py-4 rounded-xl shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Submit Answer
-          </button>
+          {/* SUBMIT + HINT + GIVE UP */}
+          <div className="flex gap-3 flex-col md:flex-row">
+            <button
+              onClick={handleSubmit}
+              disabled={slots.some((s) => !s)}
+              className="flex-1 bg-green-500 text-white text-2xl py-4 rounded-xl shadow-lg hover:bg-green-600 disabled:opacity-50"
+            >
+              Submit Answer
+            </button>
+
+            {canShowHint && (
+              <button
+                onClick={() => setShowHintModal(true)}
+                className="flex-1 bg-yellow-500 text-white py-4 rounded-xl shadow hover:bg-yellow-600"
+              >
+                <Lightbulb /> Hint
+              </button>
+            )}
+
+            {canGiveUp && (
+              <button
+                onClick={() => {
+                  const updated = handleGiveUp(currentGameState);
+                  setCurrentGameState(updated);
+                }}
+                className="flex-1 bg-red-500 text-white py-4 rounded-xl shadow hover:bg-red-600"
+              >
+                <HelpCircle /> Give Up
+              </button>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* SUCCESS POPUP */}
+      {showSuccess && (
+        <div className="fixed inset-0 bg-black/60 flex-center z-50">
+          <div className="bg-green-500/70 text-white p-10 rounded-3xl">
+            <p className="text-4xl font-bold">🎉 Correct! 🎉</p>
+          </div>
+        </div>
+      )}
+
+      {/* INCORRECT POPUP */}
+      {showIncorrect && (
+        <div className="fixed inset-0 bg-black/60 flex-center z-50">
+          <div className="bg-red-500/70 text-white p-10 rounded-3xl flex flex-col items-center gap-4">
+            <p className="text-4xl font-bold">❌ Incorrect ❌</p>
+            <button
+              onClick={() => setShowIncorrect(false)}
+              className="bg-white text-red-600 px-6 py-3 rounded-xl"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* HINT POPUP */}
+      {showHintModal && (
+        <div className="fixed inset-0 bg-black/60 flex-center z-50">
+          <div className="bg-yellow-500/70 text-white p-10 rounded-3xl flex flex-col items-center gap-4">
+            <p className="text-3xl font-bold">💡 Hint</p>
+            <p>{currentQuestion.hint || "Look carefully!"}</p>
+            <button
+              onClick={() => setShowHintModal(false)}
+              className="bg-white text-yellow-600 px-6 py-3 rounded-xl"
+            >
+              Got It
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* SETTINGS MODAL */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 bg-black/60 flex-center z-50">
+          <div className="bg-white p-8 rounded-3xl w-[90%] max-w-md flex flex-col gap-6">
+            <h2 className="text-2xl font-bold text-center">⚙️ Settings</h2>
+            <p className="text-gray-600 text-center">
+              Continue or return to game setup?
+            </p>
+
+            <button
+              onClick={() => onRestartGame()}
+              className="bg-blue-500 text-white px-6 py-3 font-bold rounded-xl hover:bg-blue-600"
+            >
+              🔄 Restart Game
+            </button>
+
+            <button
+              onClick={() => setShowSettingsModal(false)}
+              className="bg-gray-300 px-6 py-3 font-bold rounded-xl"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
