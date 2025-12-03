@@ -175,7 +175,7 @@ const TQ_SetupScreen = ({
           <div className="flex w-full items-center justify-between gap-2">
             <Link
               href="/"
-              className="group flex flex-row items-center px-4 py-2 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20 hover:cursor-pointer hover:bg-slate-800/80 hover:border-white/30 transition-all duration-300 ease-in-out"
+              className="group flex flex-row items-center px-4 py-2 bg-slate-900/85 backdrop-blur-md shadow-2xl border-2 border-white/30 rounded-2xl hover:cursor-pointer hover:bg-slate-800/80 hover:border-white/30 transition-all duration-300 ease-in-out"
             >
               <ChevronLeft className="w-5 h-5 text-white group-hover:text-slate-300 transition-all duration-300 ease-in-out" />
               <p className="font-bold text-md text-white group-hover:text-slate-300 transition-all duration-300 ease-in-out">
@@ -184,7 +184,7 @@ const TQ_SetupScreen = ({
             </Link>
             <button
               onClick={() => setLeaderboardView(true)}
-              className="group gap-1 flex flex-row items-center px-4 py-2 rounded-lg bg-slate-900/60 backdrop-blur-sm border-2 border-amber-400/60 animate-shine-border hover:cursor-pointer hover:bg-slate-800/80 transition-all duration-300 ease-in-out"
+              className="group gap-1 flex flex-row items-center px-4 py-2 bg-slate-900/85 backdrop-blur-md shadow-2xl border-2 border-amber-400/60 animate-shine-border rounded-2xl hover:cursor-pointer hover:bg-slate-800/80 transition-all duration-300 ease-in-out"
             >
               <Trophy className="w-5 h-5 text-amber-400 group-hover:text-amber-300 transition-all duration-300 ease-in-out" />
               <p className="font-bold text-md text-amber-400 group-hover:text-amber-300 transition-all duration-300 ease-in-out">
@@ -194,17 +194,33 @@ const TQ_SetupScreen = ({
           </div>
 
           {/* Title - compact */}
-          <h1 className="text-6xl font-black text-white leading-tight">
+          <style>{`
+            .text-with-border {
+              color: white;
+              text-shadow:
+                -2px -2px 0 rgba(0, 0, 0, 1),
+                2px -2px 0 rgba(0, 0, 0, 1),
+                -2px 2px 0 rgba(0, 0, 0, 1),
+                2px 2px 0 rgba(0, 0, 0, 1),
+                -1px -1px 0 rgba(0, 0, 0, 1),
+                1px -1px 0 rgba(0, 0, 0, 1),
+                -1px 1px 0 rgba(0, 0, 0, 1),
+                1px 1px 0 rgba(0, 0, 0, 1);
+            }
+          `}</style>
+          <h1 className="text-6xl font-black leading-tight drop-shadow-2xl text-with-border">
             Type Quest
           </h1>
 
           {/* Player Name Input */}
           <div className="flex flex-col gap-2 w-full max-w-md">
-            <p className="text-lg text-white font-semibold">Player Name:</p>
+            <p className="text-lg text-white font-semibold text-with-border">
+              Player Name:
+            </p>
             <input
               value={playerName}
               onChange={(e) => handlePlayerNameChange(e)}
-              className="bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-lg p-3 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all placeholder:text-slate-400"
+              className="bg-slate-900/85 backdrop-blur-md shadow-2xl border-2 border-white/30 text-white text-lg p-3 rounded-2xl w-full focus:outline-none focus:border-white/50 transition-all placeholder:text-slate-400"
               placeholder="Enter your name"
             />
           </div>
@@ -212,12 +228,14 @@ const TQ_SetupScreen = ({
           {/* Grade & Mode - side by side */}
           <div className="flex gap-4 w-full max-w-md">
             <div className="flex flex-col gap-2 flex-1">
-              <p className="text-lg text-white font-semibold">Grade:</p>
+              <p className="text-lg text-white font-semibold text-with-border">
+                Grade:
+              </p>
               <div className="relative">
                 <select
                   value={gradeLevel}
                   onChange={(e) => handleGradeLevelChange(e)}
-                  className="appearance-none bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-lg p-3 pr-10 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all cursor-pointer"
+                  className="appearance-none bg-slate-900/85 backdrop-blur-md shadow-2xl border-2 border-white/30 text-white text-lg p-3 pr-10 rounded-2xl w-full focus:outline-none focus:border-white/50 transition-all cursor-pointer"
                   style={{
                     WebkitAppearance: "none",
                     MozAppearance: "none",
@@ -253,12 +271,14 @@ const TQ_SetupScreen = ({
             </div>
 
             <div className="flex flex-col gap-2 flex-1">
-              <p className="text-lg text-white font-semibold">Mode:</p>
+              <p className="text-lg text-white font-semibold text-with-border">
+                Mode:
+              </p>
               <div className="relative">
                 <select
                   value={gameMode}
                   onChange={(e) => handleGameModeChange(e)}
-                  className="appearance-none bg-slate-900/60 backdrop-blur-sm border border-white/30 text-white text-lg p-3 pr-10 rounded-lg w-full focus:outline-none focus:border-white/50 transition-all cursor-pointer"
+                  className="appearance-none bg-slate-900/85 backdrop-blur-md shadow-2xl border-2 border-white/30 text-white text-lg p-3 pr-10 rounded-2xl w-full focus:outline-none focus:border-white/50 transition-all cursor-pointer"
                   style={{
                     WebkitAppearance: "none",
                     MozAppearance: "none",
@@ -297,7 +317,7 @@ const TQ_SetupScreen = ({
           {/* Start Game Button */}
           <button
             onClick={() => handleStartGame(gameMode, gradeLevel, playerName)}
-            className="bg-green-500 hover:bg-green-600 text-white text-xl font-bold px-6 py-4 rounded-lg hover:cursor-pointer hover:scale-105 transition-all duration-300 ease-in-out w-full max-w-md shadow-lg"
+            className="bg-green-500 hover:bg-green-600 backdrop-blur-md shadow-2xl border-2 border-green-800/50 text-white text-xl font-bold px-6 py-4 rounded-2xl hover:cursor-pointer hover:scale-105 transition-all duration-300 ease-in-out w-full max-w-md"
           >
             Start Game
           </button>
