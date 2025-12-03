@@ -414,10 +414,10 @@ const TQ_ActiveScreen = ({
                 key={index}
                 onClick={() => setErrorClick(true)}
                 disabled={isCorrectAnswer !== 0 || errorClick}
-                className={`flex flex-col items-center justify-center bg-slate-800/80 backdrop-blur-sm rounded-lg px-4 py-3 transition-all duration-300 ease-in-out shadow-md border border-white/20 min-h-[70px] hover:bg-slate-700/80 hover:border-white/40 ${
-                  isCorrectAnswer !== 0 || errorClick
-                    ? "pointer-events-none opacity-50 cursor-not-allowed"
-                    : "cursor-pointer"
+                className={`flex flex-col items-center justify-center bg-slate-800/80 backdrop-blur-sm rounded-lg px-4 py-3 transition-all duration-300 ease-in-out shadow-md border border-white/20 min-h-[70px] ${
+                  isCorrectAnswer !== 0 ||
+                  (errorClick &&
+                    "pointer-events-none opacity-50 cursor-not-allowed")
                 }`}
               >
                 <p className="text-lg text-center font-bold text-slate-100">
