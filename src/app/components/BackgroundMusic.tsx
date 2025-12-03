@@ -11,7 +11,7 @@ export default function BackgroundMusic() {
     const unregister = registerAudio({
       id: "background-music",
       src: "/Assets/bgm.mp3",
-      volume: 0.3,
+      volume: 0.2,
       loop: true,
       priority: 1, // Low priority - can be overridden
     });

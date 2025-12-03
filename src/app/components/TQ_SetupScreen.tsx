@@ -198,14 +198,24 @@ const TQ_SetupScreen = ({
             .text-with-border {
               color: white;
               text-shadow:
-                -2px -2px 0 rgba(0, 0, 0, 1),
-                2px -2px 0 rgba(0, 0, 0, 1),
-                -2px 2px 0 rgba(0, 0, 0, 1),
-                2px 2px 0 rgba(0, 0, 0, 1),
                 -1px -1px 0 rgba(0, 0, 0, 1),
                 1px -1px 0 rgba(0, 0, 0, 1),
                 -1px 1px 0 rgba(0, 0, 0, 1),
-                1px 1px 0 rgba(0, 0, 0, 1);
+                1px 1px 0 rgba(0, 0, 0, 1),
+                -0.5px -0.5px 0 rgba(0, 0, 0, 1),
+                0.5px -0.5px 0 rgba(0, 0, 0, 1),
+                -0.5px 0.5px 0 rgba(0, 0, 0, 1),
+                0.5px 0.5px 0 rgba(0, 0, 0, 1);
+            }
+            .icon-with-border {
+              filter: drop-shadow(-1px -1px 0 rgba(0, 0, 0, 1))
+                      drop-shadow(1px -1px 0 rgba(0, 0, 0, 1))
+                      drop-shadow(-1px 1px 0 rgba(0, 0, 0, 1))
+                      drop-shadow(1px 1px 0 rgba(0, 0, 0, 1))
+                      drop-shadow(-0.5px -0.5px 0 rgba(0, 0, 0, 1))
+                      drop-shadow(0.5px -0.5px 0 rgba(0, 0, 0, 1))
+                      drop-shadow(-0.5px 0.5px 0 rgba(0, 0, 0, 1))
+                      drop-shadow(0.5px 0.5px 0 rgba(0, 0, 0, 1));
             }
           `}</style>
           <h1 className="text-6xl font-black leading-tight drop-shadow-2xl text-with-border">

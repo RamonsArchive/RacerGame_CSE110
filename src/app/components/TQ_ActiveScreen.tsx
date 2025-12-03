@@ -79,7 +79,7 @@ const TQ_ActiveScreen = ({
     if (errorClick) {
       // playsound effect
       const audio = new Audio("/Assets/TypeQuest/honk.mp3");
-      audio.volume = 0.4;
+      audio.volume = 0.3;
       audio.play();
       errorTimeoutRef.current = setTimeout(() => {
         setErrorClick(false);
@@ -97,12 +97,12 @@ const TQ_ActiveScreen = ({
     if (isCorrectAnswer === 1) {
       // playsound effect
       const audio = new Audio("/Assets/TypeQuest/accelerate.mov");
-      audio.volume = 0.4;
+      audio.volume = 0.3;
       audio.play();
     } else if (isCorrectAnswer === -1) {
       // playsound effect
       const audio = new Audio("/Assets/TypeQuest/screech.mov");
-      audio.volume = 0.4;
+      audio.volume = 0.3;
       audio.play();
       // shake the screen
       document.body.classList.add("shake");
@@ -376,14 +376,24 @@ const TQ_ActiveScreen = ({
           .text-with-border {
             color: white;
             text-shadow:
-              -2px -2px 0 rgba(0, 0, 0, 1),
-              2px -2px 0 rgba(0, 0, 0, 1),
-              -2px 2px 0 rgba(0, 0, 0, 1),
-              2px 2px 0 rgba(0, 0, 0, 1),
               -1px -1px 0 rgba(0, 0, 0, 1),
               1px -1px 0 rgba(0, 0, 0, 1),
               -1px 1px 0 rgba(0, 0, 0, 1),
-              1px 1px 0 rgba(0, 0, 0, 1);
+              1px 1px 0 rgba(0, 0, 0, 1),
+              -0.5px -0.5px 0 rgba(0, 0, 0, 1),
+              0.5px -0.5px 0 rgba(0, 0, 0, 1),
+              -0.5px 0.5px 0 rgba(0, 0, 0, 1),
+              0.5px 0.5px 0 rgba(0, 0, 0, 1);
+          }
+          .icon-with-border {
+            filter: drop-shadow(-1px -1px 0 rgba(0, 0, 0, 1))
+              drop-shadow(1px -1px 0 rgba(0, 0, 0, 1))
+              drop-shadow(-1px 1px 0 rgba(0, 0, 0, 1))
+              drop-shadow(1px 1px 0 rgba(0, 0, 0, 1))
+              drop-shadow(-0.5px -0.5px 0 rgba(0, 0, 0, 1))
+              drop-shadow(0.5px -0.5px 0 rgba(0, 0, 0, 1))
+              drop-shadow(-0.5px 0.5px 0 rgba(0, 0, 0, 1))
+              drop-shadow(0.5px 0.5px 0 rgba(0, 0, 0, 1));
           }
         `}</style>
       </div>
