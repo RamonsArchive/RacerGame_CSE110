@@ -1312,7 +1312,7 @@ const TypeQuestPage = () => {
     <div className="w-full h-dvh bg-linear-to-br from-primary-800 via-secondary-800 to-tertiary-700">
       <GameMusic
         src="/Assets/TypeQuest/TQ_bgmusic.mov"
-        volume={0.4}
+        volume={0.2}
         enabled={gameStatus === "active"}
       />
       {gameStatus === "setup" && (

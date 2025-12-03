@@ -177,7 +177,7 @@ const TQ_FinishedScreen = ({
           <div className="flex flex-col gap-6 shrink-0">
             {/* Title */}
             <div className="flex items-start">
-              <div className="px-6 py-4 bg-linear-to-br from-slate-800/90 via-slate-700/80 to-slate-900/90 rounded-lg shadow-md border border-white/10">
+              <div className="px-6 py-4 bg-linear-to-br bg-slate-900/85 backdrop-blur-md shadow-2xl border-2 border-white/30 rounded-2xl">
                 <h1 className="text-5xl font-bold text-white">
                   Race Completed!
                 </h1>
@@ -186,7 +186,7 @@ const TQ_FinishedScreen = ({
 
             {/* Winner Announcement */}
             <div className="flex items-start">
-              <div className="px-6 py-4 bg-linear-to-br from-slate-800/90 via-slate-700/80 to-slate-900/90 rounded-lg shadow-md border border-white/10">
+              <div className="px-6 py-4 bg-linear-to-br bg-slate-900/85 backdrop-blur-md shadow-2xl border-2 border-white/30 rounded-2xl">
                 {getWinnerMessage()}
               </div>
             </div>
@@ -209,7 +209,7 @@ const TQ_FinishedScreen = ({
             <div className="flex flex-col w-full gap-3">
               <button
                 onClick={() => setOpenLeaderboard(true)}
-                className="flex items-center justify-center gap-2 w-full bg-slate-200/90 hover:bg-slate-100/90 text-slate-900 font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+                className="flex items-center justify-center gap-2 w-full bg-slate-200/90 backdrop-blur-md shadow-2xl border-2 border-slate-300/50 hover:bg-slate-100/90 text-slate-900 font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 "
               >
                 <span>🏆</span>
                 View Leaderboard
@@ -235,15 +235,17 @@ const TQ_FinishedScreen = ({
                     onClick={() =>
                       gameState && handlePlayAgainWithCPU(gameState)
                     }
-                    className="flex-1 bg-green-600/90 hover:bg-green-700/90 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+                    className="flex-1 bg-green-600/90 hover:bg-green-700/90 backdrop-blur-md border-2 border-green-800/50 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
                   >
+                    <span className="mr-2">🔄</span>
                     Play Again
                   </button>
                 )}
                 <button
                   onClick={handleGameReset}
-                  className="flex-1 bg-primary-600/90 hover:bg-primary-700/90 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
+                  className="flex-1 bg-primary-600/90 hover:bg-primary-700/90 backdrop-blur-md border-2 border-primary-800/50 text-white font-bold text-xl py-4 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg"
                 >
+                  <span className="mr-2">🏠</span>
                   Back to Menu
                 </button>
               </div>

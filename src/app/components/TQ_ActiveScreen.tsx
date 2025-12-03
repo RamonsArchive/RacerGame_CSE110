@@ -4,7 +4,6 @@ import { GameState } from "../constants/index_typequest";
 import BackTo from "./BackTo";
 import { getProgressPercentage } from "@/lib/utils_typequest";
 import Image from "next/image";
-import GameMusic from "./GameMusic";
 const TQ_ActiveScreen = ({
   gameState,
   onAnswerSubmit,
@@ -80,7 +79,7 @@ const TQ_ActiveScreen = ({
     if (errorClick) {
       // playsound effect
       const audio = new Audio("/Assets/TypeQuest/honk.mp3");
-      audio.volume = 0.4;
+      audio.volume = 0.3;
       audio.play();
       errorTimeoutRef.current = setTimeout(() => {
         setErrorClick(false);
@@ -98,12 +97,12 @@ const TQ_ActiveScreen = ({
     if (isCorrectAnswer === 1) {
       // playsound effect
       const audio = new Audio("/Assets/TypeQuest/accelerate.mov");
-      audio.volume = 0.4;
+      audio.volume = 0.3;
       audio.play();
     } else if (isCorrectAnswer === -1) {
       // playsound effect
       const audio = new Audio("/Assets/TypeQuest/screech.mov");
-      audio.volume = 0.4;
+      audio.volume = 0.3;
       audio.play();
       // shake the screen
       document.body.classList.add("shake");
@@ -154,15 +153,19 @@ const TQ_ActiveScreen = ({
       <div className="flex justify-between items-center w-full relative z-10">
         <BackTo title="Back To Home" onClick={handleGameReset} />
         <div className="flex flex-row items-center gap-4">
-          <div className="flex flex-row items-center gap-2 px-4 py-2 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
-            <p className="text-md font-semibold text-slate-100">Question</p>
+          <div className="flex flex-row items-center gap-2 px-4 py-2 rounded-2xl bg-slate-900/85 backdrop-blur-md shadow-2xl border-2 border-white/30">
+            <p className="text-md font-semibold text-slate-100 text-with-border">
+              Question
+            </p>
             <p className="text-md font-bold text-slate-100">
               {currentPlayer?.questionsAnswered || 0} {" / "}{" "}
               {gameState?.totalQuestions || 0}
             </p>
           </div>
-          <div className="flex flex-row items-center gap-2 px-4 py-2 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
-            <p className="text-md font-semibold text-slate-100">Mistakes</p>
+          <div className="flex flex-row items-center gap-2 px-4 py-2 rounded-2xl bg-slate-900/85 backdrop-blur-md shadow-2xl border-2 border-white/30">
+            <p className="text-md font-semibold text-slate-100 text-with-border">
+              Mistakes
+            </p>
             <p className="text-md font-bold text-slate-100">
               {currentPlayer?.currentQuestionMistakes || 0}
             </p>
@@ -172,8 +175,10 @@ const TQ_ActiveScreen = ({
 
       {/* Progress Bars */}
       <div className="flex flex-row items-center gap-10 shrink-0 relative z-10">
-        <div className="flex flex-col gap-2 w-[50%] items-start px-4 py-3 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
-          <p className="text-sm font-semibold text-slate-100">Your Progress</p>
+        <div className="flex flex-col gap-2 w-[50%] items-start px-4 py-3 rounded-2xl bg-slate-900/85 backdrop-blur-md shadow-2xl border-2 border-white/30">
+          <p className="text-sm font-semibold text-slate-100 text-with-border">
+            Your Progress
+          </p>
           <div className="relative w-full h-5 bg-slate-100 rounded-full">
             <div
               className={`absolute top-0 left-0 h-full bg-green-500 rounded-full`}
@@ -192,10 +197,10 @@ const TQ_ActiveScreen = ({
             />
           </div>
         </div>
-        <div className="flex flex-1 flex-col gap-2 items-start px-4 py-3 rounded-lg bg-slate-900/60 backdrop-blur-sm border border-white/20">
+        <div className="flex flex-1 flex-col gap-2 items-start px-4 py-3 rounded-2xl bg-slate-900/85 backdrop-blur-md shadow-2xl border-2 border-white/30">
           <div className="flex flex-row gap-5 items-center w-full">
             <p
-              className={`text-sm font-semibold text-slate-100 ${
+              className={`text-sm font-semibold text-slate-100 text-with-border ${
                 opponentLeftGame ? "line-through opacity-60" : ""
               }`}
             >
@@ -368,32 +373,54 @@ const TQ_ActiveScreen = ({
             animation: slide-in-right 0.4s
               cubic-bezier(0.68, -0.55, 0.265, 1.55);
           }
+          .text-with-border {
+            color: white;
+            text-shadow:
+              -1px -1px 0 rgba(0, 0, 0, 1),
+              1px -1px 0 rgba(0, 0, 0, 1),
+              -1px 1px 0 rgba(0, 0, 0, 1),
+              1px 1px 0 rgba(0, 0, 0, 1),
+              -0.5px -0.5px 0 rgba(0, 0, 0, 1),
+              0.5px -0.5px 0 rgba(0, 0, 0, 1),
+              -0.5px 0.5px 0 rgba(0, 0, 0, 1),
+              0.5px 0.5px 0 rgba(0, 0, 0, 1);
+          }
+          .icon-with-border {
+            filter: drop-shadow(-1px -1px 0 rgba(0, 0, 0, 1))
+              drop-shadow(1px -1px 0 rgba(0, 0, 0, 1))
+              drop-shadow(-1px 1px 0 rgba(0, 0, 0, 1))
+              drop-shadow(1px 1px 0 rgba(0, 0, 0, 1))
+              drop-shadow(-0.5px -0.5px 0 rgba(0, 0, 0, 1))
+              drop-shadow(0.5px -0.5px 0 rgba(0, 0, 0, 1))
+              drop-shadow(-0.5px 0.5px 0 rgba(0, 0, 0, 1))
+              drop-shadow(0.5px 0.5px 0 rgba(0, 0, 0, 1));
+          }
         `}</style>
       </div>
-      <div className="flex flex-row gap-5 items-center w-full">
-        <div className="flex flex-col gap-6 w-full max-w-2xl ml-10 pt-10 p-5 relative z-10">
+      <div className="flex flex-row gap-5 items-center w-full max-w-6xl">
+        {/* Unified Game Container */}
+        <div className="flex flex-col gap-4 w-full max-w-2xl bg-slate-900/85 backdrop-blur-md rounded-2xl p-5 shadow-2xl border-2 border-white/30 mr-auto">
           {/* Question Prompt */}
-          <div className="flex-center w-full">
-            <div className="bg-slate-900/70 backdrop-blur-md rounded-2xl px-8 py-6 shadow-2xl border-2 border-white/30">
-              <p className="text-3xl font-bold text-slate-100 text-center leading-tight">
-                {currentQuestion?.prompt}
-              </p>
-            </div>
+          <div className="bg-slate-800/80 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg border border-white/20">
+            <p className="text-2xl font-bold text-slate-100 text-center leading-tight">
+              {currentQuestion?.prompt}
+            </p>
           </div>
 
           {/* Choices Grid */}
-          <div className="grid grid-cols-2 w-full gap-4">
+          <div className="grid grid-cols-2 gap-3">
             {choices.map((choice: string, index: number) => (
               <button
                 key={index}
                 onClick={() => setErrorClick(true)}
                 disabled={isCorrectAnswer !== 0 || errorClick}
-                className={`flex flex-col items-center justify-center bg-slate-900/70 backdrop-blur-md rounded-xl px-6 py-5 transition-all duration-300 ease-in-out shadow-lg border-2 border-white/30 min-h-[80px] ${
-                  isCorrectAnswer !== 0 ||
-                  (errorClick && "pointer-events-none cursor-not-allowed")
+                className={`flex flex-col items-center justify-center bg-slate-800/80 backdrop-blur-sm rounded-lg px-4 py-3 transition-all duration-300 ease-in-out shadow-md border border-white/20 min-h-[70px] hover:bg-slate-700/80 hover:border-white/40 ${
+                  isCorrectAnswer !== 0 || errorClick
+                    ? "pointer-events-none opacity-50 cursor-not-allowed"
+                    : "cursor-pointer"
                 }`}
               >
-                <p className="text-xl text-center font-bold text-slate-100">
+                <p className="text-lg text-center font-bold text-slate-100">
                   {choice}
                 </p>
               </button>
@@ -401,36 +428,30 @@ const TQ_ActiveScreen = ({
           </div>
 
           {/* Input Section */}
-          <div className="flex flex-row gap-4 items-start">
-            <div className="flex-1 flex flex-col gap-4">
-              <div className="relative flex-row items-center rounded-xl border-2 border-white/40 shadow-xl bg-slate-900/70 backdrop-blur-md hover:border-white/60 transition-all duration-300">
-                <input
-                  className="w-full text-semibold text-xl px-6 py-6 rounded-xl border-0 bg-transparent text-slate-100 placeholder:text-slate-400/70 outline-none focus:outline-none focus:ring-0"
-                  value={textInput}
-                  onChange={(e) => setTextInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
+          <div className="relative rounded-lg border-2 border-white/30 shadow-lg bg-slate-800/80 backdrop-blur-sm hover:border-white/50 transition-all duration-300">
+            <input
+              className="w-full text-semibold text-xl px-5 py-4 rounded-lg border-0 bg-transparent text-slate-100 placeholder:text-slate-400/70 outline-none focus:outline-none focus:ring-0"
+              value={textInput}
+              onChange={(e) => setTextInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
 
-                      // If feedback modal is showing, dismiss it instead of submitting
-                      if (isCorrectAnswer !== 0 && onDismissFeedback) {
-                        onDismissFeedback();
-                        return;
-                      }
+                  // If feedback modal is showing, dismiss it instead of submitting
+                  if (isCorrectAnswer !== 0 && onDismissFeedback) {
+                    onDismissFeedback();
+                    return;
+                  }
 
-                      // Otherwise, submit the answer normally
-                      if (textInput.trim()) {
-                        onAnswerSubmit(textInput);
-                        setTextInput("");
-                      }
-                    }
-                  }}
-                  placeholder="Type your answer here..."
-                />
-              </div>
-            </div>
-
-            {/* Error Click Warning Popup - appears on right side */}
+                  // Otherwise, submit the answer normally
+                  if (textInput.trim()) {
+                    onAnswerSubmit(textInput);
+                    setTextInput("");
+                  }
+                }
+              }}
+              placeholder="Type your answer here..."
+            />
           </div>
         </div>
 
@@ -548,13 +569,28 @@ const TQ_ActiveScreen = ({
           )}vw), calc(-50% + ${playerMoveY.toFixed(2)}vw))`,
         }}
       >
-        <Image
-          src="/Assets/TypeQuest/racer car 1.png"
-          alt="Player Car"
-          width={480}
-          height={480}
-          className="object-contain"
-        />
+        <div className="relative">
+          {/* Player tag - green circle with "You" label */}
+          <div className="relative w-fit h-fit">
+            <Image
+              src="/Assets/TypeQuest/racer car 1.png"
+              alt="Player Car"
+              width={480}
+              height={480}
+              className="object-contain"
+            />
+            <div
+              className="absolute left-1/2 -translate-x-1/2 z-10"
+              style={{ top: "55%" }}
+            >
+              <div className="flex flex-col items-center gap-1">
+                <div className="bg-green-500 rounded-full w-10 h-10 flex items-center justify-center shadow-lg border-2 border-white/80">
+                  <span className="text-white text-xs font-black">You</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Opponent's car on the right side of the road */}
@@ -570,13 +606,31 @@ const TQ_ActiveScreen = ({
           )}vw), calc(-50% + ${opponentMoveY.toFixed(2)}vw))`,
         }}
       >
-        <Image
-          src="/Assets/TypeQuest/racer car 2.png"
-          alt="Opponent Car"
-          width={480}
-          height={480}
-          className="object-contain"
-        />
+        <div className="relative">
+          {/* Opponent tag - orange circle with "Opponent" label */}
+
+          <div className="relative w-fit h-fit">
+            <Image
+              src="/Assets/TypeQuest/racer car 2.png"
+              alt="Opponent Car"
+              width={480}
+              height={480}
+              className="object-contain"
+            />
+            <div
+              className="absolute left-1/2 -translate-x-1/2 z-10"
+              style={{ top: "42%" }}
+            >
+              <div className="flex flex-col items-center gap-1">
+                <div className="bg-orange-500 rounded-full w-20 h-10 flex items-center justify-center shadow-lg border-2 border-white/80 px-2">
+                  <span className="text-white text-xs font-black">
+                    Opponent
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

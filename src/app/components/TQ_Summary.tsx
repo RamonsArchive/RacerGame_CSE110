@@ -23,7 +23,7 @@ const TQ_Summary = ({
   const currentName = gameState.currentPlayer.playerName;
   const opponentName = gameState.opponent?.playerName;
   return (
-    <div className="flex flex-row w-full p-4 gap-4 bg-linear-to-br from-slate-800/90 via-slate-700/80 to-slate-900/90 rounded-lg shadow-md border border-white/10">
+    <div className="flex flex-row w-full p-4 gap-4 bg-linear-to-br bg-slate-900/85 backdrop-blur-md shadow-2xl border-2 border-white/30 rounded-2xl">
       {/* Current Player Column */}
       <div className="flex w-[50%] flex-col gap-3">
         <div className="pb-1 border-b border-white/20">
