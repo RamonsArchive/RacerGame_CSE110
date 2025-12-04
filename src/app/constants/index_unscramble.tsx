@@ -47,6 +47,7 @@ export interface UnscrambleGameState {
   totalQuestions: number;
   score: number;
   mistakes: number;
+  totalAttempts: number;
   isGameFinished: boolean;
   startTime: number | null;
   endTime: number | null;

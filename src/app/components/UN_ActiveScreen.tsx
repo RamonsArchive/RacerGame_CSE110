@@ -247,11 +247,18 @@ const UN_ActiveScreen = ({
     const userWord = slots.map((t) => t?.ch || "").join("");
     const correct = normalize(currentQuestion.unscrambledAnswer);
 
+    // ✅ Increment totalAttempts and update state first
+    const stateWithAttempt = {
+      ...currentGameState,
+      totalAttempts: (currentGameState.totalAttempts || 0) + 1,
+    };
+
     if (normalize(userWord) === correct) {
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
-        const updated = handleCorrectAnswer(currentGameState);
+        // ✅ Pass stateWithAttempt to preserve totalAttempts
+        const updated = handleCorrectAnswer(stateWithAttempt);
         setCurrentGameState(updated);
         if (updated.isGameFinished) {
           updated.status = "finished";
@@ -261,12 +268,27 @@ const UN_ActiveScreen = ({
       }, 1500);
     } else {
       setShowIncorrect(true);
-      setCurrentGameState(handleIncorrectAnswer(currentGameState, userWord));
+      // ✅ Pass stateWithAttempt to preserve totalAttempts
+      setCurrentGameState(handleIncorrectAnswer(stateWithAttempt, userWord));
     }
   };
 
   return (
     <div className="relative w-full h-dvh overflow-hidden">
+      <style>{`
+        .text-with-border {
+          color: white;
+          text-shadow:
+            -1px -1px 0 rgba(0, 0, 0, 1),
+            1px -1px 0 rgba(0, 0, 0, 1),
+            -1px 1px 0 rgba(0, 0, 0, 1),
+            1px 1px 0 rgba(0, 0, 0, 1),
+            -0.5px -0.5px 0 rgba(0, 0, 0, 1),
+            0.5px -0.5px 0 rgba(0, 0, 0, 1),
+            -0.5px 0.5px 0 rgba(0, 0, 0, 1),
+            0.5px 0.5px 0 rgba(0, 0, 0, 1);
+        }
+      `}</style>
       <Image
         src="/Assets/Unscramble/unscramble.png"
         alt="Background"
@@ -275,8 +297,43 @@ const UN_ActiveScreen = ({
         className="absolute inset-0 -z-10 object-cover"
       />
 
-      <div className="relative z-10 flex-center p-4 h-full">
+      <div className="relative flex flex-col gap-6 z-10 flex-center p-4 h-full">
+        {/* Title */}
+        <h1 className="text-center text-6xl font-black text-slate-100 mb-4 text-with-border">
+          Unscramble
+        </h1>
+
+        {/* Main Card (includes progress + game content) */}
         <div className="flex flex-col w-full max-w-4xl gap-6 bg-white/60 backdrop-blur-md p-8 rounded-3xl shadow-2xl">
+          {/* Progress */}
+          <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-center">
+              <p className="text-lg font-semibold text-gray-800">
+                Question {currentGameState.currentQuestionIndex + 1} of{" "}
+                {currentGameState.totalQuestions}
+              </p>
+              <p className="text-lg font-bold bg-green-400/80 px-4 py-2 rounded-full shadow">
+                ⭐ Score: {currentGameState.score}
+              </p>
+            </div>
+            <div className="w-full h-4 rounded-full bg-gray-200/90 overflow-hidden shadow-inner">
+              <div
+                className="h-full bg-yellow-400 rounded-full transition-all duration-300"
+                style={{
+                  width: `${Math.max(
+                    0,
+                    Math.min(
+                      100,
+                      (currentGameState.currentQuestionIndex /
+                        currentGameState.totalQuestions) *
+                        100
+                    )
+                  )}%`,
+                }}
+              />
+            </div>
+          </div>
+
           {/* HEADER */}
           <div className="flex justify-between items-center">
             <Link

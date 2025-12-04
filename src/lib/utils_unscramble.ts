@@ -49,6 +49,7 @@ export const initializeGame = (
     totalQuestions: questions.length,
     score: 0,
     mistakes: 0,
+    totalAttempts: 0, // ✅ Initialize totalAttempts
     isGameFinished: false,
     startTime: Date.now(),
     endTime: null,
@@ -293,10 +294,11 @@ export const createGameResult = (
       ? (gameState.endTime - gameState.startTime) / 1000 // Convert to seconds
       : 0;
 
+  // ✅ Calculate accuracy: correct answers / total attempts
+  const totalAttempts =
+    gameState.totalAttempts || gameState.totalQuestions || 1;
   const accuracy =
-    gameState.totalQuestions > 0
-      ? (gameState.score / gameState.totalQuestions) * 100
-      : 0;
+    totalAttempts > 0 ? (gameState.score / totalAttempts) * 100 : 100; // Default to 100% if no attempts
 
   return {
     gameId: gameState.gameId,

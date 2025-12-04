@@ -15,8 +15,15 @@ const UN_FinishedScreen = ({
   onPlayAgain: () => void;
   onBackHome: () => void;
 }) => {
+  // ✅ Calculate accuracy: correct answers / total attempts
+  // If totalAttempts is 0 or undefined, default to score/totalQuestions (all correct)
+  const totalAttempts =
+    gameState.totalAttempts || gameState.totalQuestions || 1;
+  const accuracy =
+    totalAttempts > 0 ? (gameState.score / totalAttempts) * 100 : 100;
+
   const result = createGameResult(gameState);
-  const accuracy = result.accuracy;
+  result.accuracy = Math.round(accuracy * 10) / 10; // Round to 1 decimal place
 
   // Determine message based on performance
   const getPerformanceMessage = () => {
@@ -50,7 +57,7 @@ const UN_FinishedScreen = ({
   const performance = getPerformanceMessage();
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
+    <div className="relative w-full h-dvh overflow-hidden">
       {/* Background image matching provided art */}
       <div className="fixed inset-0 -z-10">
         <Image
@@ -63,84 +70,81 @@ const UN_FinishedScreen = ({
         />
       </div>
 
-      {/* Main Content */}
-      <div className="relative z-10 flex items-center justify-center w-full h-screen p-4 overflow-y-auto">
-        <div className="flex flex-col w-full max-w-3xl gap-4 bg-white/50 backdrop-blur-md p-10 rounded-3xl shadow-2xl my-2">
-          {/* Header */}
-          <Link
-            href="/"
-            className="group flex items-center gap-2 px-4 py-2 bg-blue-500/70 hover:bg-blue-600/70 text-white rounded-xl font-bold transition-all hover:scale-105 w-fit backdrop-blur-sm"
-          >
-            <ChevronLeft className="w-5 h-5" />
-            <span>Back to Home</span>
-          </Link>
+      {/* Main Content - Full-height card that fills most of the screen */}
+      <div className="relative z-10 flex items-center justify-center w-full h-dvh p-6">
+        <div className="flex flex-col w-full max-w-4xl h-[88vh] gap-6 bg-white/60 backdrop-blur-md p-8 rounded-3xl shadow-2xl overflow-y-auto scrollbar-hidden">
+          {/* Header - Larger */}
+          <div className="flex items-center justify-between shrink-0">
+            <Link
+              href="/"
+              className="group flex items-center gap-2 px-4 py-2 bg-blue-500/70 hover:bg-blue-600/70 text-white rounded-lg text-base font-bold transition-all hover:scale-105 backdrop-blur-sm"
+            >
+              <ChevronLeft className="w-5 h-5" />
+              <span>Back to Home</span>
+            </Link>
+            <span className="bg-emerald-600 text-white px-5 py-2 rounded-full text-base font-bold shadow">
+              {gameState.gradeLevel}
+            </span>
+          </div>
 
-          {/* Title */}
-          <h1 className="text-5xl md:text-6xl font-black text-center text-emerald-700 drop-shadow-[0_2px_2px_rgba(0,0,0,0.2)]">
+          {/* Title - Larger */}
+          <h1 className="text-4xl md:text-5xl font-black text-center text-emerald-700 drop-shadow-[0_2px_2px_rgba(0,0,0,0.2)] shrink-0">
             The words have been unscrambled!
           </h1>
 
-          {/* Performance Message */}
-          <div className="text-center p-6 rounded-2xl bg-emerald-100 text-emerald-800 shadow-lg">
-            <p className="text-5xl mb-2">{performance.emoji}</p>
-            <h2 className="text-4xl font-extrabold">{performance.text}</h2>
-            <p className="text-xl mt-2">
-              You completed all {gameState.totalQuestions} grammar challenges!
+          {/* Performance Message - Larger */}
+          <div className="text-center p-5 rounded-xl bg-emerald-100 text-emerald-800 shadow shrink-0">
+            <p className="text-4xl mb-2">{performance.emoji}</p>
+            <h2 className="text-3xl font-extrabold">{performance.text}</h2>
+            <p className="text-base mt-2">
+              Completed {gameState.totalQuestions} challenges!
             </p>
           </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-emerald-50 p-6 rounded-2xl text-emerald-800 shadow">
-              <p className="text-lg font-bold mb-2">⭐ Score</p>
-              <p className="text-4xl font-black">
+          {/* Stats Grid - Larger */}
+          <div className="grid grid-cols-4 gap-3 shrink-0">
+            <div className="bg-emerald-50 p-5 rounded-xl text-emerald-800 shadow text-center">
+              <p className="text-sm font-bold mb-2">⭐ Score</p>
+              <p className="text-3xl font-black">
                 {gameState.score}/{gameState.totalQuestions}
               </p>
             </div>
-            <div className="bg-emerald-50 p-6 rounded-2xl text-emerald-800 shadow">
-              <p className="text-lg font-bold mb-2">🎯 Accuracy</p>
-              <p className="text-4xl font-black">{accuracy.toFixed(1)}%</p>
+            <div className="bg-emerald-50 p-5 rounded-xl text-emerald-800 shadow text-center">
+              <p className="text-sm font-bold mb-2">🎯 Accuracy</p>
+              <p className="text-3xl font-black">{accuracy.toFixed(1)}%</p>
             </div>
-            <div className="bg-rose-50 p-6 rounded-2xl text-rose-700 shadow">
-              <p className="text-lg font-bold mb-2">😅 Mistakes</p>
-              <p className="text-4xl font-black">{gameState.mistakes}</p>
+            <div className="bg-rose-50 p-5 rounded-xl text-rose-700 shadow text-center">
+              <p className="text-sm font-bold mb-2">😅 Mistakes</p>
+              <p className="text-3xl font-black">{gameState.mistakes}</p>
             </div>
-            <div className="bg-sky-50 p-6 rounded-2xl text-sky-700 shadow">
-              <p className="text-lg font-bold mb-2">⏱️ Time</p>
-              <p className="text-4xl font-black">
+            <div className="bg-sky-50 p-5 rounded-xl text-sky-700 shadow text-center">
+              <p className="text-sm font-bold mb-2">⏱️ Time</p>
+              <p className="text-3xl font-black">
                 {Math.round(result.totalTime)}s
               </p>
             </div>
           </div>
 
-          {/* Grade Level Badge */}
-          <div className="text-center">
-            <p className="text-lg font-bold text-gray-700 mb-2">Grade Level</p>
-            <span className="inline-block bg-emerald-600 text-white px-6 py-3 rounded-full text-xl font-bold shadow-lg">
-              {gameState.gradeLevel}
-            </span>
-          </div>
-
-          {/* Wrong Answers Dropdown */}
+          {/* Wrong Answers Dropdown - Can overflow */}
           {gameState.answerLog && gameState.answerLog.length > 0 && (
-            <details className="bg-white rounded-2xl p-5 shadow">
-              <summary className="cursor-pointer text-lg font-bold text-gray-800">
-                See sentences you missed
+            <details className="bg-white rounded-xl p-4 shadow shrink-0">
+              <summary className="cursor-pointer text-base font-bold text-gray-800">
+                See sentences you missed ({gameState.answerLog.length})
               </summary>
-              <div className="mt-4 flex flex-col gap-4">
+              <div className="mt-4 flex flex-col gap-3 max-h-[40vh] overflow-y-auto scrollbar-hidden">
                 {gameState.answerLog.map((entry) => (
                   <div
                     key={entry.questionId}
-                    className="bg-gray-50 rounded-xl p-4"
+                    className="bg-gray-50 rounded-lg p-4"
                   >
-                    <p className="text-sm text-gray-500 mb-1">
+                    <p className="text-sm text-gray-500 mb-2">
                       Incorrect sentence shown
                     </p>
-                    <p className="font-bold text-gray-800 mb-2">
+                    <p className="font-bold text-base text-gray-800 mb-2">
                       {entry.prompt}
                     </p>
                     {entry.userAnswer && (
-                      <p className="text-sm text-rose-700 mb-1">
+                      <p className="text-sm text-rose-700 mb-2">
                         Your answer: {entry.userAnswer}
                       </p>
                     )}
@@ -154,7 +158,7 @@ const UN_FinishedScreen = ({
                       )}
                     </p>
                     {entry.gaveUp && (
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500 mt-2">
                         You chose to give up on this one.
                       </p>
                     )}
@@ -164,17 +168,17 @@ const UN_FinishedScreen = ({
             </details>
           )}
 
-          {/* Action Buttons */}
-          <div className="flex flex-col md:flex-row gap-4">
+          {/* Action Buttons - Larger */}
+          <div className="flex flex-col md:flex-row gap-5 shrink-0">
             <button
               onClick={onPlayAgain}
-              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-2xl px-8 py-5 rounded-2xl transition-all hover:scale-105 shadow-lg"
+              className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xl px-6 py-4 rounded-xl transition-all hover:scale-105 shadow-lg"
             >
               🎮 Play Again
             </button>
             <button
               onClick={onBackHome}
-              className="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xl px-8 py-5 rounded-2xl transition-all hover:scale-105 shadow-lg"
+              className="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-bold text-lg px-6 py-4 rounded-xl transition-all hover:scale-105 shadow-lg"
             >
               🏠 Back to Home
             </button>
