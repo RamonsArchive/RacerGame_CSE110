@@ -295,7 +295,7 @@ This project is licensed under the JetBrains Public License Version 3.0 (JPLv3).
 
 ### JetBrains Public License Version 3.0
 
-Copyright (c) 2024 RacingGame_CSE110 Contributors
+Copyright (c) 2025 RacingGame_CSE110 Contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
