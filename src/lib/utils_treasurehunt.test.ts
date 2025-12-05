@@ -4,6 +4,7 @@ import {
   calculateGameScore,
   calculateAccuracy,
   calculateAverageTime,
+  getSentencePartsWithUnderline,
 } from "./utils_treasurehunt";
 import {
   QuestionResult,
@@ -354,6 +355,140 @@ describe("TreasureHunt Utils", () => {
       const questionCount = 0;
       const avgTime = calculateAverageTime(totalTime, questionCount);
       expect(avgTime).toBe(0);
+    });
+  });
+
+  describe("getSentencePartsWithUnderline", () => {
+    it("should return entire sentence without underline when wordToUnderline is undefined", () => {
+      const sentence = "The dog are running in the park.";
+      const result = getSentencePartsWithUnderline(sentence);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].text).toBe(sentence);
+      expect(result[0].shouldUnderline).toBe(false);
+    });
+
+    it("should correctly underline a single word", () => {
+      const sentence = "The dog are running in the park.";
+      const wordToUnderline = "are";
+      const result = getSentencePartsWithUnderline(sentence, wordToUnderline);
+
+      // Find the part that should be underlined
+      const underlinedPart = result.find((part) => part.shouldUnderline);
+      expect(underlinedPart).toBeDefined();
+      expect(underlinedPart?.text).toBe("are");
+
+      // Verify sentence is split correctly
+      const fullText = result.map((part) => part.text).join("");
+      expect(fullText).toBe(sentence);
+    });
+
+    it("should correctly underline multiple words from array", () => {
+      const sentence = "The dog are running in the park.";
+      const wordsToUnderline = ["dog", "are"];
+      const result = getSentencePartsWithUnderline(sentence, wordsToUnderline);
+
+      // Find all parts that should be underlined
+      const underlinedParts = result.filter((part) => part.shouldUnderline);
+      expect(underlinedParts.length).toBe(2);
+
+      const underlinedTexts = underlinedParts.map((part) => part.text);
+      expect(underlinedTexts).toContain("dog");
+      expect(underlinedTexts).toContain("are");
+
+      // Verify sentence is split correctly
+      const fullText = result.map((part) => part.text).join("");
+      expect(fullText).toBe(sentence);
+    });
+
+    it("should handle case-insensitive matching", () => {
+      const sentence = "The Dog are running in the park.";
+      const wordToUnderline = "dog";
+      const result = getSentencePartsWithUnderline(sentence, wordToUnderline);
+
+      const underlinedPart = result.find((part) => part.shouldUnderline);
+      expect(underlinedPart).toBeDefined();
+      expect(underlinedPart?.text).toBe("Dog");
+    });
+
+    it("should handle words with punctuation correctly", () => {
+      const sentence = "I like apple.";
+      const wordToUnderline = "apple";
+      const result = getSentencePartsWithUnderline(sentence, wordToUnderline);
+
+      const underlinedPart = result.find((part) => part.shouldUnderline);
+      expect(underlinedPart).toBeDefined();
+      // Should match "apple" even if it has punctuation after it
+      expect(underlinedPart?.text).toContain("apple");
+
+      const fullText = result.map((part) => part.text).join("");
+      expect(fullText).toBe(sentence);
+    });
+
+    it("should preserve whitespace in the sentence", () => {
+      const sentence = "The dog  are   running.";
+      const wordToUnderline = "are";
+      const result = getSentencePartsWithUnderline(sentence, wordToUnderline);
+
+      const fullText = result.map((part) => part.text).join("");
+      expect(fullText).toBe(sentence);
+    });
+
+    it("should not underline words that don't match", () => {
+      const sentence = "The dog are running in the park.";
+      const wordToUnderline = "cat";
+      const result = getSentencePartsWithUnderline(sentence, wordToUnderline);
+
+      const underlinedParts = result.filter((part) => part.shouldUnderline);
+      expect(underlinedParts.length).toBe(0);
+
+      const fullText = result.map((part) => part.text).join("");
+      expect(fullText).toBe(sentence);
+    });
+
+    it("should handle empty sentence", () => {
+      const sentence = "";
+      const wordToUnderline = "test";
+      const result = getSentencePartsWithUnderline(sentence, wordToUnderline);
+
+      expect(result).toHaveLength(0);
+    });
+
+    it("should handle sentence with only whitespace", () => {
+      const sentence = "   ";
+      const wordToUnderline = "test";
+      const result = getSentencePartsWithUnderline(sentence, wordToUnderline);
+
+      const fullText = result.map((part) => part.text).join("");
+      expect(fullText).toBe(sentence);
+
+      const underlinedParts = result.filter((part) => part.shouldUnderline);
+      expect(underlinedParts.length).toBe(0);
+    });
+
+    it("should correctly split and underline in a complex sentence", () => {
+      const sentence = "She don't like to eat vegetables.";
+      const wordToUnderline = "don't";
+      const result = getSentencePartsWithUnderline(sentence, wordToUnderline);
+
+      const underlinedPart = result.find((part) => part.shouldUnderline);
+      expect(underlinedPart).toBeDefined();
+      expect(underlinedPart?.text).toBe("don't");
+
+      const fullText = result.map((part) => part.text).join("");
+      expect(fullText).toBe(sentence);
+    });
+
+    it("should handle multiple occurrences of the same word", () => {
+      const sentence = "The dog and the dog are playing.";
+      const wordToUnderline = "dog";
+      const result = getSentencePartsWithUnderline(sentence, wordToUnderline);
+
+      const underlinedParts = result.filter((part) => part.shouldUnderline);
+      expect(underlinedParts.length).toBe(2);
+
+      const fullText = result.map((part) => part.text).join("");
+      expect(fullText).toBe(sentence);
     });
   });
 });
