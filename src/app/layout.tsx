@@ -56,7 +56,8 @@ export const Nunito = LocalFont({
 
 export const metadata: Metadata = {
   title: "Type Quest - Supporting Education Through Typing Games",
-  description: "Supporting education through typing games. Play TypeQuest, Treasure Hunt, and Unscramble to improve your typing skills while learning.",
+  description:
+    "Supporting education through typing games. Play TypeQuest, Treasure Hunt, and Unscramble to improve your typing skills while learning.",
   keywords: [
     "typing games",
     "educational games",
@@ -68,18 +69,34 @@ export const metadata: Metadata = {
     "educational technology",
   ],
   authors: [
-    { name: "Ramon Calderon McDargh-Mitchell", url: "https://www.linkedin.com/in/ramonmnm100/" },
-    { name: "Zhang Yucheng", url: "https://www.linkedin.com/in/yuchengzhang05330/" },
-    { name: "Herman Hundsberger", url: "https://www.linkedin.com/in/herman-hundsberger-577600295/" },
+    {
+      name: "Ramon Calderon McDargh-Mitchell",
+      url: "https://www.linkedin.com/in/ramonmnm100/",
+    },
+    {
+      name: "Zhang Yucheng",
+      url: "https://www.linkedin.com/in/yuchengzhang05330/",
+    },
+    {
+      name: "Herman Hundsberger",
+      url: "https://www.linkedin.com/in/herman-hundsberger-577600295/",
+    },
     { name: "Ali El Lahib", url: "https://www.linkedin.com/in/ali-ellahib/" },
-    { name: "Srikar Eranky", url: "https://www.linkedin.com/in/srikar-eranky/" },
-    { name: "Nicholas Ferry", url: "https://www.linkedin.com/in/nicholas--ferry/" },
+    {
+      name: "Srikar Eranky",
+      url: "https://www.linkedin.com/in/srikar-eranky/",
+    },
+    {
+      name: "Nicholas Ferry",
+      url: "https://www.linkedin.com/in/nicholas--ferry/",
+    },
   ],
   creator: "Ramon Calderon McDargh-Mitchell",
   publisher: "Type Quest Team",
   openGraph: {
     title: "Type Quest - Supporting Education Through Typing Games",
-    description: "Supporting education through typing games. Play TypeQuest, Treasure Hunt, and Unscramble to improve your typing skills while learning.",
+    description:
+      "Supporting education through typing games. Play TypeQuest, Treasure Hunt, and Unscramble to improve your typing skills while learning.",
     type: "website",
     siteName: "Type Quest",
     images: [
@@ -94,7 +111,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary",
     title: "Type Quest - Supporting Education Through Typing Games",
-    description: "Supporting education through typing games. Play TypeQuest, Treasure Hunt, and Unscramble to improve your typing skills while learning.",
+    description:
+      "Supporting education through typing games. Play TypeQuest, Treasure Hunt, and Unscramble to improve your typing skills while learning.",
     images: ["/favicon.ico"],
   },
   robots: {
@@ -112,25 +130,23 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   other: {
-    "github": "https://github.com/RamonsArchive",
-    "clutchstudio": "https://clutchstudio.dev",
-    "digitalrevolution": "https://digitalrevolution.foundation",
-    "colorstack": "https://colorstackucsd.org",
+    github: "https://github.com/RamonsArchive",
+    clutchstudio: "https://clutchstudio.dev",
+    digitalrevolution: "https://digitalrevolution.foundation",
+    colorstack: "https://colorstackucsd.org",
   },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
       { url: "/favicon.ico", type: "image/x-icon" },
     ],
-    apple: [
-      { url: "/favicon.ico", sizes: "180x180" },
-    ],
+    apple: [{ url: "/favicon.ico", sizes: "180x180" }],
     shortcut: "/favicon.ico",
   },
   metadataBase: new URL("https://typequest.dev"),
   verification: {
     other: {
-      "github": "RamonsArchive",
+      github: "RamonsArchive",
     },
   },
 };
@@ -151,7 +167,8 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "WebApplication",
               name: "Type Quest",
-              description: "Supporting education through typing games. Play TypeQuest, Treasure Hunt, and Unscramble to improve your typing skills while learning.",
+              description:
+                "Supporting education through typing games. Play TypeQuest, Treasure Hunt, and Unscramble to improve your typing skills while learning.",
               url: "https://typequest.dev",
               applicationCategory: "EducationalApplication",
               creator: {
